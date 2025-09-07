@@ -386,20 +386,25 @@ const RankFinder = () => {
                   className="bg-gray-900 border border-gray-800 hover:border-yellow-600 p-6 rounded-lg transition-all hover:bg-gray-800"
                 >
                   {/* User Header */}
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-4">
-                      <span className="font-bold text-yellow-400 text-xl bg-yellow-400/10 px-3 py-1 rounded-full">
+                  <div className="mb-4">
+                    {/* Rank and Username Row */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="font-bold text-yellow-400 text-lg bg-yellow-400/10 px-3 py-1 rounded-full">
                         #{user.rank}
                       </span>
-                      <span className="text-xl font-semibold text-white">
+                      <span className="text-lg font-semibold text-white">
                         {user.username}
                       </span>
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-yellow-300">
-                        {Number(user.mindshare).toFixed(3)}%
+                    
+                    {/* Mindshare Row - Separate for mobile */}
+                    <div className="bg-yellow-400/10 rounded-lg p-3 mb-3">
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-yellow-300">
+                          {Number(user.mindshare).toFixed(3)}%
+                        </div>
+                        <div className="text-sm text-gray-400">Mindshare</div>
                       </div>
-                      <div className="text-sm text-gray-400">Mindshare</div>
                     </div>
                   </div>
                   
