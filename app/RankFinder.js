@@ -1,4 +1,4 @@
-use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { RefreshCw } from "lucide-react";
@@ -406,6 +406,28 @@ const RankFinder = () => {
                         <div className="text-sm text-gray-400">Mindshare</div>
                       </div>
                     </div>
+                    
+                    {/* Viral Share Section */}
+                    <div className="text-center mt-4">
+                      <button
+                        onClick={() => {
+                          const shareText = `🔥 I'm ranked #${user.rank} on Yappers! ${user.mindshare.toFixed(3)}% mindshare with ${formatNumber(user.likes)} likes! Check your rank: ${window.location.href}`;
+                          if (navigator.share) {
+                            navigator.share({
+                              title: `#${user.rank} Yapper Alert! 🚀`,
+                              text: shareText,
+                              url: window.location.href
+                            });
+                          } else {
+                            navigator.clipboard.writeText(shareText);
+                            alert('Brag-worthy text copied! 📋 Paste it everywhere! 🚀');
+                          }
+                        }}
+                        className="px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-full text-sm font-semibold hover:from-green-600 hover:to-blue-600 transition-all"
+                      >
+                        🔥 Flex Your Rank
+                      </button>
+                    </div>
                   </div>
                   
                   {/* Metrics Grid */}
@@ -453,9 +475,19 @@ const RankFinder = () => {
           <div className="text-center py-8">
             <p className="text-gray-400 text-lg">
               {rankings.length > 0 
-                ? `Search for a username above to see detailed metrics
-                
-                eg. @auriosweb3` 
+                ? <>
+                    Search for a username above to see detailed metrics
+                    <br /><br />
+                    eg.{' '}
+                    <a 
+                      href="https://x.com/auriosweb3" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-yellow-400 hover:text-yellow-300 underline hover:no-underline transition-colors"
+                    >
+                      @auriosweb3
+                    </a>
+                  </>
                 : "Loading data..."}
             </p>
             {rankings.length > 0 && (
