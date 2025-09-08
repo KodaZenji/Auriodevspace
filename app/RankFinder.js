@@ -278,7 +278,7 @@ const RankFinder = () => {
             animation: 'gradient 3s ease infinite'
           }}
         >
-          ✨ Yappers Rank Checker ✨
+          ✨ Yappers Rank Finder ✨
         </h1>
         <style jsx>{`
           @keyframes gradient {
@@ -406,7 +406,7 @@ const RankFinder = () => {
                         <div className="text-sm text-gray-400">Mindshare</div>
                       </div>
                     </div>
-             
+                  
                   {/* Metrics Grid */}
                   <div className="grid grid-cols-3 gap-4 mt-4">
                     <div className="text-center bg-gray-800/50 rounded-lg p-3">
@@ -454,19 +454,17 @@ const RankFinder = () => {
               {rankings.length > 0 
                 ? <>
                     Search for a username above to see detailed metrics
-<br /><br />
-eg.{' '}
-<a 
-  href="https://x.com/auriosweb3" 
-  target="_blank" 
-  rel="noopener noreferrer"
-  className="hover:no-underline transition-colors underline"
-  style={{ color: '#94c182' }}
-  onMouseEnter={(e) => e.target.style.color = '#7fb06a'}
-  onMouseLeave={(e) => e.target.style.color = '#94c182'}
->
-  @auriosweb3
-</a>
+                    <br /><br />
+                    eg.{' '}
+                    <a 
+                      href="https://x.com/auriosweb3" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hover:text-gray-300 transition-colors"
+                      style={{ color: '#94c182' }}
+                    >
+                      @auriosweb3
+                    </a>
                   </>
                 : "Loading data..."}
             </p>
