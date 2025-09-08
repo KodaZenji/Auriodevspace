@@ -424,7 +424,7 @@ const RankFinder = () => {
                       className="hover:text-gray-300 transition-colors"
                       style={{ color: '#94c182' }}
                     >
-                      @auriosweb3
+                      auriosweb3
                     </a>
                   </>
                 )
