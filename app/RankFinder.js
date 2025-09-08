@@ -364,7 +364,7 @@ const RankFinder = () => {
                         <div className="text-xl font-bold text-yellow-300">
                           {Number(user.mindshare).toFixed(2)}%
                         </div>
-                        <div className="text-sm text-gray-400">Mindshare (Score × 100)</div>
+                        <div className="text-sm text-gray-400">Mindshare</div>
                       </div>
                     </div>
                   </div>
