@@ -42,7 +42,7 @@ const RankFinder = () => {
           // If no common keys, check all values for arrays
           if (!foundArray) {
             // eslint-disable-next-line no-unused-vars
-            for (const [_, value] of Object.entries(data)) {
+            for (const [key, value] of Object.entries(data)) {
               if (Array.isArray(value) && value.length > 0) {
                 foundArray = value;
                 break;
@@ -231,8 +231,6 @@ const RankFinder = () => {
         padding: '1.5rem'
       }}
     >
-      {/* Header - Enhanced gold styling with inline backup */}
-      {/* Site Header with Logo on Left */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <Image 
@@ -242,22 +240,7 @@ const RankFinder = () => {
             height={50} 
             className="rounded-full"
           />
-          Goat Network
-          <h1 
-            className="text-2xl font-bold"
-            style={{
-              fontSize: "1.75rem",
-              fontWeight: "bold",
-              background: "linear-gradient(45deg, #fbbf24, #f59e0b, #d97706, #fbbf24)",
-              backgroundSize: "300% 300%",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              color: "#fbbf24",
-              animation: "gradient 3s ease infinite",
-            }}
-          >
-          </h1>
+          <span style={{ color: '#ffffff' }}>Goat Network</span>
         </div>
       </div>
 
@@ -274,22 +257,13 @@ const RankFinder = () => {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
-            color: '#fbbf24',
-            animation: 'gradient 3s ease infinite'
+            color: '#fbbf24'
           }}
         >
-          ✨ Yappers Rank Checker ✨
+          Yappers Rank Checker
         </h1>
-        <style jsx>{`
-          @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-        `}</style>
       </div>
 
-      {/* Tabs - Gold active tabs with black background and inline styles */}
       <div className="flex justify-center gap-4 mb-6" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
         {["7", "30", "90"].map((tab) => (
           <button
@@ -314,7 +288,6 @@ const RankFinder = () => {
         ))}
       </div>
 
-      {/* Search - Enhanced styling with gold accents and inline styles */}
       <div className="flex justify-center mb-6" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
         <input
           type="text"
@@ -335,7 +308,6 @@ const RankFinder = () => {
         />
       </div>
 
-      {/* Refresh - Gold button styling */}
       <div className="flex justify-center mb-6">
         <button
           onClick={() => fetchRankings(activeTab)}
@@ -360,7 +332,6 @@ const RankFinder = () => {
         </button>
       </div>
 
-      {/* Error - Only show if there's a real error to display */}
       {error && (
         <div className="max-w-4xl mx-auto mb-4">
           <p className="text-red-400 bg-red-900/20 border border-red-800 rounded-lg p-4 text-center">
@@ -369,7 +340,6 @@ const RankFinder = () => {
         </div>
       )}
 
-      {/* Results - Enhanced styling with expanded layout for all metrics */}
       <div className="max-w-6xl mx-auto">
         {loading ? (
           <div className="text-center py-8">
@@ -377,7 +347,6 @@ const RankFinder = () => {
             <p className="text-gray-400">Loading leaderboard...</p>
           </div>
         ) : searchUser ? (
-          // Only show results when user is actively searching
           filteredRankings.length > 0 ? (
             <div className="space-y-4">
               {filteredRankings.map((user) => (
@@ -385,9 +354,7 @@ const RankFinder = () => {
                   key={user.id}
                   className="bg-gray-900 border border-gray-800 hover:border-yellow-600 p-6 rounded-lg transition-all hover:bg-gray-800"
                 >
-                  {/* User Header */}
                   <div className="mb-4">
-                    {/* Rank and Username Row */}
                     <div className="flex items-center gap-3 mb-3">
                       <span className="font-bold text-yellow-400 text-lg bg-yellow-400/10 px-3 py-1 rounded-full">
                         #{user.rank}
@@ -397,7 +364,6 @@ const RankFinder = () => {
                       </span>
                     </div>
                     
-                    {/* Mindshare Row - Separate for mobile */}
                     <div className="bg-yellow-400/10 rounded-lg p-3 mb-3">
                       <div className="text-center">
                         <div className="text-xl font-bold text-yellow-300">
@@ -408,7 +374,6 @@ const RankFinder = () => {
                     </div>
                   </div>
                   
-                  {/* Metrics Grid */}
                   <div className="grid grid-cols-3 gap-4 mt-4">
                     <div className="text-center bg-gray-800/50 rounded-lg p-3">
                       <div className="text-lg font-bold text-blue-400">
@@ -430,7 +395,6 @@ const RankFinder = () => {
                     </div>
                   </div>
                   
-                  {/* No data message */}
                   {user.mindshare === 0 && user.tweets === 0 && user.likes === 0 && user.impressions === 0 && (
                     <div className="mt-4 text-center text-gray-500 text-sm bg-gray-800/30 rounded-lg p-3">
                       No activity data available for this time period
@@ -445,7 +409,7 @@ const RankFinder = () => {
                 No users found for &quot;{searchUser}&quot;
               </p>
               <p className="text-gray-500 text-sm mt-2">
-                Try a different search term
+                Try a different username
               </p>
             </div>
           )
@@ -453,7 +417,8 @@ const RankFinder = () => {
           <div className="text-center py-8">
             <p className="text-gray-400 text-lg">
               {rankings.length > 0 
-                ? <>
+                ? (
+                  <>
                     Search for a username above to see detailed metrics
                     <br /><br />
                     eg.{' '}
@@ -467,6 +432,7 @@ const RankFinder = () => {
                       @auriosweb3
                     </a>
                   </>
+                )
                 : "Loading data..."}
             </p>
             {rankings.length > 0 && (
