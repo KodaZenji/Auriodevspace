@@ -53,31 +53,28 @@ const RankFinder = () => {
           if (foundArray) {
             usersArray = foundArray;
           } else {
-            // Create sample data for testing with all metrics
+            // Create sample data for testing with score-based mindshare
             usersArray = [
               { 
                 username: 'TestUser1', 
-                mindshare: 15.5, 
                 tweets: 120, 
                 likes: 2500, 
                 impressions: 45000,
-                score: 1000 
+                score: 0.155 // This will become 15.5% mindshare
               },
               { 
                 username: 'TestUser2', 
-                mindshare: 12.3, 
                 tweets: 95, 
                 likes: 1800, 
                 impressions: 32000,
-                score: 900 
+                score: 0.123 // This will become 12.3% mindshare
               },
               { 
                 username: 'TestUser3', 
-                mindshare: 10.1, 
                 tweets: 80, 
                 likes: 1200, 
                 impressions: 28000,
-                score: 800 
+                score: 0.101 // This will become 10.1% mindshare
               }
             ];
           }
@@ -85,28 +82,26 @@ const RankFinder = () => {
           usersArray = [
             { 
               username: 'MockUser1', 
-              mindshare: 0.087, 
               tweet_counts: 65, 
               total_likes: 950, 
               total_impressions: 18000,
-              score: 500 
+              score: 0.087 // This will become 8.7% mindshare
             },
             { 
               username: 'MockUser2', 
-              mindshare: 0.062, 
               tweet_counts: 50, 
               total_likes: 720, 
               total_impressions: 15000,
-              score: 400 
+              score: 0.062 // This will become 6.2% mindshare
             }
           ];
         }
         
-        // Transform the data safely with all metrics
+        // Transform the data - convert score to mindshare by multiplying by 100
         const transformedData = usersArray.map((user, index) => ({
           id: user?.id || user?.userId || user?.user_id || index,
           username: user?.username || user?.name || user?.handle || user?.displayName || user?.user || `User${index + 1}`,
-          mindshare: Number(user?.mindshare ?? 0),
+          mindshare: Number((user?.score ?? 0) * 100), // Convert score to mindshare percentage
           tweets: user?.tweet_counts ?? user?.tweet_count ?? 0,
           likes: user?.total_likes ?? user?.likes ?? 0,
           impressions: user?.total_impressions ?? user?.impressions ?? 0,
@@ -116,36 +111,36 @@ const RankFinder = () => {
 
         setRankings(transformedData);
       } else {
-        // Create fallback data when API fails with all metrics
+        // Create fallback data when API fails with score-based mindshare
         const fallbackData = [
           { 
             id: 1, 
             username: 'SampleUser1', 
-            mindshare: 22.5, 
+            mindshare: 22.5, // This represents score: 0.225
             tweets: 180, 
             likes: 4200, 
             impressions: 75000,
-            score: 1200, 
+            score: 0.225, 
             rank: 1 
           },
           { 
             id: 2, 
             username: 'SampleUser2', 
-            mindshare: 18.3, 
+            mindshare: 18.3, // This represents score: 0.183
             tweets: 150, 
             likes: 3100, 
             impressions: 58000,
-            score: 1100, 
+            score: 0.183, 
             rank: 2 
           },
           { 
             id: 3, 
             username: 'SampleUser3', 
-            mindshare: 14.7, 
+            mindshare: 14.7, // This represents score: 0.147
             tweets: 120, 
             likes: 2400, 
             impressions: 42000,
-            score: 1000, 
+            score: 0.147, 
             rank: 3 
           }
         ];
@@ -153,47 +148,47 @@ const RankFinder = () => {
         setError(null);
       }
     } catch (fetchError) {
-      // Provide sample data even on error with all metrics
+      // Provide sample data even on error with score-based mindshare
       console.error('Fetch error:', fetchError);
       const sampleData = [
         { 
           id: 1, 
           username: 'DemoUser1', 
-          mindshare: 28.9, 
+          mindshare: 28.9, // This represents score: 0.289
           tweets: 220, 
           likes: 5800, 
           impressions: 95000,
-          score: 2000, 
+          score: 0.289, 
           rank: 1 
         },
         { 
           id: 2, 
           username: 'DemoUser2', 
-          mindshare: 24.1, 
+          mindshare: 24.1, // This represents score: 0.241
           tweets: 190, 
           likes: 4500, 
           impressions: 78000,
-          score: 1800, 
+          score: 0.241, 
           rank: 2 
         },
         { 
           id: 3, 
           username: 'TestUser', 
-          mindshare: 19.3, 
+          mindshare: 19.3, // This represents score: 0.193
           tweets: 160, 
           likes: 3200, 
           impressions: 62000,
-          score: 1600, 
+          score: 0.193, 
           rank: 3 
         },
         { 
           id: 4, 
           username: 'SampleYapper', 
-          mindshare: 16.8, 
+          mindshare: 16.8, // This represents score: 0.168
           tweets: 140, 
           likes: 2800, 
           impressions: 48000,
-          score: 1400, 
+          score: 0.168, 
           rank: 4 
         }
       ];
@@ -367,9 +362,9 @@ const RankFinder = () => {
                     <div className="bg-yellow-400/10 rounded-lg p-3 mb-3">
                       <div className="text-center">
                         <div className="text-xl font-bold text-yellow-300">
-                          {Number(user.mindshare).toFixed(3)}%
+                          {Number(user.score).toFixed(2)}%
                         </div>
-                        <div className="text-sm text-gray-400">Mindshare</div>
+                        <div className="text-sm text-gray-400">Mindshare (Score × 100)</div>
                       </div>
                     </div>
                   </div>
