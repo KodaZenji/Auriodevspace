@@ -278,7 +278,7 @@ const RankFinder = () => {
             animation: 'gradient 3s ease infinite'
           }}
         >
-          ✨ Yappers Rank Finder ✨
+          ✨ Yappers Rank Checker ✨
         </h1>
         <style jsx>{`
           @keyframes gradient {
@@ -406,6 +406,7 @@ const RankFinder = () => {
                         <div className="text-sm text-gray-400">Mindshare</div>
                       </div>
                     </div>
+                  </div>
                   
                   {/* Metrics Grid */}
                   <div className="grid grid-cols-3 gap-4 mt-4">
