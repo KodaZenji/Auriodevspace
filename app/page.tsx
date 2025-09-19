@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import RankFinder from './rankfinder/page';   
-import Calculator from './calculator/page';   
+import sonicCalculator from './sonicCalculator';   
 
 export default function HomePage() {
   const [active, setActive] = useState<'rankfinder' | 'calculator' | null>(null);
