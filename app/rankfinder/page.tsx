@@ -1,9 +1,10 @@
+"use client" ;
 
 import React from 'react';
 import RankFinderComponent from './RankFinder.js'; // 
 
 const RankFinder: React.FC = () => {
-  return <RankFinderComponent />;
+  return <RankFinder/>;
 };
 
 export default RankFinder;
