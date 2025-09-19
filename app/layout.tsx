@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Goat Network Leaderboard Rank Checker",
-  description: "Easily Locate the Top 500 GOAT Network Yappers",
+  title: "Aurio Devspace and Tools",
+  description: "Developer tools and utilities by Aurio 💚",
 };
 
 export default function RootLayout({
