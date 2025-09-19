@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import RankFinder from './RankFinder';   
-import Calculator from './Calculator';   
+import RankFinder from './rankfinder/page';   
+import Calculator from './calculator/page';   
 
 export default function HomePage() {
   const [active, setActive] = useState<'rankfinder' | 'calculator' | null>(null);
