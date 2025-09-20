@@ -1,9 +1,9 @@
+import React from 'react';
 import "../globals.css";
 
 export const metadata = {
   title: "Sonic x Kaito Yapper Rewards Calculator",
-  description:
-    "Estimate your S token rewards based on your leaderboard ranking in Round 1 of the Sonic Yapper campaign",
+  description: "Estimate your S token rewards based on your leaderboard ranking in Round 1 of the Sonic Yapper campaign",
   icons: {
     icon: '/sonic-labs-logo.png', 
     shortcut: '/sonic-labs-logo.png',
@@ -11,7 +11,7 @@ export const metadata = {
   }
 };
 
-export default function SonicLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
