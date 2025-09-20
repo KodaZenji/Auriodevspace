@@ -78,8 +78,7 @@ export default function SonicRewardsCalculator() {
             Sonic x Kaito Airdrop Rewards Calculator
           </h1>
           <p className="text-lg opacity-90 pl-20">
-            Estimate your S token rewards based on your leaderboard ranking in
-            Round 1 of the Sonic Yapper campaign
+            Estimated $S token rewards based on leaderboard ranking
           </p>
         </div>
 
@@ -89,13 +88,13 @@ export default function SonicRewardsCalculator() {
             <h2 className="text-2xl font-bold mb-6 text-white/95"> Global Leaderboard</h2>
             <div className="mb-6">
               <label className="block font-semibold mb-2 text-white/85" htmlFor="globalRank">
-                Your Ranking (1-1000)
+                Ranks (1-1000)
               </label>
               <input
                 type="number"
                 id="globalRank"
                 className="premium-input"
-                placeholder="Enter your rank"
+                placeholder="Enter a rank to check"
                 min="1"
                 max="1000"
                 value={globalRank}
@@ -132,13 +131,13 @@ export default function SonicRewardsCalculator() {
             </div>
             <div className="mb-6">
               <label className="block font-semibold mb-2 text-white/85" htmlFor="regionalRank">
-                Your Ranking (1-100)
+                Ranks (1-100)
               </label>
               <input
                 type="number"
                 id="regionalRank"
                 className="premium-input"
-                placeholder="Enter your rank"
+                placeholder="Enter a rank to check"
                 min="1"
                 max="100"
                 value={regionalRank}
@@ -162,7 +161,7 @@ export default function SonicRewardsCalculator() {
 
         {/* Info Section */}
         <div className="glass-card mt-10">
-          <h2 className="text-2xl font-bold mb-6 text-white/95">📊 Round 1 Distribution Overview</h2>
+          <h2 className="text-2xl font-bold mb-6 text-white/95">Round 1 Distribution Overview</h2>
           <p className="mb-6 opacity-90">
             Total allocation of 2,500,000 S tokens distributed across global and
             regional leaderboards. Rewards are heavily weighted towards top
@@ -172,7 +171,7 @@ export default function SonicRewardsCalculator() {
           <div className="grid-premium grid-auto-fit">
             <div className="stat-card">
               <div className="stat-number">1,800,272</div>
-              <div className="stat-label">Global Pool (S tokens)</div>
+              <div className="stat-label">Global Pool ($S tokens)</div>
             </div>
             <div className="stat-card">
               <div className="stat-number">1,000</div>
@@ -190,14 +189,14 @@ export default function SonicRewardsCalculator() {
 
           <div className="alert-warning mt-6">
             <strong>⚠️ Disclaimer:</strong> These are estimates based on the
-            distribution structure. Actual rewards may vary slightly. Sonic Labs
+            distribution structure made public. Actual rewards may vary slightly. Sonic Labs
             team members are excluded from rewards.
           </div>
         </div>
 
         <div className="text-center mt-10 p-6 opacity-70 text-sm border-t border-white/10">
           <p>
-            Built for the Sonic community 💙 |{" "}
+            Built for the Sonic community 💚|{" "}
             <span className="text-green-400 font-semibold">Community Calculator</span> | Data
             based on Round 1 snapshot (Sept 18, 00:00 UTC)
           </p>
