@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     icon: '/image.jpg', 
     shortcut: '/image.jpg',
     apple: '/image.jpg',
-};
+}
 };
 export default function RootLayout({
   children,
