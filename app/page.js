@@ -56,7 +56,7 @@ const LandingPage = () => {
       {/* Main */}
       <main
         className="flex-1 flex items-start justify-center w-full px-4 sm:px-6 lg:px-8 
-                 pt-32 sm:pt-40 lg:pt-48 pb-8"
+                 pt-40 sm:pt-48 lg:pt-56 pb-8"
       >
         <div className="w-full max-w-6xl mx-auto">
           <div
@@ -100,7 +100,7 @@ const LandingPage = () => {
                 <div className="flex flex-col items-center text-center mt-8 px-2">
                   <h3
                     className="text-sm sm:text-base lg:text-lg font-semibold tracking-tight 
-                                 bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300"
+                                 bg-clip-to text-transparent bg-gradient-to-r from-white to-slate-300"
                   >
                     {module.title}
                   </h3>
