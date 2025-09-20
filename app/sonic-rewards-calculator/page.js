@@ -59,16 +59,6 @@ export default function SonicRewardsCalculator() {
         <div className="glass-header relative overflow-hidden">
           {/* Local Logo */}
           <div className="absolute top-6 left-6 w-16 h-16">
-            <img
-              src="/sonic-labs-logo.png"
-              alt="Sonic Logo"
-              className="w-full h-full object-contain drop-shadow-lg"
-              onError={(e) => {
-                // Fallback if logo fails to load
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'flex';
-              }}
-            />
             <div 
               className="w-full h-full bg-gradient-to-br from-orange-400 to-blue-600 rounded-full items-center justify-center text-2xl font-bold text-white hidden"
               style={{ display: 'none' }}
