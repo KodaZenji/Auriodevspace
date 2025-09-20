@@ -53,12 +53,13 @@ const LandingPage = () => {
         </div>
       </header>
       {/* Main */}
-      <main className="flex-1 flex items-start justify-center w-full px-4 sm:px-6 lg:px-8 
-                       pt-16 sm:pt-20 pb-8"> 
+<main className="flex-1 flex items-start justify-center w-full px-4 sm:px-6 lg:px-8 
+                 mt-20 sm:mt-24 lg:mt-28 pb-8">
+
         {/* reduced top padding */}
         <div className="w-full max-w-6xl mx-auto">
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 
-                          gap-8 sm:gap-6 justify-items-center">
+                          gap-4 sm:gap-6 justify-items-center">
             {modules.map((module) => (
               <div
                 key={module.id}
@@ -75,24 +76,24 @@ const LandingPage = () => {
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-black/20 rounded-xl sm:rounded-2xl 
                                 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+{/* Top Row: logo + chevron */}
+<div className="relative z-10 flex items-center justify-between mb-4">
+  <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 
+                  bg-white/10 backdrop-blur-sm border border-white/20 
+                  group-hover:bg-white/20 transition-colors rounded-lg">
+    <img
+      src={module.logo}
+      alt={module.logoAlt}
+      className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+    />
+  </div>
+  <ChevronRight
+    size={20}
+    className="sm:w-7 sm:h-7 text-white/70 group-hover:text-white 
+               group-hover:translate-x-1 transition-all duration-200"
+  />
+</div>
 
-                {/* Top Row: logo + chevron */}
-                <div className="relative z-10 flex items-center justify-between">
-                  <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 
-                                  bg-white/10 backdrop-blur-sm border border-white/20 
-                                  group-hover:bg-white/20 transition-colors rounded-lg">
-                    <img
-                      src={module.logo}
-                      alt={module.logoAlt}
-                      className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
-                    />
-                  </div>
-                  <ChevronRight
-                    size={20}
-                    className="sm:w-7 sm:h-7 text-white/70 group-hover:text-white 
-                               group-hover:translate-x-1 transition-all duration-200"
-                  />
-                </div>
 
                 {/* Centered Labels */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-2">
