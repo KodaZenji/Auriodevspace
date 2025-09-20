@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ChevronRight } from "lucide-react";
+import Head from "next/head";
 
 const LandingPage = () => {
   const modules = [
@@ -29,6 +30,12 @@ const LandingPage = () => {
 
   return (
     <>
+      {/* Favicon */}
+      <Head>
+        <link rel="icon" type="image/jpeg" href="/image.jpg" />
+        <title>Aurio Devspace & Tools</title>
+      </Head>
+
       {/* Separate Header */}
       <header className="w-full px-2 sm:px-6 lg:px-8 py-3 sm:py-4 bg-white/10 backdrop-blur-md border-b border-white/20 fixed top-0 z-50 text-white">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
