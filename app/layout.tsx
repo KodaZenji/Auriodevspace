@@ -18,8 +18,9 @@ export const metadata: Metadata = {
   icons: {
     icon: '/image.jpg', 
     shortcut: '/image.jpg',
+    apple: '/image.jpg',
 };
-
+};
 export default function RootLayout({
   children,
 }: Readonly<{
