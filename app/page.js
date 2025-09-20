@@ -55,7 +55,10 @@ const LandingPage = () => {
 
       {/* Main Body with clean rounded cards */}
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-        <main className="flex items-center justify-center w-full px-4 sm:px-6 lg:px-8 pt-32 sm:pt-40 lg:pt-48 pb-8">
+        {/* Adjustable blank space for all screen types */}
+        <div className="h-20 sm:h-24 md:h-32 lg:h-40 xl:h-48 pt-16 sm:pt-20"></div>
+        
+        <main className="flex items-center justify-center w-full px-4 sm:px-6 lg:px-8 pb-8">
           <div className="w-full max-w-5xl mx-auto">
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               {modules.map((module, index) => (
@@ -85,10 +88,10 @@ const LandingPage = () => {
 
                   {/* Bottom section: Content */}
                   <div className="flex flex-col">
-                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white mb-3 lg:mb-4 leading-tight">
+                    <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-light tracking-wide text-white mb-2 sm:mb-3 lg:mb-4 leading-tight font-serif">
                       {module.title}
                     </h3>
-                    <p className="text-sm sm:text-base lg:text-lg text-white/80 leading-relaxed">
+                    <p className="text-xs sm:text-sm md:text-base lg:text-lg text-white/90 leading-relaxed font-light tracking-wide">
                       {module.description}
                     </p>
                   </div>
