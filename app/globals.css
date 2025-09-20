@@ -1,9 +1,389 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Force dark background */
-html, body {
-  background-color: #000000 !important;
-  color: #ffffff !important;
+/* Custom CSS Variables - Based on Reference Design */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  
+  /* Primary Colors from Reference */
+  --primary-orange: #ffa500;
+  --primary-orange-dark: #ff8c00;
+  --accent-green: #00ff88;
+  
+  /* Background Gradients from Reference */
+  --bg-gradient-start: #2a2a2a;
+  --bg-gradient-end: #1a1a1a;
+  
+  /* Glass Morphism from Reference */
+  --glass-bg: rgba(0, 0, 0, 0.4);
+  --glass-bg-strong: rgba(0, 0, 0, 0.6);
+  --glass-border: rgba(255, 165, 0, 0.3);
+  --glass-border-hover: rgba(255, 165, 0, 0.4);
+  --glass-border-light: rgba(255, 165, 0, 0.2);
+  
+  /* Shadows from Reference */
+  --shadow-orange: rgba(255, 165, 0, 0.1);
+  --shadow-orange-strong: rgba(255, 165, 0, 0.2);
+  --shadow-orange-glow: rgba(255, 165, 0, 0.15);
+  --shadow-green: rgba(0, 255, 136, 0.3);
+  
+  /* Text Colors from Reference */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.85);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --text-accent: rgba(255, 255, 255, 0.9);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: var(--bg-gradient-end);
+    --foreground: #ededed;
+  }
+}
+
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+  color: white;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* Glass Morphism Components - Exact Reference Match */
+.glass-card {
+  background: var(--glass-bg-strong);
+  border-radius: 16px;
+  padding: 30px;
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--glass-border-light);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px var(--shadow-orange-strong);
+  border-color: var(--glass-border-hover);
+}
+
+.glass-header {
+  background: var(--glass-bg);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--glass-border);
+  box-shadow: 0 0 30px var(--shadow-orange);
+  padding: 40px 20px;
+  text-align: center;
+}
+
+/* Typography */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary-orange), var(--primary-orange-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 20px rgba(255, 165, 0, 0.3);
+}
+
+.glow-text {
+  text-shadow: 0 0 10px var(--shadow-orange);
+}
+
+/* Input Components - Exact Reference Match */
+.premium-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--glass-border);
+  border-radius: 8px;
+  background: var(--glass-bg);
+  color: white;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.premium-input:focus {
+  outline: none;
+  border-color: var(--accent-green);
+  background: var(--glass-bg-strong);
+  box-shadow: 0 0 10px var(--shadow-green);
+}
+
+.premium-input::placeholder {
+  color: var(--text-muted);
+}
+
+.premium-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--glass-border);
+  border-radius: 8px;
+  background: var(--glass-bg);
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.premium-select:focus {
+  outline: none;
+  border-color: var(--accent-green);
+  box-shadow: 0 0 10px var(--shadow-green);
+}
+
+.premium-select option {
+  background: var(--bg-gradient-end);
+  color: white;
+}
+
+/* Button Components */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-orange), var(--primary-orange-dark));
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px var(--shadow-orange);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--accent-green);
+  border: 2px solid var(--accent-green);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--accent-green);
+  color: #000;
+  transform: translateY(-2px);
+}
+
+/* Display Components - Exact Reference Match */
+.reward-display {
+  background: var(--glass-bg-strong);
+  border-radius: 20px;
+  padding: 20px;
+  text-align: center;
+  border: 2px solid var(--glass-border-hover);
+  box-shadow: 0 0 20px var(--shadow-orange-glow);
+}
+
+.reward-amount {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 0 10px rgba(255, 165, 0, 0.6);
+}
+
+.reward-label {
+  font-size: 0.9rem;
+  color: var(--text-accent);
+  margin-top: 5px;
+}
+
+/* Stat Cards - Exact Reference Match */
+.stat-card {
+  background: var(--glass-bg-strong);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--glass-border-light);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px var(--shadow-orange);
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-accent);
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+/* Alert Components */
+.alert-warning {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  color: #ffc107;
+}
+
+.alert-success {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  color: var(--accent-green);
+}
+
+.alert-error {
+  background: rgba(255, 69, 69, 0.1);
+  border: 1px solid rgba(255, 69, 69, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  color: #ff4545;
+}
+
+/* Animations */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px var(--shadow-orange);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--shadow-orange);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Layout Utilities */
+.container-premium {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.grid-premium {
+  display: grid;
+  gap: 30px;
+}
+
+.grid-2-cols {
+  grid-template-columns: 1fr 1fr;
+}
+
+.grid-3-cols {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-auto-fit {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .grid-2-cols,
+  .grid-3-cols {
+    grid-template-columns: 1fr;
+  }
+  
+  .glass-card {
+    padding: 20px;
+  }
+  
+  .glass-header {
+    padding: 30px 15px;
+  }
+  
+  .reward-amount {
+    font-size: 2rem;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--primary-orange), var(--primary-orange-dark));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--primary-orange-dark), var(--primary-orange));
+}
+
+/* Selection Styling */
+::selection {
+  background: var(--primary-orange);
+  color: white;
+}
+
+::-moz-selection {
+  background: var(--primary-orange);
+  color: white;
 }
