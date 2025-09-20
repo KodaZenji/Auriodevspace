@@ -15,6 +15,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Aurio Devspace and Tools",
   description: "Developer tools and utilities by Aurio 💚",
+  icons: {
+    icon: '/image.jpg',
 };
 
 export default function RootLayout({
