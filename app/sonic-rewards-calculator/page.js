@@ -75,10 +75,10 @@ export default function SonicRewardsCalculator() {
             backgroundClip: 'text',
             textShadow: '0 0 30px rgba(251, 146, 60, 0.4)'
           }}>
-            Sonic x Kaito Airdrop Rewards Calculator
+            Sonic Yaps Reward Calculator
           </h1>
           <p className="text-lg opacity-90 pl-20">
-            Estimated $S token rewards based on leaderboard ranking
+            Estimated $S token rewards based on Leaderboard ranking
           </p>
         </div>
 
@@ -196,8 +196,15 @@ export default function SonicRewardsCalculator() {
 
         <div className="text-center mt-10 p-6 opacity-70 text-sm border-t border-white/10">
           <p>
-            Built for the Sonic community 💚|{" "}
-            <span className="text-green-400 font-semibold">Community Calculator</span> | Data
+            Built for the Sonic community 💚 |{" "}<a 
+              href="https://x.com/auriosweb3" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="font-semibold hover:text-gray-300 transition-colors"
+              style={{ color: '#94c182' }}
+            >
+              auriosweb3
+            </a> | Data
             based on Round 1 snapshot (Sept 18, 00:00 UTC)
           </p>
         </div>
