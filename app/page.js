@@ -53,50 +53,48 @@ const LandingPage = () => {
         </div>
       </header>
 
-      {/* Main Body with triangular cards */}
+      {/* Main Body with clean rounded cards */}
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
         <main className="flex items-center justify-center w-full px-4 sm:px-6 lg:px-8 pt-32 sm:pt-40 lg:pt-48 pb-8">
-          <div className="w-full max-w-4xl mx-auto">
-            <div className="flex flex-col sm:flex-row gap-0">
+          <div className="w-full max-w-5xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               {modules.map((module, index) => (
                 <div
                   key={module.id}
                   onClick={() => (window.location.href = module.route)}
-                  className={`relative cursor-pointer bg-gradient-to-r ${module.color} ${module.hoverColor} 
-                    transition-all transform hover:scale-105 shadow-xl group
-                    w-full sm:w-1/2 h-[300px] sm:h-[400px] lg:h-[500px]
-                    ${index === 0 ? 'clip-path-triangle-left' : 'clip-path-triangle-right'}
-                    flex flex-col justify-center items-center p-8`}
-                  style={{
-                    clipPath: index === 0 
-                      ? 'polygon(0 0, 90% 0, 80% 100%, 0% 100%)' 
-                      : 'polygon(20% 0, 100% 0, 100% 100%, 10% 100%)'
-                  }}
+                  className={`relative cursor-pointer bg-gradient-to-br ${module.color} ${module.hoverColor} 
+                    transition-all transform hover:scale-105 shadow-2xl group
+                    w-full sm:w-1/2 h-[280px] sm:h-[320px] lg:h-[380px]
+                    rounded-3xl lg:rounded-[2rem] overflow-hidden
+                    flex flex-col justify-between p-6 sm:p-8`}
                 >
-                  {/* Logo and Chevron */}
-                  <div className="relative z-10 flex items-center justify-between w-full mb-8">
-                    <div className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-white/10 backdrop-blur-sm border border-white/20 group-hover:bg-white/20 transition-colors rounded-lg">
+                  {/* Top section: Logo and Chevron */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 bg-white/15 backdrop-blur-sm border border-white/30 group-hover:bg-white/25 transition-all duration-300 rounded-2xl shadow-lg">
                       <img
                         src={module.logo}
                         alt={module.logoAlt}
-                        className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+                        className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 object-contain"
                       />
                     </div>
                     <ChevronRight
-                      size={24}
-                      className="sm:w-8 sm:h-8 text-white/70 group-hover:text-white group-hover:translate-x-1 transition-all duration-200"
+                      size={20}
+                      className="sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-300"
                     />
                   </div>
 
-                  {/* Content */}
-                  <div className={`flex flex-col items-center text-center px-4 ${index === 0 ? 'pr-12' : 'pl-12'}`}>
-                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300 mb-4">
+                  {/* Bottom section: Content */}
+                  <div className="flex flex-col">
+                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white mb-3 lg:mb-4 leading-tight">
                       {module.title}
                     </h3>
-                    <p className="text-sm sm:text-base lg:text-lg text-slate-300 leading-relaxed max-w-xs">
+                    <p className="text-sm sm:text-base lg:text-lg text-white/80 leading-relaxed">
                       {module.description}
                     </p>
                   </div>
+
+                  {/* Decorative gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl lg:rounded-[2rem]"></div>
                 </div>
               ))}
             </div>
