@@ -1,125 +1,212 @@
 "use client";
 
-import React from "react";
-import { ChevronRight } from "lucide-react";
+import React, { useState } from "react";
 
-const LandingPage = () => {
-  const modules = [
-    {
-      id: "goatnetwork",
-      title: "GoatNetwork Rank Checker",
-      description: "Check your rank instantly on GoatNetwork",
-      color: "from-stone-500 to-stone-700",
-      hoverColor: "hover:from-stone-400 hover:to-stone-600",
-      route: "/rankfinder",
-      logo: "/download-removebg-preview.png",
-      logoAlt: "GoatNetwork Logo",
-    },
-    {
-      id: "sonic",
-      title: "Sonic Rewards Calculator",
-      description: "Calculate your Estimated $S rewards from Sonic Labs",
-      color: "from-blue-700 to-blue-900",
-      hoverColor: "hover:from-blue-600 hover:to-blue-800",
-      route: "/sonic-rewards-calculator",
-      logo: "/sonic-labs-logo.png",
-      logoAlt: "Sonic Logo",
-    },
-  ];
+export default function SonicRewardsCalculator() {
+  const globalPoolSize = 1800272;
+  const regionalPoolSize = 349864;
+
+  const [globalRank, setGlobalRank] = useState("");
+  const [region, setRegion] = useState("");
+  const [regionalRank, setRegionalRank] = useState("");
+
+  // ---- Global Reward Logic ----
+  const calculateGlobalReward = (rank) => {
+    if (rank < 1 || rank > 1000) return 0;
+    const rank1Reward = Math.round(globalPoolSize * 0.0277); // ~49,868
+    if (rank === 1) return rank1Reward;
+    if (rank === 1000) return 50;
+
+    const powerLawExponent = 0.8;
+    const rawReward = rank1Reward * Math.pow(rank, -powerLawExponent);
+
+    if (rank <= 100) return Math.max(50, Math.round(rawReward * 0.9));
+    if (rank <= 500) {
+      const middleDecay = 0.5 + (0.4 * Math.pow((501 - rank) / 400, 0.5));
+      return Math.max(50, Math.round(rawReward * middleDecay));
+    }
+
+    const bottomProgress = (rank - 500) / 500;
+    const startReward = rank1Reward * Math.pow(500, -powerLawExponent) * 0.3;
+    return Math.max(50, Math.round(startReward * Math.pow(1 - bottomProgress, 2) + 50));
+  };
+
+  // ---- Regional Reward Logic ----
+  const calculateRegionalReward = (rank) => {
+    if (rank < 1 || rank > 100) return 0;
+    const topReward = regionalPoolSize * 0.0491;
+    const decayRate = 0.9512;
+    return Math.round(topReward * Math.pow(decayRate, rank - 1));
+  };
+
+  // ---- Format numbers ----
+  const formatNumber = (num) => num.toLocaleString();
+
+  // ---- Display values ----
+  const globalReward = globalRank ? calculateGlobalReward(Number(globalRank)) : 0;
+  const regionalReward = regionalRank
+    ? calculateRegionalReward(Number(regionalRank))
+    : 0;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-      {/* Header */}
-      <header className="w-full px-2 sm:px-6 lg:px-8 py-3 sm:py-4 bg-white/10 backdrop-blur-md border-b border-white/20 fixed top-0 z-50">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          {/* Avatar Logo */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden border-2 border-white/20 bg-white/5 backdrop-blur-sm shadow-lg">
-              <img
-                src="/image.jpg"
-                alt="Aurio Avatar"
-                className="w-full h-full object-cover"
-              />
+    <div className="min-h-screen" style={{ 
+      background: 'linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)',
+      color: 'white',
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+    }}>
+      <div className="container-premium">
+        {/* Header with Logo */}
+        <div className="glass-header relative overflow-hidden">
+          {/* Local Logo */}
+          <div className="absolute top-6 left-6 w-16 h-16">
+            <div 
+              className="w-full h-full bg-gradient-to-br from-orange-400 to-blue-600 rounded-full items-center justify-center text-2xl font-bold text-white hidden"
+              style={{ display: 'none' }}
+            >
+              S
             </div>
           </div>
 
-          {/* Title */}
-          <h1 className="text-base sm:text-xl md:text-2xl font-bold text-center flex-1 px-4 sm:px-4 truncate">
-            Aurio Devspace & Tools
+          {/* Header Content */}
+          <h1 className="text-4xl font-black mb-4 pl-20" style={{
+            background: 'linear-gradient(135deg, #fb923c 0%, #f97316 25%, #ea580c 50%, #3b82f6 75%, #1d4ed8 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            textShadow: '0 0 30px rgba(251, 146, 60, 0.4)'
+          }}>
+            Sonic x Kaito Airdrop Rewards Calculator
           </h1>
-
-          {/* Spacer */}
-          <div className="w-13 sm:w-15"></div>
+          <p className="text-lg opacity-90 pl-20">
+            Estimate your S token rewards based on your leaderboard ranking in
+            Round 1 of the Sonic Yapper campaign
+          </p>
         </div>
-      </header>
 
-      {/* Main */}
-      <main
-        className="flex-1 flex items-start justify-center w-full px-4 sm:px-6 lg:px-8 
-                 pt-56 sm:pt-72 lg:pt-80 pb-8"
-      >
-        <div className="w-full max-w-6xl mx-auto">
-          <div
-            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 
-                          gap-4 sm:gap-6 justify-items-center"
-          >
-            {modules.map((module) => (
-              <div
-                key={module.id}
-                onClick={() => (window.location.href = module.route)}
-                className={`relative 
-                  p-5 sm:p-6 cursor-pointer 
-                  bg-gradient-to-r ${module.color} ${module.hoverColor} 
-                  transition-all transform hover:scale-105 
-                  shadow-xl group
-                  w-[160px] sm:w-[200px] lg:w-[260px] 
-                  h-[200px] sm:h-[240px] lg:h-[300px] 
-                  flex flex-col rounded-xl sm:rounded-2xl`}
-              >
-                {/* Top Row: logo + chevron */}
-                <div className="relative z-10 flex items-center justify-between">
-                  <div
-                    className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 
-                  bg-white/10 backdrop-blur-sm border border-white/20 
-                  group-hover:bg-white/20 transition-colors rounded-lg"
-                  >
-                    <img
-                      src={module.logo}
-                      alt={module.logoAlt}
-                      className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
-                    />
-                  </div>
-                  <ChevronRight
-                    size={20}
-                    className="sm:w-7 sm:h-7 text-white/70 group-hover:text-white 
-               group-hover:translate-x-1 transition-all duration-200"
-                  />
-                </div>
-
-                {/* Labels (pushed down with mt-8) */}
-                <div className="flex flex-col items-center text-center mt-8 px-2">
-                  <h3
-                    className="text-sm sm:text-base lg:text-lg font-semibold tracking-tight 
-                                 bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300"
-                  >
-                    {module.title}
-                  </h3>
-                  <p className="mt-1 text-xs sm:text-sm lg:text-base text-slate-300 leading-snug line-clamp-2">
-                    {module.description}
-                  </p>
-                </div>
+        <div className="grid-premium grid-2-cols">
+          {/* Global Leaderboard */}
+          <div className="glass-card">
+            <h2 className="text-2xl font-bold mb-6 text-white/95"> Global Leaderboard</h2>
+            <div className="mb-6">
+              <label className="block font-semibold mb-2 text-white/85" htmlFor="globalRank">
+                Your Ranking (1-1000)
+              </label>
+              <input
+                type="number"
+                id="globalRank"
+                className="premium-input"
+                placeholder="Enter your rank"
+                min="1"
+                max="1000"
+                value={globalRank}
+                onChange={(e) => setGlobalRank(e.target.value)}
+              />
+            </div>
+            <div className="reward-display">
+              <div className="reward-amount">{formatNumber(globalReward)} S</div>
+              <div className="reward-label">
+                {globalRank
+                  ? `Rank #${globalRank} Global Reward`
+                  : "Enter rank 1-1000"}
               </div>
-            ))}
+            </div>
+          </div>
+
+          {/* Regional Leaderboards */}
+          <div className="glass-card">
+            <h2 className="text-2xl font-bold mb-6 text-white/95"> Regional Leaderboards</h2>
+            <div className="mb-6">
+              <label className="block font-semibold mb-2 text-white/85" htmlFor="region">
+                Select Region
+              </label>
+              <select
+                id="region"
+                className="premium-select"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+              >
+                <option value="">Choose region...</option>
+                <option value="korean">Korean Yappers</option>
+                <option value="mandarin">Mandarin Yappers</option>
+              </select>
+            </div>
+            <div className="mb-6">
+              <label className="block font-semibold mb-2 text-white/85" htmlFor="regionalRank">
+                Your Ranking (1-100)
+              </label>
+              <input
+                type="number"
+                id="regionalRank"
+                className="premium-input"
+                placeholder="Enter your rank"
+                min="1"
+                max="100"
+                value={regionalRank}
+                onChange={(e) => setRegionalRank(e.target.value)}
+              />
+            </div>
+            <div className="reward-display">
+              <div className="reward-amount">
+                {formatNumber(regionalReward)} S
+              </div>
+              <div className="reward-label">
+                {region && regionalRank
+                  ? `Rank #${regionalRank} ${
+                      region === "korean" ? "Korean" : "Mandarin"
+                    } Reward`
+                  : "Select region & enter rank"}
+              </div>
+            </div>
           </div>
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="w-full px-3 sm:px-6 lg:px-8 py-3 sm:py-6 bg-white/5 backdrop-blur-md border-t border-white/20 text-center text-xs sm:text-sm text-white/70">
-        © 2025 Auriosweb3. All rights reserved.
-      </footer>
+        {/* Info Section */}
+        <div className="glass-card mt-10">
+          <h2 className="text-2xl font-bold mb-6 text-white/95">📊 Round 1 Distribution Overview</h2>
+          <p className="mb-6 opacity-90">
+            Total allocation of 2,500,000 S tokens distributed across global and
+            regional leaderboards. Rewards are heavily weighted towards top
+            performers to recognize quality contributions.
+          </p>
+
+          <div className="grid-premium grid-auto-fit">
+            <div className="stat-card">
+              <div className="stat-number">1,800,272</div>
+              <div className="stat-label">Global Pool (S tokens)</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-number">1,000</div>
+              <div className="stat-label">Global Eligible</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-number">349,864</div>
+              <div className="stat-label">Regional Pool Each</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-number">48.9%</div>
+              <div className="stat-label">Top 100 Share</div>
+            </div>
+          </div>
+
+          <div className="alert-warning mt-6">
+            <strong>⚠️ Disclaimer:</strong> These are estimates based on the
+            distribution structure. Actual rewards may vary slightly. Sonic Labs
+            team members are excluded from rewards.
+          </div>
+        </div>
+
+        <div className="text-center mt-10 p-6 opacity-70 text-sm border-t border-white/10">
+          <p>
+            Built for the Sonic community 💙 |{" "}
+            <span className="text-green-400 font-semibold">Community Calculator</span> | Data
+            based on Round 1 snapshot (Sept 18, 00:00 UTC)
+          </p>
+        </div>
+      </div>
+
+      <style jsx>{`
+        /* No animations needed */
+      `}</style>
     </div>
   );
-};
-
-export default LandingPage;
+}
