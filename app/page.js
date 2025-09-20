@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ChevronRight } from "lucide-react";
-import Head from "next/head";
+
 
 const LandingPage = () => {
   const modules = [
@@ -30,9 +30,7 @@ const LandingPage = () => {
 
   return (
     <>
-      {/* Favicon */}
       <Head>
-        <link rel="icon" type="image/jpeg" href="/image.jpg" />
         <title>Aurio Devspace & Tools</title>
       </Head>
 
