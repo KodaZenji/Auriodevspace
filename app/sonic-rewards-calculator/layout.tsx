@@ -7,7 +7,7 @@ export const metadata = {
   icons: {
     icon: '/sonic-labs-logo.png', 
     shortcut: '/sonic-labs-logo.png',
-    apple: '/sonic-labs-logo.png,
+    apple: '/sonic-labs-logo.png',
 };
 
 export default function SonicLayout({
