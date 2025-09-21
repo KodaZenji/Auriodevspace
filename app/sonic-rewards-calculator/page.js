@@ -77,9 +77,6 @@ export default function SonicRewardsCalculator() {
           }}>
             Sonic Yaps Reward Calculator
           </h1>
-          <p className="text-lg opacity-90 pl-20">
-            Estimated $S token rewards based on Leaderboard ranking
-          </p>
         </div>
 
         <div className="grid-premium grid-2-cols">
