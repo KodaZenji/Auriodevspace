@@ -9,7 +9,7 @@ const LandingPage = () => {
       id: "goatnetwork",
       title: "GoatNetwork Rank Checker",
       description: "Check your rank instantly on GoatNetwork",
-      color: "from-slate-600/90 to-slate-500/90", // 
+      color: "from-slate-800/90 to-slate-700/90", // 
       hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
       route: "/rankfinder",
       logo: "/download-removebg-preview.png",
@@ -19,7 +19,7 @@ const LandingPage = () => {
       id: "sonic",
       title: "Sonic Rewards Calculator",
       description: "Calculate your Estimated $S rewards from Sonic Labs",
-      color: "from-slate-600/90 to-slate-500/90", // 
+      color: "from-slate-800/90 to-slate-700/90", // 
       hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
       route: "/sonic-rewards-calculator",
       logo: "/sonic-labs-logo.png",
@@ -89,7 +89,7 @@ const LandingPage = () => {
 
                   {/* Center section: Content */}
                   <div className="flex flex-col text-center justify-center">
-                    <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-light tracking-wide text-white mb-2 lg:mb-3 leading-tight font-serif">
+                    <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-light tracking-wide text-white mb-2 lg:mb-3 leading-tight font-serif">
                       {module.title}
                     </h3>
                     <p className="text-xs sm:text-sm md:text-base text-white/90 leading-relaxed font-light tracking-wide text-justify px-2">
