@@ -9,7 +9,7 @@ const LandingPage = () => {
       id: "goatnetwork",
       title: "GoatNetwork Rank Checker",
       description: "Check your Rank instantly",
-      color: "from-slate-800/90 to-slate-704/90", // 
+      color: "from-slate-800/90 to-slate-700/90", // Fixed typo: slate-704 to slate-700
       hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
       route: "/rankfinder",
       logo: "/download-removebg-preview.png",
@@ -19,7 +19,7 @@ const LandingPage = () => {
       id: "sonic",
       title: "Sonic Rewards Calculator",
       description: "Calculate your Estimated $S rewards",
-      color: "from-slate-800/90 to-slate-704/90", // 
+      color: "from-slate-800/90 to-slate-700/90", // Fixed typo: slate-704 to slate-700
       hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
       route: "/sonic-rewards-calculator",
       logo: "/sonic-labs-logo.png",
@@ -58,7 +58,7 @@ const LandingPage = () => {
         {/* Adjustable blank space for all screen types */}
         <div className="h-20 sm:h-24 md:h-32 lg:h-40 xl:h-48 pt-16 sm:pt-20"></div>
         
-        <main className="flex items-center justify-center w-full px-4 sm:px-6 lg:px-8 pb-8">
+        <main className="flex items-center justify-center w-full px-4 sm:px-6 lg:px-8 pb-32 sm:pb-40 lg:pb-48">
           <div className="w-full max-w-5xl mx-auto">
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               {modules.map((module, index) => (
@@ -106,7 +106,7 @@ const LandingPage = () => {
         </main>
 
         {/* Footer */}
-        <footer className="w-full px-3 sm:px-6 lg:px-8 py-3 sm:py-6 bg-white/5 backdrop-blur-md border-t border-white/20 text-center text-xs sm:text-sm text-white/70">
+        <footer className="w-full px-3 sm:px-6 lg:px-8 py-3 sm:py-6 bg-white/5 backdrop-blur-md border-t border-white/20 text-center text-xs sm:text-sm text-white/70 mt-auto">
           © 2025 Auriosweb3. All rights reserved.
         </footer>
       </div>
