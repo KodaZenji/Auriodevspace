@@ -19,7 +19,7 @@ const LandingPage = () => {
       id: "sonic",
       title: "Sonic Rewards Calculator",
       description: "Calculate your Estimated $S rewards from Sonic Labs",
-      color: "from-stone-700 to-stone-700",
+      color: "from-stone-900 to-stone-900",
       hoverColor: "hover:from-stone-600 hover:to-stone-700",
       route: "/sonic-rewards-calculator",
       logo: "/sonic-labs-logo.png",
