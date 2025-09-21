@@ -105,6 +105,8 @@ const LandingPage = () => {
           </div>
         </main>
 
+        <div className="h-20 sm:h-24 md:h-32 lg:h-40 xl:h-48"></div>
+
         {/* Footer */}
         <footer className="w-full px-3 sm:px-6 lg:px-8 py-3 sm:py-6 bg-white/5 backdrop-blur-md border-t border-white/20 text-center text-xs sm:text-sm text-white/70 mt-auto">
           © 2025 Auriosweb3. All rights reserved.
