@@ -9,7 +9,7 @@ const LandingPage = () => {
       id: "goatnetwork",
       title: "GoatNetwork Rank Checker",
       description: "Check your rank instantly on GoatNetwork",
-      color: "from-slate-700/90 to-slate-600/90", // 
+      color: "from-slate-600/90 to-slate-500/90", // 
       hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
       route: "/rankfinder",
       logo: "/download-removebg-preview.png",
@@ -19,7 +19,7 @@ const LandingPage = () => {
       id: "sonic",
       title: "Sonic Rewards Calculator",
       description: "Calculate your Estimated $S rewards from Sonic Labs",
-      color: "from-slate-700/90 to-slate-600/90", // 
+      color: "from-slate-600/90 to-slate-500/90", // 
       hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
       route: "/sonic-rewards-calculator",
       logo: "/sonic-labs-logo.png",
