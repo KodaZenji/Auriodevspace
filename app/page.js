@@ -9,8 +9,8 @@ const LandingPage = () => {
       id: "goatnetwork",
       title: "GoatNetwork Rank Checker",
       description: "Check your rank instantly on GoatNetwork",
-      color: "from-stone-900 to-stone-900",
-      hoverColor: "hover:from-stone-600 hover:to-stone-700",
+      color: "from-slate-700/90 to-slate-600/90", // 
+      hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
       route: "/rankfinder",
       logo: "/download-removebg-preview.png",
       logoAlt: "GoatNetwork Logo",
@@ -19,8 +19,8 @@ const LandingPage = () => {
       id: "sonic",
       title: "Sonic Rewards Calculator",
       description: "Calculate your Estimated $S rewards from Sonic Labs",
-      color: "from-stone-900 to-stone-900",
-      hoverColor: "hover:from-stone-600 hover:to-stone-700",
+      color: "from-slate-700/90 to-slate-600/90", // 
+      hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
       route: "/sonic-rewards-calculator",
       logo: "/sonic-labs-logo.png",
       logoAlt: "Sonic Logo",
@@ -69,7 +69,8 @@ const LandingPage = () => {
                     transition-all transform hover:scale-105 shadow-2xl group
                     w-full sm:w-1/2 h-[200px] sm:h-[220px] lg:h-[250px]
                     rounded-2xl lg:rounded-3xl overflow-hidden
-                    flex flex-col justify-center items-center p-4 sm:p-6`}
+                    flex flex-col justify-center items-center p-4 sm:p-6
+                    border border-white/10`} // 
                 >
                   {/* Top section: Logo and Chevron */}
                   <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
