@@ -9,7 +9,7 @@ const LandingPage = () => {
       id: "goatnetwork",
       title: "GoatNetwork Rank Checker",
       description: "Check your rank instantly on GoatNetwork",
-      color: "from-stone-700 to-stone-700",
+      color: "from-stone-700 to-stone-710",
       hoverColor: "hover:from-stone-600 hover:to-stone-700",
       route: "/rankfinder",
       logo: "/download-removebg-preview.png",
