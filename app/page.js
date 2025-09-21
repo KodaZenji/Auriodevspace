@@ -9,7 +9,7 @@ const LandingPage = () => {
       id: "goatnetwork",
       title: "GoatNetwork Rank Checker",
       description: "Check your rank instantly on GoatNetwork",
-      color: "from-stone-700 to-stone-710",
+      color: "from-stone-700 to-stone-700",
       hoverColor: "hover:from-stone-600 hover:to-stone-700",
       route: "/rankfinder",
       logo: "/download-removebg-preview.png",
@@ -45,7 +45,7 @@ const LandingPage = () => {
 
           {/* Title */}
           <h1 className="text-base sm:text-xl md:text-2xl font-bold text-center flex-1 px-4 sm:px-4 truncate">
-            Aurio Devspace & Tools
+
           </h1>
 
           {/* Spacer */}
