@@ -376,7 +376,7 @@ const RankFinder = () => {
             <div className="flex justify-center mb-8">
               <input
                 type="text"
-                placeholder="Enter username to calculate rewards..."
+                placeholder="Enter username..."
                 value={searchUser}
                 onChange={(e) => setSearchUser(e.target.value)}
                 className="px-4 py-3 w-full max-w-md rounded-lg bg-gray-900 border-2 border-gray-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 outline-none text-white placeholder-gray-400 transition-all"
@@ -427,7 +427,7 @@ const RankFinder = () => {
                     <div className="text-center">
                       <span className="text-lg text-gray-400">Monthly Reward:</span>
                       <span className="text-3xl font-bold text-yellow-400 ml-2">
-                        {calculateUserRewards(searchedUser).monthlyReward.toLocaleString()} $GOAT
+                        {calculateUserRewards(searchedUser).monthlyReward.toLocaleString()} $GOATED
                       </span>
                     </div>
                   </div>
@@ -452,7 +452,7 @@ const RankFinder = () => {
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div className="bg-gray-800/50 rounded-lg p-3">
                       <div className="text-2xl font-bold text-yellow-400">
-                        1B
+                        10M 
                       </div>
                       <div className="text-sm text-gray-400">Total Allocation</div>
                     </div>
