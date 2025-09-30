@@ -11,6 +11,12 @@ const RankFinder = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("30");
 
+  // Rewards Calculator Constants
+  const TOTAL_ALLOCATION = 1000000000; // 1B tokens
+  const ALLOCATION_PERCENT = 0.007; // 0.7%
+  const CAMPAIGN_MONTHS = 9;
+  const MONTHLY_POOL = (TOTAL_ALLOCATION * ALLOCATION_PERCENT) / CAMPAIGN_MONTHS; // 777,777.78 tokens per month
+
   const fetchRankings = async (days) => {
     setLoading(true);
     setError(null);
@@ -200,7 +206,9 @@ const RankFinder = () => {
   };
 
   useEffect(() => {
-    fetchRankings(activeTab);
+    if (activeTab !== "rewards") {
+      fetchRankings(activeTab);
+    }
   }, [activeTab]);
 
   const filteredRankings = rankings.filter((user) =>
@@ -215,6 +223,28 @@ const RankFinder = () => {
     }
     return num.toLocaleString();
   };
+
+  // Calculate rewards for a specific user
+  const calculateUserRewards = (user) => {
+    if (!user || !user.mindshare) return { estimatedShare: 0, monthlyReward: 0 };
+    
+    // User's mindshare percentage (already in percentage form)
+    const userMindshare = user.mindshare;
+    
+    // Calculate estimated share (mindshare / 100 to get decimal)
+    const estimatedShare = userMindshare / 100;
+    
+    // Monthly reward = Monthly Pool * User's Share
+    const monthlyReward = MONTHLY_POOL * estimatedShare;
+    
+    return {
+      estimatedShare: (estimatedShare * 100).toFixed(4), // Convert back to percentage for display
+      monthlyReward: Math.round(monthlyReward)
+    };
+  };
+
+  // Find searched user for rewards tab
+  const searchedUser = searchUser ? filteredRankings[0] : null;
 
   return (
     <div 
@@ -260,7 +290,7 @@ const RankFinder = () => {
       </div>
 
       <div className="flex justify-center gap-4 mb-6" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        {["7", "30", "90"].map((tab) => (
+        {["7", "30", "rewards"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -278,54 +308,58 @@ const RankFinder = () => {
               border: `2px solid ${activeTab === tab ? '#fbbf24' : '#374151'}`
             }}
           >
-            {tab} Days
+            {tab === "rewards" ? "Rewards" : `${tab} Days`}
           </button>
         ))}
       </div>
 
-      <div className="flex justify-center mb-6" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-        <input
-          type="text"
-          placeholder="Search username..."
-          value={searchUser}
-          onChange={(e) => setSearchUser(e.target.value)}
-          className="px-4 py-3 w-full max-w-md rounded-lg bg-gray-900 border-2 border-gray-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 outline-none text-white placeholder-gray-400 transition-all"
-          style={{
-            padding: '0.75rem 1rem',
-            width: '100%',
-            maxWidth: '28rem',
-            borderRadius: '0.5rem',
-            backgroundColor: '#1f2937',
-            border: '2px solid #374151',
-            color: '#ffffff',
-            outline: 'none'
-          }}
-        />
-      </div>
+      {activeTab !== "rewards" && (
+        <>
+          <div className="flex justify-center mb-6" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+            <input
+              type="text"
+              placeholder="Search username..."
+              value={searchUser}
+              onChange={(e) => setSearchUser(e.target.value)}
+              className="px-4 py-3 w-full max-w-md rounded-lg bg-gray-900 border-2 border-gray-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 outline-none text-white placeholder-gray-400 transition-all"
+              style={{
+                padding: '0.75rem 1rem',
+                width: '100%',
+                maxWidth: '28rem',
+                borderRadius: '0.5rem',
+                backgroundColor: '#1f2937',
+                border: '2px solid #374151',
+                color: '#ffffff',
+                outline: 'none'
+              }}
+            />
+          </div>
 
-      <div className="flex justify-center mb-6">
-        <button
-          onClick={() => fetchRankings(activeTab)}
-          disabled={loading}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-semibold disabled:opacity-50 hover:from-yellow-500 hover:to-amber-600 transition-all shadow-lg shadow-yellow-400/25"
-          style={{
-            background: loading ? '#6b7280' : 'linear-gradient(to right, #fbbf24, #f59e0b)',
-            color: '#000000',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '0.5rem',
-            fontWeight: '600',
-            border: 'none',
-            cursor: loading ? 'not-allowed' : 'pointer'
-          }}
-        >
-          {loading ? (
-            <RefreshCw className="w-5 h-5 animate-spin" />
-          ) : (
-            <RefreshCw className="w-5 h-5" />
-          )}
-          Refresh Leaderboard
-        </button>
-      </div>
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={() => fetchRankings(activeTab)}
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-semibold disabled:opacity-50 hover:from-yellow-500 hover:to-amber-600 transition-all shadow-lg shadow-yellow-400/25"
+              style={{
+                background: loading ? '#6b7280' : 'linear-gradient(to right, #fbbf24, #f59e0b)',
+                color: '#000000',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '0.5rem',
+                fontWeight: '600',
+                border: 'none',
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {loading ? (
+                <RefreshCw className="w-5 h-5 animate-spin" />
+              ) : (
+                <RefreshCw className="w-5 h-5" />
+              )}
+              Refresh Leaderboard
+            </button>
+          </div>
+        </>
+      )}
 
       {error && (
         <div className="max-w-4xl mx-auto mb-4">
@@ -336,106 +370,226 @@ const RankFinder = () => {
       )}
 
       <div className="max-w-6xl mx-auto">
-        {loading ? (
-          <div className="text-center py-8">
-            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 text-yellow-400" />
-            <p className="text-gray-400">Loading leaderboard...</p>
-          </div>
-        ) : searchUser ? (
-          filteredRankings.length > 0 ? (
-            <div className="space-y-4">
-              {filteredRankings.map((user) => (
-                <div
-                  key={user.id}
-                  className="bg-gray-900 border border-gray-800 hover:border-yellow-600 p-6 rounded-lg transition-all hover:bg-gray-800"
-                >
+        {activeTab === "rewards" ? (
+          // REWARDS TAB
+          <div>
+            <div className="flex justify-center mb-8">
+              <input
+                type="text"
+                placeholder="Enter username..."
+                value={searchUser}
+                onChange={(e) => setSearchUser(e.target.value)}
+                className="px-4 py-3 w-full max-w-md rounded-lg bg-gray-900 border-2 border-gray-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 outline-none text-white placeholder-gray-400 transition-all"
+                style={{
+                  padding: '0.75rem 1rem',
+                  width: '100%',
+                  maxWidth: '28rem',
+                  borderRadius: '0.5rem',
+                  backgroundColor: '#1f2937',
+                  border: '2px solid #374151',
+                  color: '#ffffff',
+                  outline: 'none'
+                }}
+              />
+            </div>
+
+            {searchedUser ? (
+              <div className="max-w-2xl mx-auto">
+                <div className="bg-gray-900 border border-gray-800 hover:border-yellow-600 rounded-lg p-6 transition-all">
                   <div className="mb-4">
                     <div className="flex items-center gap-3 mb-3">
                       <span className="font-bold text-yellow-400 text-lg bg-yellow-400/10 px-3 py-1 rounded-full">
-                        #{user.rank}
+                        #{searchedUser.rank}
                       </span>
                       <span className="text-lg font-semibold text-white">
-                        {user.username}
+                        {searchedUser.username}
                       </span>
                     </div>
                     
                     <div className="bg-yellow-400/10 rounded-lg p-3 mb-3">
                       <div className="text-center">
                         <div className="text-xl font-bold text-yellow-300">
-                          {Number(user.mindshare).toFixed(2)}%
+                          {Number(searchedUser.mindshare).toFixed(2)}%
                         </div>
-                        <div className="text-sm text-gray-400">Mindshare</div>
+                        <div className="text-sm text-gray-400">30-Day Mindshare</div>
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-3 gap-4 mt-4">
-                    <div className="text-center bg-gray-800/50 rounded-lg p-3">
-                      <div className="text-lg font-bold text-blue-400">
-                        {user.tweets === 0 ? '-' : formatNumber(user.tweets)}
-                      </div>
-                      <div className="text-sm text-gray-400">Tweets</div>
-                    </div>
-                    <div className="text-center bg-gray-800/50 rounded-lg p-3">
-                      <div className="text-lg font-bold text-red-400">
-                        {user.likes === 0 ? '-' : formatNumber(user.likes)}
-                      </div>
-                      <div className="text-sm text-gray-400">Likes</div>
-                    </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="text-center bg-gray-800/50 rounded-lg p-3">
                       <div className="text-lg font-bold text-green-400">
-                        {user.impressions === 0 ? '-' : formatNumber(user.impressions)}
+                        {calculateUserRewards(searchedUser).estimatedShare}%
                       </div>
-                      <div className="text-sm text-gray-400">Impressions</div>
+                      <div className="text-sm text-gray-400">Estimated Share</div>
+                    </div>
+                    <div className="text-center bg-gray-800/50 rounded-lg p-3">
+                      <div className="text-lg font-bold text-yellow-400">
+                        {calculateUserRewards(searchedUser).monthlyReward.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-400">Monthly $GOATED</div>
                     </div>
                   </div>
-                  
-                  {user.mindshare === 0 && user.tweets === 0 && user.likes === 0 && user.impressions === 0 && (
-                    <div className="mt-4 text-center text-gray-500 text-sm bg-gray-800/30 rounded-lg p-3">
-                      No activity data available for this time period
-                    </div>
-                  )}
+
+                  <div className="bg-gray-800/30 rounded-lg p-3 text-sm text-gray-500">
+                    <p className="flex items-start mb-1">
+                      <span className="text-yellow-400 mr-2">*</span>
+                      <span>Unofficial community calculator. Actual rewards may vary.</span>
+                    </p>
+                    <p className="flex items-start">
+                      <span className="text-yellow-400 mr-2">*</span>
+                      <span>GOATFDN determines final allocations.</span>
+                    </p>
+                    <p className="flex items-start">
+                      <span className="text-yellow-400 mr-2">*</span>
+                      <span>Next snapshot : Oct 17th, 2025.</span>
+                    </p>
+                  </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-400 text-lg">
-                No users found for &quot;{searchUser}&quot;
-              </p>
-              <p className="text-gray-500 text-sm mt-2">
-                Try a different username
-              </p>
-            </div>
-          )
-        ) : (
-          <div className="text-center py-8">
-            <p className="text-gray-400 text-lg">
-              {rankings.length > 0 
-                ? (
-                  <>
-                    Search for a username above to see detailed metrics
-                    <br /><br />
-                    eg.{' '}
-                    <a 
-                      href="https://x.com/auriosweb3" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="hover:text-gray-300 transition-colors"
-                      style={{ color: '#94c182' }}
-                    >
-                      auriosweb3
-                    </a>
-                  </>
-                )
-                : "Loading data..."}
-            </p>
-            {rankings.length > 0 && (
-              <p className="text-gray-500 text-sm mt-2">
-                {rankings.length} users loaded
-              </p>
+
+                {/* Campaign Info */}
+                <div className="mt-8 bg-gray-900 border border-gray-700 rounded-lg p-6">
+                  <h3 className="text-xl font-bold text-yellow-400 mb-4 text-center">
+                    Post TGE Campaign
+                  </h3>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="bg-gray-800/50 rounded-lg p-3">
+                      <div className="text-2xl font-bold text-yellow-400">
+                        7M $GOATED
+                      </div>
+                      <div className="text-sm text-gray-400">Total Allocation</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-3">
+                      <div className="text-2xl font-bold text-yellow-400">
+                        {Math.round(MONTHLY_POOL).toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-400">Monthly Pool</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-3">
+                      <div className="text-2xl font-bold text-yellow-400">
+                        {CAMPAIGN_MONTHS} Months
+                      </div>
+                      <div className="text-sm text-gray-400">Duration</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-400 text-lg">
+                  Enter a username above to calculate their estimated monthly rewards
+                </p>
+                <p className="text-gray-500 text-sm mt-2">
+                  Based on 30-day mindshare percentage
+                </p>
+              </div>
             )}
           </div>
+        ) : (
+          // LEADERBOARD TABS (7 & 30 days)
+          <>
+            {loading ? (
+              <div className="text-center py-8">
+                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 text-yellow-400" />
+                <p className="text-gray-400">Loading leaderboard...</p>
+              </div>
+            ) : searchUser ? (
+              filteredRankings.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredRankings.map((user) => (
+                    <div
+                      key={user.id}
+                      className="bg-gray-900 border border-gray-800 hover:border-yellow-600 p-6 rounded-lg transition-all hover:bg-gray-800"
+                    >
+                      <div className="mb-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="font-bold text-yellow-400 text-lg bg-yellow-400/10 px-3 py-1 rounded-full">
+                            #{user.rank}
+                          </span>
+                          <span className="text-lg font-semibold text-white">
+                            {user.username}
+                          </span>
+                        </div>
+                        
+                        <div className="bg-yellow-400/10 rounded-lg p-3 mb-3">
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-yellow-300">
+                              {Number(user.mindshare).toFixed(2)}%
+                            </div>
+                            <div className="text-sm text-gray-400">Mindshare</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4 mt-4">
+                        <div className="text-center bg-gray-800/50 rounded-lg p-3">
+                          <div className="text-lg font-bold text-blue-400">
+                            {user.tweets === 0 ? '-' : formatNumber(user.tweets)}
+                          </div>
+                          <div className="text-sm text-gray-400">Tweets</div>
+                        </div>
+                        <div className="text-center bg-gray-800/50 rounded-lg p-3">
+                          <div className="text-lg font-bold text-red-400">
+                            {user.likes === 0 ? '-' : formatNumber(user.likes)}
+                          </div>
+                          <div className="text-sm text-gray-400">Likes</div>
+                        </div>
+                        <div className="text-center bg-gray-800/50 rounded-lg p-3">
+                          <div className="text-lg font-bold text-green-400">
+                            {user.impressions === 0 ? '-' : formatNumber(user.impressions)}
+                          </div>
+                          <div className="text-sm text-gray-400">Impressions</div>
+                        </div>
+                      </div>
+                      
+                      {user.mindshare === 0 && user.tweets === 0 && user.likes === 0 && user.impressions === 0 && (
+                        <div className="mt-4 text-center text-gray-500 text-sm bg-gray-800/30 rounded-lg p-3">
+                          No activity data available for this time period
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-400 text-lg">
+                    No users found for &quot;{searchUser}&quot;
+                  </p>
+                  <p className="text-gray-500 text-sm mt-2">
+                    Try a different username
+                  </p>
+                </div>
+              )
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-400 text-lg">
+                  {rankings.length > 0 
+                    ? (
+                      <>
+                        Search for a username above to see detailed metrics
+                        <br /><br />
+                        eg.{' '}
+                        <a 
+                          href="https://x.com/auriosweb3" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="hover:text-gray-300 transition-colors"
+                          style={{ color: '#94c182' }}
+                        >
+                          auriosweb3
+                        </a>
+                      </>
+                    )
+                    : "Loading data..."}
+                </p>
+                {rankings.length > 0 && (
+                  <p className="text-gray-500 text-sm mt-2">
+                    {rankings.length} users loaded
+                  </p>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
