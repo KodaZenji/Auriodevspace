@@ -466,6 +466,7 @@ const RankFinder = () => {
          </p>
            </div>
         </div>
+              </div>
         
             )}
           </div>
