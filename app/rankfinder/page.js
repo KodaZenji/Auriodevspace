@@ -431,21 +431,7 @@ const RankFinder = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gray-800/30 rounded-lg p-3 text-sm text-gray-500">
-                    <p className="flex items-start mb-1">
-                      <span className="text-yellow-400 mr-2"> </span>
-                      <span>Unofficial community calculator. Actual rewards may vary.</span>
-                    </p>
-                    <p className="flex items-start">
-                      <span className="text-yellow-400 mr-2">*</span>
-                      <span>GOATFDN determines final allocations.</span>
-                    </p>
-                    <p className="flex items-start">
-                      <span className="text-yellow-400 mr-2">*</span>
-                      <span>Next snapshot : Oct 17th, 2025.</span>
-                    </p>
-                  </div>
-                </div>
+                  
 
                 {/* Campaign Info */}
                 <div className="mt-8 bg-gray-900 border border-gray-700 rounded-lg p-6">
@@ -463,9 +449,26 @@ const RankFinder = () => {
                       <div className="text-2xl font-bold text-yellow-400">
                         {Math.round(MONTHLY_POOL).toLocaleString()}
                       </div>
-                      <div className="text-sm text-gray-400">Monthly Pool</div>
-                    </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3">
+                </div>
+                  </div>
+
+                  <div className="bg-gray-800/30 rounded-lg p-3 text-sm text-gray-500">
+                   <p className="flex items-start mb-1">
+                   <span className="text-yellow-400 mr-2">*</span>
+                   <span>Unofficial community calculator. Actual rewards may vary.</span>
+                   </p>
+               <p className="flex items-start">
+                <span className="text-yellow-400 mr-2">&nbsp;</span>
+              <span>GOATFDN determines final allocations.</span>
+            </p>
+            <p className="flex items-start">
+           <span className="text-yellow-400 mr-2">&nbsp;</span>
+           <span>Next snapshot : Oct 17th, 2025.</span>
+            </p>
+           </div>
+
+                {/* Campaign Info */}
+                <div<div className="bg-gray-800/50 rounded-lg p-3">
                       <div className="text-2xl font-bold text-yellow-400">
                         {CAMPAIGN_MONTHS} Months
                       </div>
