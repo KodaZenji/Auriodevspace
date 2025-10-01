@@ -458,7 +458,7 @@ const RankFinder = () => {
                       <div className="text-sm text-gray-400">Months</div>
                     </div>
                   </div>
-<div className="bg-gray-800/30 rounded-lg p-3 pl-8 text-sm text-gray-500 mt-4">
+<div className="bg-gray-800/30 rounded-lg p-6 pl-8 text-sm text-gray-500 mt-4">
                     <p className="mb-1">
                       Unofficial community calculator. Actual rewards may vary.
                     </p>
