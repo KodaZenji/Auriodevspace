@@ -460,8 +460,8 @@ const RankFinder = () => {
                   </div>
 
                   <div className="bg-gray-800/30 rounded-lg p-3 text-sm text-gray-500 mt-4">
-                    <p className="flex items-start mb-1">
-                      <span className="mr-2"> </span>
+                    <p className="flex items-start mb-1 text-center">
+                      <span className="mr-2 ml-1"> </span>
                       <span>Unofficial community calculator. Actual rewards may vary.</span>
                     </p>
                     <p className="flex items-start">
@@ -478,7 +478,8 @@ const RankFinder = () => {
             ) : (
               <div className="text-center py-8">
                 <p className="text-gray-400 text-lg">
-                  Enter a username to calculate rewards
+                  Enter a username to calculate rewards. 
+                  Estimates are Based on 30-Day Mindshare. 
                 </p>
               </div>
             )}
