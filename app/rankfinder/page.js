@@ -459,9 +459,9 @@ const RankFinder = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gray-800/30 rounded-lg p-3 text-sm text-gray-500 mt-4">
+                  <div className="bg-gray-800/30 rounded-lg p-3 text-sm text-gray-500 mt-4 ml-2">
                     <p className="flex items-start mb-1 text-center">
-                      <span className="mr-2 ml-1"> </span>
+                      <span className="mr-2"> </span>
                       <span>Unofficial community calculator. Actual rewards may vary.</span>
                     </p>
                     <p className="flex items-start">
