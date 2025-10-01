@@ -459,17 +459,15 @@ const RankFinder = () => {
                     </div>
                   </div>
 <div className="bg-gray-800/30 rounded-lg p-3 text-sm text-gray-500 mt-4 ml-2">
-    <div className="pl-3">
-  <p className="mb-1">
-    <span>Unofficial community calculator. Actual rewards may vary.</span>
+  <p className="mb-1 pl-3">
+    Unofficial community calculator. Actual rewards may vary.
   </p>
-  <p>
-    <span>GOATFDN determines final allocations.</span>
+  <p className="pl-3">
+    GOATFDN determines final allocations.
   </p>
-  <p>
-    <span>Next snapshot : Oct 17th, 2025.</span>
+  <p className="pl-3">
+    Next snapshot : Oct 17th, 2025.
   </p>
-              </div>
 </div>
                 </div>
               </div>
