@@ -458,19 +458,13 @@ const RankFinder = () => {
                       <div className="text-sm text-gray-400">Months</div>
                     </div>
                   </div>
-              </div>
-              </div>
-<div className="bg-gray-800/30 rounded-lg p-6 pl-8 text-sm text-gray-500 mt-4">
-                    <p className="mb-1">
-                      Unofficial community calculator. Actual rewards may vary.
-                    </p>
-                    <p className="mb-1">
-                      GOATFDN determines final allocations.
-                    </p>
-                    <p>
-                      Next snapshot : Oct 17th, 2025.
-                    </p>
-              </div>
+<p className="text-xs text-gray-400 text-center mt-6 leading-relaxed">
+  Unofficial community calculator. Actual rewards may vary. <br />
+  GOATFDN determines final allocations. <br />
+  Next snapshot: Oct 17th, 2025.
+</p>
+             </div>
+            </div>
             ) : (
               <div className="text-center py-8">
                 <p className="text-gray-400 text-lg">
