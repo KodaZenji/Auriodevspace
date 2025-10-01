@@ -458,21 +458,17 @@ const RankFinder = () => {
                       <div className="text-sm text-gray-400">Months</div>
                     </div>
                   </div>
-
-                  <div className="bg-gray-800/30 rounded-lg p-3 text-sm text-gray-500 mt-4 ml-2">
-                    <p className="flex items-start mb-1 text-center">
-                      <span className="mr-2"> </span>
-                      <span>Unofficial community calculator. Actual rewards may vary.</span>
-                    </p>
-                    <p className="flex items-start">
-                      <span className="mr-2"> </span>
-                      <span>GOATFDN determines final allocations.</span>
-                    </p>
-                    <p className="flex items-start">
-                      <span className="mr-2"> </span>
-                      <span>Next snapshot : Oct 17th, 2025.</span>
-                    </p>
-                  </div>
+<div className="bg-gray-800/30 rounded-lg p-3 text-sm text-gray-500 mt-4 ml-2">
+  <p className="flex items-start mb-1 text-left ml-4">
+    <span>Unofficial community calculator. Actual rewards may vary.</span>
+  </p>
+  <p className="flex items-start ml-4">
+    <span>GOATFDN determines final allocations.</span>
+  </p>
+  <p className="flex items-start ml-4">
+    <span>Next snapshot : Oct 17th, 2025.</span>
+  </p>
+</div>
                 </div>
               </div>
             ) : (
