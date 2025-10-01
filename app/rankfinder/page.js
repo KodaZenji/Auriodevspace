@@ -431,43 +431,55 @@ const RankFinder = () => {
                     </div>
                   </div>
 
-                  
-
-                {/* Campaign Info */}
-                <div className="mt-8 bg-gray-900 border border-gray-700 rounded-lg p-6">
-                  <h3 className="text-xl font-bold text-yellow-400 mb-4 text-center">
-                    Post TGE Campaign
-                  </h3>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <div className="text-2xl font-bold text-yellow-400">
-                        7M $GOATED
+                  {/* Campaign Info */}
+                  <div className="mt-8 bg-gray-900 border border-gray-700 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-yellow-400 mb-4 text-center">
+                      Post TGE Campaign
+                    </h3>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div className="bg-gray-800/50 rounded-lg p-3">
+                        <div className="text-2xl font-bold text-yellow-400">
+                          7M $GOATED
+                        </div>
+                        <div className="text-sm text-gray-400">Total Allocation</div>
                       </div>
-                      <div className="text-sm text-gray-400">Total Allocation</div>
+                      <div className="bg-gray-800/50 rounded-lg p-3">
+                        <div className="text-2xl font-bold text-yellow-400">
+                          {Math.round(MONTHLY_POOL).toLocaleString()}
+                        </div>
+                        <div className="text-sm text-gray-400">Monthly Pool</div>
+                      </div>
+                      <div className="bg-gray-800/50 rounded-lg p-3">
+                        <div className="text-2xl font-bold text-yellow-400">
+                          9 Months
+                        </div>
+                        <div className="text-sm text-gray-400">Duration</div>
+                      </div>
                     </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <div className="text-2xl font-bold text-yellow-400">
-                        {Math.round(MONTHLY_POOL).toLocaleString()}
-                      </div>
-                </div>
+
+                    <div className="mt-4 bg-gray-800/30 rounded-lg p-3 text-sm text-gray-500">
+                      <p className="flex items-start mb-1">
+                        <span className="mr-2"> </span>
+                        <span>Unofficial community calculator. Actual rewards may vary.</span>
+                      </p>
+                      <p className="flex items-start">
+                        <span className="mr-2"> </span>
+                        <span>GOATFDN determines final allocations.</span>
+                      </p>
+                      <p className="flex items-start">
+                        <span className="mr-2"> </span>
+                        <span>Next snapshot : Oct 17th, 2025.</span>
+                      </p>
+                    </div>
                   </div>
-        <div className="bg-gray-800/30 rounded-lg p-3 text-sm text-gray-500">
-         <p className="flex items-start mb-1">
-        <span className="mr-2"> </span>
-       <span>Unofficial community calculator. Actual rewards may vary.</span>
-           </p>
-          <p className="flex items-start">
-          <span className="mr-2"> </span>
-           <span>GOATFDN determines final allocations.</span>
-            </p>
-          <p className="flex items-start">
-           <span className="mr-2"> </span>
-          <span>Next snapshot : Oct 17th, 2025.</span>
-         </p>
-           </div>
-        </div>
+                </div>
               </div>
-        
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-400 text-lg">
+                  Enter a username to calculate rewards
+                </p>
+              </div>
             )}
           </div>
         ) : (
