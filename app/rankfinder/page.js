@@ -461,7 +461,7 @@ const RankFinder = () => {
 <p className="text-xs text-gray-400 text-center mt-6 leading-relaxed">
   Unofficial community calculator. Actual rewards may vary. <br />
   GOATFDN determines final allocations. <br />
-  Next snapshot: Oct 17th, 2025.
+  Next snapshot: Oct 16th, 2025.
 </p>
              </div>
             </div>
