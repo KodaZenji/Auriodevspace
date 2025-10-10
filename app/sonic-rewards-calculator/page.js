@@ -1,215 +1,254 @@
+
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 
 export default function SonicRewardsCalculator() {
-  const globalPoolSize = 1800272;
-  const regionalPoolSize = 349864;
-
-  const [globalRank, setGlobalRank] = useState("");
-  const [region, setRegion] = useState("");
-  const [regionalRank, setRegionalRank] = useState("");
-
-  // ---- Global Reward Logic ----
-  const calculateGlobalReward = (rank) => {
-    if (rank < 1 || rank > 1000) return 0;
-    const rank1Reward = Math.round(globalPoolSize * 0.0277); // ~49,868
-    if (rank === 1) return rank1Reward;
-    if (rank === 1000) return 50;
-
-    const powerLawExponent = 0.8;
-    const rawReward = rank1Reward * Math.pow(rank, -powerLawExponent);
-
-    if (rank <= 100) return Math.max(50, Math.round(rawReward * 0.9));
-    if (rank <= 500) {
-      const middleDecay = 0.5 + (0.4 * Math.pow((501 - rank) / 400, 0.5));
-      return Math.max(50, Math.round(rawReward * middleDecay));
-    }
-
-    const bottomProgress = (rank - 500) / 500;
-    const startReward = rank1Reward * Math.pow(500, -powerLawExponent) * 0.3;
-    return Math.max(50, Math.round(startReward * Math.pow(1 - bottomProgress, 2) + 50));
-  };
-
-  // ---- Regional Reward Logic ----
-  const calculateRegionalReward = (rank) => {
-    if (rank < 1 || rank > 100) return 0;
-    const topReward = regionalPoolSize * 0.0491;
-    const decayRate = 0.9512;
-    return Math.round(topReward * Math.pow(decayRate, rank - 1));
-  };
-
-  // ---- Format numbers ----
-  const formatNumber = (num) => num.toLocaleString();
-
-  // ---- Display values ----
-  const globalReward = globalRank ? calculateGlobalReward(Number(globalRank)) : 0;
-  const regionalReward = regionalRank
-    ? calculateRegionalReward(Number(regionalRank))
-    : 0;
-
   return (
-    <div className="min-h-screen" style={{ 
+    <div className="min-h-screen flex items-center justify-center" style={{ 
       background: 'linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)',
       color: 'white',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      padding: '20px'
     }}>
-      <div className="container-premium">
-        {/* Header with Logo */}
-        <div className="glass-header relative overflow-hidden">
-          {/* Local Logo */}
-          <div className="absolute top-6 left-6 w-16 h-16">
-            <div 
-              className="w-full h-full bg-gradient-to-br from-orange-400 to-blue-600 rounded-full items-center justify-center text-2xl font-bold text-white hidden"
-              style={{ display: 'none' }}
-            >
-              S
-            </div>
+      <div style={{
+        maxWidth: '800px',
+        width: '100%',
+        background: 'rgba(255, 255, 255, 0.05)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '24px',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        padding: '48px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+      }}>
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <div 
+            style={{
+              width: '80px',
+              height: '80px',
+              background: 'linear-gradient(135deg, #fb923c 0%, #3b82f6 100%)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '32px',
+              fontWeight: 'bold',
+              boxShadow: '0 10px 30px rgba(251, 146, 60, 0.4)'
+            }}
+          >
+            S
           </div>
+        </div>
 
-          {/* Header Content */}
-          <h1 className="text-4xl font-black mb-4 pl-20" style={{
-            background: 'linear-gradient(135deg, #fb923c 0%, #f97316 25%, #ea580c 50%, #3b82f6 75%, #1d4ed8 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            textShadow: '0 0 30px rgba(251, 146, 60, 0.4)'
+        {/* Main Heading */}
+        <h1 className="text-center mb-6" style={{
+          fontSize: '2.5rem',
+          fontWeight: '900',
+          background: 'linear-gradient(135deg, #fb923c 0%, #f97316 25%, #ea580c 50%, #3b82f6 75%, #1d4ed8 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          lineHeight: '1.2'
+        }}>
+          Sonic Yaps Rewards Calculator
+        </h1>
+
+        {/* Status Badge */}
+        <div className="text-center mb-8">
+          <div style={{
+            display: 'inline-block',
+            background: 'rgba(34, 197, 94, 0.1)',
+            border: '1px solid rgba(34, 197, 94, 0.3)',
+            borderRadius: '24px',
+            padding: '8px 20px',
+            fontSize: '14px',
+            fontWeight: '600',
+            color: '#22c55e'
           }}>
-            Sonic Yaps Reward Calculator
-          </h1>
-        </div>
-
-        <div className="grid-premium grid-2-cols">
-          {/* Global Leaderboard */}
-          <div className="glass-card">
-            <h2 className="text-2xl font-bold mb-6 text-white/95"> Global Leaderboard</h2>
-            <div className="mb-6">
-              <label className="block font-semibold mb-2 text-white/85" htmlFor="globalRank">
-                Ranks (1-1000)
-              </label>
-              <input
-                type="number"
-                id="globalRank"
-                className="premium-input"
-                placeholder="Enter a rank to check"
-                min="1"
-                max="1000"
-                value={globalRank}
-                onChange={(e) => setGlobalRank(e.target.value)}
-              />
-            </div>
-            <div className="reward-display">
-              <div className="reward-amount">{formatNumber(globalReward)} S</div>
-              <div className="reward-label">
-                {globalRank
-                  ? `Rank #${globalRank} Global Reward`
-                  : "Enter rank 1-1000"}
-              </div>
-            </div>
-          </div>
-
-          {/* Regional Leaderboards */}
-          <div className="glass-card">
-            <h2 className="text-2xl font-bold mb-6 text-white/95"> Regional Leaderboards</h2>
-            <div className="mb-6">
-              <label className="block font-semibold mb-2 text-white/85" htmlFor="region">
-                Select Region
-              </label>
-              <select
-                id="region"
-                className="premium-select"
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-              >
-                <option value="">Choose region...</option>
-                <option value="korean">Korean Yappers</option>
-                <option value="mandarin">Mandarin Yappers</option>
-              </select>
-            </div>
-            <div className="mb-6">
-              <label className="block font-semibold mb-2 text-white/85" htmlFor="regionalRank">
-                Ranks (1-100)
-              </label>
-              <input
-                type="number"
-                id="regionalRank"
-                className="premium-input"
-                placeholder="Enter a rank to check"
-                min="1"
-                max="100"
-                value={regionalRank}
-                onChange={(e) => setRegionalRank(e.target.value)}
-              />
-            </div>
-            <div className="reward-display">
-              <div className="reward-amount">
-                {formatNumber(regionalReward)} S
-              </div>
-              <div className="reward-label">
-                {region && regionalRank
-                  ? `Rank #${regionalRank} ${
-                      region === "korean" ? "Korean" : "Mandarin"
-                    } Reward`
-                  : "Select region & enter rank"}
-              </div>
-            </div>
+            Season 1 Rewards Distributed
           </div>
         </div>
 
-        {/* Info Section */}
-        <div className="glass-card mt-10">
-          <h2 className="text-2xl font-bold mb-6 text-white/95">Round 1 Distribution Overview</h2>
-          <p className="mb-6 opacity-90">
-            Total allocation of 2,500,000 S tokens distributed across global and
-            regional leaderboards. Rewards are heavily weighted towards top
-            performers to recognize quality contributions.
+        {/* Maintenance Message */}
+        <div style={{
+          background: 'rgba(251, 146, 60, 0.1)',
+          border: '1px solid rgba(251, 146, 60, 0.2)',
+          borderRadius: '16px',
+          padding: '32px',
+          marginBottom: '32px',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            fontSize: '48px',
+            marginBottom: '16px'
+          }}>
+            🔧
+          </div>
+          <h2 style={{
+            fontSize: '1.75rem',
+            fontWeight: '700',
+            marginBottom: '12px',
+            color: 'white'
+          }}>
+            Site Under Maintenance
+          </h2>
+          <p style={{
+            fontSize: '1.1rem',
+            opacity: '0.9',
+            lineHeight: '1.6'
+          }}>
+            The calculator is temporarily unavailable while we update for Season 2.<br/>
+            Thank you for your patience!
           </p>
+        </div>
 
-          <div className="grid-premium grid-auto-fit">
-            <div className="stat-card">
-              <div className="stat-number">1,800,272</div>
-              <div className="stat-label">Global Pool ($S tokens)</div>
+        {/* Announcement Box */}
+        <div style={{
+          background: 'rgba(59, 130, 246, 0.1)',
+          border: '1px solid rgba(59, 130, 246, 0.2)',
+          borderRadius: '16px',
+          padding: '24px',
+          marginBottom: '24px'
+        }}>
+          <h3 style={{
+            fontSize: '1.25rem',
+            fontWeight: '700',
+            marginBottom: '12px',
+            color: '#3b82f6'
+          }}>
+           Season 1 Complete
+          </h3>
+          <p style={{
+            opacity: '0.9',
+            lineHeight: '1.6',
+            marginBottom: '16px'
+          }}>
+            Sonic Yap rewards for Season 1 have been successfully distributed!
+          </p>
+          <a 
+            href="https://x.com/DraculaPresley/status/1976660450751447114" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-block',
+              background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              fontWeight: '600',
+              textDecoration: 'none',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+            }}
+          >
+            📋 View Official Announcement
+          </a>
+        </div>
+
+        {/* Disclaimer */}
+        <div style={{
+          background: 'rgba(239, 68, 68, 0.1)',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+          borderRadius: '12px',
+          padding: '20px',
+          marginBottom: '32px'
+        }}>
+          <p style={{
+            fontSize: '0.95rem',
+            opacity: '0.9',
+            lineHeight: '1.6',
+            margin: 0
+          }}>
+            <strong> Disclaimer:</strong> This calculator provided unofficial estimates to keep you motivated. 
+            The Sonic Labs team decides all final allocations. Always refer to official announcements, this calculator serves as a motivation to yappers.
+          </p>
+        </div>
+
+        {/* Stats Grid - Historical Data */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '16px',
+          marginBottom: '32px'
+        }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            borderRadius: '12px',
+            padding: '20px',
+            textAlign: 'center',
+            border: '1px solid rgba(255, 255, 255, 0.05)'
+          }}>
+            <div style={{
+              fontSize: '1.75rem',
+              fontWeight: '700',
+              marginBottom: '8px',
+              background: 'linear-gradient(135deg, #fb923c, #f97316)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              2.5M
             </div>
-            <div className="stat-card">
-              <div className="stat-number">1,000</div>
-              <div className="stat-label">Global Eligible</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number">349,864</div>
-              <div className="stat-label">Regional Pool Each</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number">48.9%</div>
-              <div className="stat-label">Top 100 Share</div>
+            <div style={{ fontSize: '0.875rem', opacity: '0.7' }}>
+              Total S Tokens
             </div>
           </div>
-
-          <div className="alert-warning mt-6">
-            <strong>⚠️ Disclaimer:</strong> These are estimates based on the
-            distribution structure made public. Actual rewards may vary slightly. Sonic Labs
-            team members are excluded from rewards.
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            borderRadius: '12px',
+            padding: '20px',
+            textAlign: 'center',
+            border: '1px solid rgba(255, 255, 255, 0.05)'
+          }}>
+            <div style={{
+              fontSize: '1.75rem',
+              fontWeight: '700',
+              marginBottom: '8px',
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              200
+            </div>
+            <div style={{ fontSize: '0.875rem', opacity: '0.7' }}>
+              Regional Winners
+            </div>
           </div>
         </div>
 
-        <div className="text-center mt-10 p-6 opacity-70 text-sm border-t border-white/10">
+        {/* Footer */}
+        <div className="text-center" style={{
+          paddingTop: '32px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          opacity: '0.7',
+          fontSize: '0.875rem'
+        }}>
           <p>
-            Built for the Sonic community 💚 |{" "}<a 
+            Built for the Sonic community 💚 |{' '}
+            <a 
               href="https://x.com/auriosweb3" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="font-semibold hover:text-gray-300 transition-colors"
-              style={{ color: '#94c182' }}
+              style={{
+                color: '#94c182',
+                fontWeight: '600',
+                textDecoration: 'none'
+              }}
             >
               auriosweb3
-            </a> | Data
-            based on Round 1 snapshot (Sept 18, 00:00 UTC)
+            </a>
+            {' '}| Season 2 is live now. Next snapshot Nov1 )
           </p>
         </div>
       </div>
-
-      <style jsx>{`
-        /* No animations needed */
-      `}</style>
     </div>
   );
 }
