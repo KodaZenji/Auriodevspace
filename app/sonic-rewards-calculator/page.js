@@ -88,7 +88,7 @@ export default function SonicRewardsCalculator() {
             opacity: '0.9',
             lineHeight: '1.6'
           }}>
-            The calculator is temporarily unavailable while we update for Season 2.<br/>
+            The calculator is temporarily unavailable while we update for Round 2.<br/>
             Thank you for your patience!
           </p>
         </div>
