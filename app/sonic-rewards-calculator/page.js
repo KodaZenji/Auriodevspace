@@ -24,20 +24,10 @@ export default function SonicRewardsCalculator() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <div 
-            style={{
-              width: '80px',
-              height: '80px',
-              background: 'linear-gradient(135deg, #fb923c 0%, #3b82f6 100%)',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '32px',
-              fontWeight: 'bold',
-              boxShadow: '0 10px 30px rgba(251, 146, 60, 0.4)'
-            }}
-          >
-            S
+            <img
+                src="/sonic-labs-logo.png"
+                alt="sonic"
+              />
           </div>
         </div>
 
@@ -66,7 +56,7 @@ export default function SonicRewardsCalculator() {
             fontWeight: '600',
             color: '#22c55e'
           }}>
-            Season 1 Rewards Distributed
+            Round 1 Rewards Distributed
           </div>
         </div>
 
@@ -124,7 +114,7 @@ export default function SonicRewardsCalculator() {
             lineHeight: '1.6',
             marginBottom: '16px'
           }}>
-            Sonic Yap rewards for Season 1 have been successfully distributed!
+            Sonic Yap rewards for Round 1 have been successfully distributed!
           </p>
           <a 
             href="https://x.com/DraculaPresley/status/1976660450751447114" 
@@ -169,7 +159,7 @@ export default function SonicRewardsCalculator() {
             margin: 0
           }}>
             <strong> Disclaimer:</strong> This calculator provided unofficial estimates to keep you motivated. 
-            The Sonic Labs team decides all final allocations. Always refer to official announcements, this calculator serves as a motivation to yappers.
+            The Sonic Labs team decides all final allocations. Always refer to official announcements.
           </p>
         </div>
 
@@ -216,10 +206,10 @@ export default function SonicRewardsCalculator() {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
-              200
+              1000
             </div>
             <div style={{ fontSize: '0.875rem', opacity: '0.7' }}>
-              Regional Winners
+              Total Winners
             </div>
           </div>
         </div>
@@ -245,7 +235,7 @@ export default function SonicRewardsCalculator() {
             >
               auriosweb3
             </a>
-            {' '}| Season 2 is live now. Next snapshot Nov1 )
+            {' '}| Round 2 is live now. Next snapshot Nov1 )
           </p>
         </div>
       </div>
