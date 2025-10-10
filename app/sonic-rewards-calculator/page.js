@@ -23,11 +23,15 @@ export default function SonicRewardsCalculator() {
       }}>
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <div 
+          <div>
             <img
-                src="/sonic-labs-logo.png"
-                alt="sonic"
-              />
+              src="/sonic-labs-logo.png"
+              alt="sonic"
+              style={{
+                maxWidth: '200px',
+                height: 'auto'
+              }}
+            />
           </div>
         </div>
 
@@ -107,7 +111,7 @@ export default function SonicRewardsCalculator() {
             marginBottom: '12px',
             color: '#3b82f6'
           }}>
-           Season 1 Complete
+            Round 1 Complete
           </h3>
           <p style={{
             opacity: '0.9',
@@ -158,7 +162,7 @@ export default function SonicRewardsCalculator() {
             lineHeight: '1.6',
             margin: 0
           }}>
-            <strong> Disclaimer:</strong> This calculator provided unofficial estimates to keep you motivated. 
+            <strong>⚠️ Disclaimer:</strong> This calculator provided unofficial estimates to keep you motivated. 
             The Sonic Labs team decides all final allocations. Always refer to official announcements.
           </p>
         </div>
@@ -206,7 +210,7 @@ export default function SonicRewardsCalculator() {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
-              1000
+              1,000
             </div>
             <div style={{ fontSize: '0.875rem', opacity: '0.7' }}>
               Total Winners
@@ -235,7 +239,7 @@ export default function SonicRewardsCalculator() {
             >
               auriosweb3
             </a>
-            {' '}| Round 2 is live now. Next snapshot Nov1
+            {' '}| Round 2 is live now. Next snapshot Nov 1
           </p>
         </div>
       </div>
