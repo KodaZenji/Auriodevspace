@@ -235,7 +235,7 @@ export default function SonicRewardsCalculator() {
             >
               auriosweb3
             </a>
-            {' '}| Round 2 is live now. Next snapshot Nov1 )
+            {' '}| Round 2 is live now. Next snapshot Nov1
           </p>
         </div>
       </div>
