@@ -481,7 +481,7 @@ const RankFinder = () => {
                       <div className="text-2xl font-bold text-yellow-400">
                         7M
                       </div>
-                      <div className="text-sm text-gray-400">Total $GOATED</div>
+                      <div className="text-sm text-gray-400">$GOATED allocation</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-3">
                      
@@ -491,7 +491,7 @@ const RankFinder = () => {
                       <div className="text-2xl font-bold text-yellow-400">
                         9
                       </div>
-                      <div className="text-sm text-gray-400">Months</div>
+                      <div className="text-sm text-gray-400">Months Duration</div>
                     </div>
                   </div>
                   <p className="text-xs text-gray-400 text-center mt-6 leading-relaxed">
