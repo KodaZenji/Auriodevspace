@@ -14,8 +14,10 @@ const RankFinder = () => {
   // Rewards Calculator Constants
   const TOTAL_ALLOCATION = 1000000000; // 1B tokens
   const ALLOCATION_PERCENT = 0.007; // 0.7%
+  const YAPPERS_SHARE = 2/3; // Yappers gets 2/3 if shared with Kaito
   const CAMPAIGN_MONTHS = 9;
-  const MONTHLY_POOL = (TOTAL_ALLOCATION * ALLOCATION_PERCENT) / CAMPAIGN_MONTHS; // 777,777.78 tokens per month
+  const MONTHLY_POOL_FULL = (TOTAL_ALLOCATION * ALLOCATION_PERCENT) / CAMPAIGN_MONTHS; // 777,777.78 tokens per month
+  const MONTHLY_POOL_SHARED = (TOTAL_ALLOCATION * ALLOCATION_PERCENT * YAPPERS_SHARE) / CAMPAIGN_MONTHS; // 518,518.52 tokens per month
 
   const fetchRankings = async (days) => {
     setLoading(true);
@@ -224,9 +226,13 @@ const RankFinder = () => {
     return num.toLocaleString();
   };
 
-  // Calculate rewards for a specific user
+  // Calculate rewards for a specific user (both scenarios)
   const calculateUserRewards = (user) => {
-    if (!user || !user.mindshare) return { estimatedShare: 0, monthlyReward: 0 };
+    if (!user || !user.mindshare) return { 
+      estimatedShare: 0, 
+      monthlyRewardFull: 0,
+      monthlyRewardShared: 0 
+    };
     
     // User's mindshare percentage (already in percentage form)
     const userMindshare = user.mindshare;
@@ -235,11 +241,13 @@ const RankFinder = () => {
     const estimatedShare = userMindshare / 100;
     
     // Monthly reward = Monthly Pool * User's Share
-    const monthlyReward = MONTHLY_POOL * estimatedShare;
+    const monthlyRewardFull = MONTHLY_POOL_FULL * estimatedShare;
+    const monthlyRewardShared = MONTHLY_POOL_SHARED * estimatedShare;
     
     return {
       estimatedShare: (estimatedShare * 100).toFixed(4), // Convert back to percentage for display
-      monthlyReward: Math.round(monthlyReward)
+      monthlyRewardFull: Math.round(monthlyRewardFull),
+      monthlyRewardShared: Math.round(monthlyRewardShared)
     };
   };
 
@@ -416,19 +424,31 @@ const RankFinder = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="text-center bg-gray-800/50 rounded-lg p-3">
+                  <div className="mb-4">
+                    <div className="text-center bg-gray-800/50 rounded-lg p-3 mb-3">
                       <div className="text-lg font-bold text-green-400">
                         {calculateUserRewards(searchedUser).estimatedShare}%
                       </div>
                       <div className="text-sm text-gray-400">Estimated Share</div>
                     </div>
-                    <div className="text-center bg-gray-800/50 rounded-lg p-3">
-                      <div className="text-lg font-bold text-yellow-400">
-                        {calculateUserRewards(searchedUser).monthlyReward.toLocaleString()}
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-center bg-green-900/10 border border-green-800/30 rounded-lg p-3">
+                        <div className="text-xs text-green-400 mb-1 font-medium">Best Case</div>
+                        <div className="text-lg font-bold text-green-400">
+                          {calculateUserRewards(searchedUser).monthlyRewardFull.toLocaleString()}
+                        </div>
+                       
                       </div>
-                      <div className="text-sm text-gray-400">Monthly $GOATED</div>
+                      <div className="text-center bg-yellow-900/10 border border-yellow-800/30 rounded-lg p-3">
+                        <div className="text-xs text-yellow-400 mb-1 font-medium">Likely Case</div>
+                        <div className="text-lg font-bold text-yellow-400">
+                          {calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()}
+                        </div>
+              
+                      </div>
                     </div>
+                    <div className="text-xs text-gray-500 text-center mt-2">Monthly $GOATED Estimates</div>
                   </div>
                 </div>
                 
@@ -436,20 +456,36 @@ const RankFinder = () => {
                 {/* Campaign Info */}
                 <div className="mt-8 bg-gray-900 border border-gray-700 rounded-lg p-6">
                   <h3 className="text-xl font-bold text-yellow-400 mb-4 text-center">
-                    Post TGE Campaign
+                    Campaign Metrics
                   </h3>
+                  
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="text-center bg-green-900/10 border border-green-800/30 rounded-lg p-3">
+                     
+                      <div className="text-xl font-bold text-green-400">
+                        {Math.round(MONTHLY_POOL_FULL).toLocaleString()}
+                      </div>
+                      <div className="text-xs text-gray-500">Full 0.08% allocation per Month</div>
+                    </div>
+                    <div className="text-center bg-yellow-900/10 border border-yellow-800/30 rounded-lg p-3">
+                
+                      <div className="text-xl font-bold text-yellow-400">
+                        {Math.round(MONTHLY_POOL_SHARED).toLocaleString()}
+                      </div>
+                      <div className="text-xs text-gray-500">If shared with extended Kaito eco</div>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div className="bg-gray-800/50 rounded-lg p-3">
                       <div className="text-2xl font-bold text-yellow-400">
-                        7M $GOATED
+                        7M
                       </div>
-                      <div className="text-sm text-gray-400">Total Allocation</div>
+                      <div className="text-sm text-gray-400">Total $GOATED</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-3">
-                      <div className="text-2xl font-bold text-yellow-400">
-                        {Math.round(MONTHLY_POOL).toLocaleString()}
-                      </div>
-                      <div className="text-sm text-gray-400">Per Month</div>
+                     
+                      <div className="text-sm text-gray-400"></div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-3">
                       <div className="text-2xl font-bold text-yellow-400">
@@ -458,13 +494,12 @@ const RankFinder = () => {
                       <div className="text-sm text-gray-400">Months</div>
                     </div>
                   </div>
-<p className="text-xs text-gray-400 text-center mt-6 leading-relaxed">
-  Unofficial community calculator. Actual rewards may vary. <br />
-  GOATFDN determines final allocations. <br />
-  Next snapshot: Oct 16th, 2025.
-</p>
-             </div>
-            </div>
+                  <p className="text-xs text-gray-400 text-center mt-6 leading-relaxed">
+                    Unofficial community calculator. Actual rewards may vary. <br />
+                    GOATFDN determines final allocations. Next snapshot: Oct 16th, 2025.
+                  </p>
+                </div>
+              </div>
             ) : (
               <div className="text-center py-8">
                 <p className="text-gray-400 text-lg">
