@@ -311,7 +311,7 @@ const RankFinder = () => {
                       <img 
                         src={getProfilePicUrl(searchedUser.username)}
                         alt={searchedUser.username}
-                        className="w-12 h-12 rounded-full border-2 border-yellow-400/30 object-cover bg-gray-800"
+                        cla4.6MssName="w-12 h-12 rounded-full border-2 border-yellow-400/30 object-cover bg-gray-800"
                         loading="eager"
                         onError={(e) => {
                           e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${searchedUser.username}&size=96&backgroundColor=1f2937`;
@@ -336,7 +336,7 @@ const RankFinder = () => {
                   </div>
 
                   <div className="mb-4">
-                    <div className="text-center bg-gradient-to-br from-green-900/20 to-green-800/10 border border-green-700/40 rounded-xl p-5 mb-3">
+                   <div className="text-center bg-gradient-to-br from-green-900/20 to-green-800/10 border border-green-700/40 rounded-xl p-5 mb-3">
                                    
                       <div className="text-xl font-bold text-green-400">
                         {calculateUserRewards(searchedUser).estimatedShare}%
@@ -347,7 +347,7 @@ const RankFinder = () => {
                       <div className="text-2xl font-bold text-yellow-400">
                         {calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">$GOATED Allocation per Month</div>
+                      <div className="text-sm text-gray-400 mt-1">$GOATED Allocation per Month</div>
                     </div>
                   </div>
                 </div>
@@ -359,18 +359,18 @@ const RankFinder = () => {
                   
                   <div className="grid grid-cols-3 gap-4 text-center mb-6">
                     <div className="bg-gradient-to-br from-yellow-900/20 to-yellow-800/10 border border-yellow-700/30 rounded-lg p-4">
-                      <div className="text-3xl font-bold text-yellow-400 mb-1">7M</div>
-                      <div className="text-xs text-gray-400">Total $GOATED<br />Allocation</div>
+                      <div className="text-3xl font-bold text-yellow-400 mb-1">M</div>
+                      <div className="text-sm text-gray-400">$GOATED<br />Allocation</div>
                     </div>
                     <div className="bg-gradient-to-br from-green-900/20 to-green-800/10 border border-green-700/30 rounded-lg p-4">
                       <div className="text-3xl font-bold text-green-400 mb-1">
                         {Math.round(MONTHLY_POOL_SHARED / 1000).toLocaleString()}K
                       </div>
-                      <div className="text-xs text-gray-400">Monthly Pool<br />(Shared)</div>
+                      <div className="text-sm text-gray-400">Monthly Pool<br />(Shared)</div>
                     </div>
                     <div className="bg-gradient-to-br from-blue-900/20 to-blue-800/10 border border-blue-700/30 rounded-lg p-4">
                       <div className="text-3xl font-bold text-blue-400 mb-1">9</div>
-                      <div className="text-xs text-gray-400">Campaign<br />Months</div>
+                      <div className="text-sm text-gray-400">Months<br />Duration</div>
                     </div>
                   </div>
 
