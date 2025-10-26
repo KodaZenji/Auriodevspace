@@ -363,13 +363,13 @@ const RankFinder = () => {
                       <div className="text-sm text-gray-400">$GOATED<br />Allocation</div>
                     </div>
                     <div className="bg-gradient-to-br from-green-900/20 to-green-800/10 border border-green-700/30 rounded-lg p-4">
-                      <div className="text-3xl font-bold text-green-400 mb-1">
+                      <div className="text-2xl font-bold text-green-400 mb-1">
                         {Math.round(MONTHLY_POOL_SHARED / 1000).toLocaleString()}K
                       </div>
                       <div className="text-sm text-gray-400">Monthly Pool<br />(Shared)</div>
                     </div>
-                    <div className="bg-gradient-to-br from-blue-900/20 to-blue-800/10 border border-blue-700/30 rounded-lg p-4">
-                      <div className="text-3xl font-bold text-blue-400 mb-1">9</div>
+                    <div className="bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700  rounded-lg p-4">
+                      <div className="text-2xl font-bold text-yellow-400 mb-1">9</div>
                       <div className="text-sm text-gray-400">Months<br />Duration</div>
                     </div>
                   </div>
