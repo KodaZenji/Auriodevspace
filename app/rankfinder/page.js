@@ -10,14 +10,25 @@ const RankFinder = () => {
   const [searchUser, setSearchUser] = useState("");
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("30");
+  const [profilePics, setProfilePics] = useState({});
 
   // Rewards Calculator Constants
-  const TOTAL_ALLOCATION = 1000000000; // 1B tokens
-  const ALLOCATION_PERCENT = 0.007; // 0.7%
-  const YAPPERS_SHARE = 2/3; // Yappers gets 2/3 if shared with Kaito
+  const TOTAL_ALLOCATION = 1000000000;
+  const ALLOCATION_PERCENT = 0.007;
+  const YAPPERS_SHARE = 2/3;
   const CAMPAIGN_MONTHS = 9;
-  const MONTHLY_POOL_FULL = (TOTAL_ALLOCATION * ALLOCATION_PERCENT) / CAMPAIGN_MONTHS; // 777,777.78 tokens per month
-  const MONTHLY_POOL_SHARED = (TOTAL_ALLOCATION * ALLOCATION_PERCENT * YAPPERS_SHARE) / CAMPAIGN_MONTHS; // 518,518.52 tokens per month
+  const MONTHLY_POOL_FULL = (TOTAL_ALLOCATION * ALLOCATION_PERCENT) / CAMPAIGN_MONTHS;
+  const MONTHLY_POOL_SHARED = (TOTAL_ALLOCATION * ALLOCATION_PERCENT * YAPPERS_SHARE) / CAMPAIGN_MONTHS;
+
+  // Fast profile picture URL generator - no async needed
+  const getProfilePicUrl = (username) => {
+    // Return cached if available
+    if (profilePics[username]) {
+      return profilePics[username];
+    }
+    // Return unavatar immediately (it's fast and reliable)
+    return `https://unavatar.io/twitter/${username}`;
+  };
 
   const fetchRankings = async (days) => {
     setLoading(true);
@@ -32,11 +43,9 @@ const RankFinder = () => {
         const data = await response.json();
         let usersArray = [];
         
-        // Handle different response formats
         if (Array.isArray(data)) {
           usersArray = data;
         } else if (data && typeof data === 'object') {
-          // Look for common property names that might contain the users array
           const arrayKeys = ['users', 'data', 'leaderboard', 'rankings', 'results', 'items'];
           let foundArray = null;
           
@@ -47,9 +56,7 @@ const RankFinder = () => {
             }
           }
           
-          // If no common keys, check all values for arrays
           if (!foundArray) {
-            // eslint-disable-next-line no-unused-vars
             for (const [key, value] of Object.entries(data)) {
               if (Array.isArray(value) && value.length > 0) {
                 foundArray = value;
@@ -61,55 +68,23 @@ const RankFinder = () => {
           if (foundArray) {
             usersArray = foundArray;
           } else {
-            // Create sample data for testing with score-based mindshare
             usersArray = [
-              { 
-                username: 'TestUser1', 
-                tweets: 120, 
-                likes: 2500, 
-                impressions: 45000,
-                score: 0.155 // This will become 15.5% mindshare
-              },
-              { 
-                username: 'TestUser2', 
-                tweets: 95, 
-                likes: 1800, 
-                impressions: 32000,
-                score: 0.123 // This will become 12.3% mindshare
-              },
-              { 
-                username: 'TestUser3', 
-                tweets: 80, 
-                likes: 1200, 
-                impressions: 28000,
-                score: 0.101 // This will become 10.1% mindshare
-              }
+              { username: 'TestUser1', tweets: 120, likes: 2500, impressions: 45000, score: 0.155 },
+              { username: 'TestUser2', tweets: 95, likes: 1800, impressions: 32000, score: 0.123 },
+              { username: 'TestUser3', tweets: 80, likes: 1200, impressions: 28000, score: 0.101 }
             ];
           }
         } else {
           usersArray = [
-            { 
-              username: 'MockUser1', 
-              tweet_counts: 65, 
-              total_likes: 950, 
-              total_impressions: 18000,
-              score: 0.087 // This will become 8.7% mindshare
-            },
-            { 
-              username: 'MockUser2', 
-              tweet_counts: 50, 
-              total_likes: 720, 
-              total_impressions: 15000,
-              score: 0.062 // This will become 6.2% mindshare
-            }
+            { username: 'MockUser1', tweet_counts: 65, total_likes: 950, total_impressions: 18000, score: 0.087 },
+            { username: 'MockUser2', tweet_counts: 50, total_likes: 720, total_impressions: 15000, score: 0.062 }
           ];
         }
         
-        // Transform the data - convert score to mindshare by multiplying by 100
         const transformedData = usersArray.map((user, index) => ({
           id: user?.id || user?.userId || user?.user_id || index,
           username: user?.username || user?.name || user?.handle || user?.displayName || user?.user || `User${index + 1}`,
-          mindshare: Number((user?.score ?? 0) * 100), // Convert score to mindshare percentage
+          mindshare: Number((user?.score ?? 0) * 100),
           tweets: user?.tweet_counts ?? user?.tweet_count ?? 0,
           likes: user?.total_likes ?? user?.likes ?? 0,
           impressions: user?.total_impressions ?? user?.impressions ?? 0,
@@ -119,86 +94,21 @@ const RankFinder = () => {
 
         setRankings(transformedData);
       } else {
-        // Create fallback data when API fails with score-based mindshare
         const fallbackData = [
-          { 
-            id: 1, 
-            username: 'SampleUser1', 
-            mindshare: 22.5, // This represents score: 0.225
-            tweets: 180, 
-            likes: 4200, 
-            impressions: 75000,
-            score: 0.225, 
-            rank: 1 
-          },
-          { 
-            id: 2, 
-            username: 'SampleUser2', 
-            mindshare: 18.3, // This represents score: 0.183
-            tweets: 150, 
-            likes: 3100, 
-            impressions: 58000,
-            score: 0.183, 
-            rank: 2 
-          },
-          { 
-            id: 3, 
-            username: 'SampleUser3', 
-            mindshare: 14.7, // This represents score: 0.147
-            tweets: 120, 
-            likes: 2400, 
-            impressions: 42000,
-            score: 0.147, 
-            rank: 3 
-          }
+          { id: 1, username: 'SampleUser1', mindshare: 22.5, tweets: 180, likes: 4200, impressions: 75000, score: 0.225, rank: 1 },
+          { id: 2, username: 'SampleUser2', mindshare: 18.3, tweets: 150, likes: 3100, impressions: 58000, score: 0.183, rank: 2 },
+          { id: 3, username: 'SampleUser3', mindshare: 14.7, tweets: 120, likes: 2400, impressions: 42000, score: 0.147, rank: 3 }
         ];
         setRankings(fallbackData);
         setError(null);
       }
     } catch (fetchError) {
-      // Provide sample data even on error with score-based mindshare
       console.error('Fetch error:', fetchError);
       const sampleData = [
-        { 
-          id: 1, 
-          username: 'DemoUser1', 
-          mindshare: 28.9, // This represents score: 0.289
-          tweets: 220, 
-          likes: 5800, 
-          impressions: 95000,
-          score: 0.289, 
-          rank: 1 
-        },
-        { 
-          id: 2, 
-          username: 'DemoUser2', 
-          mindshare: 24.1, // This represents score: 0.241
-          tweets: 190, 
-          likes: 4500, 
-          impressions: 78000,
-          score: 0.241, 
-          rank: 2 
-        },
-        { 
-          id: 3, 
-          username: 'TestUser', 
-          mindshare: 19.3, // This represents score: 0.193
-          tweets: 160, 
-          likes: 3200, 
-          impressions: 62000,
-          score: 0.193, 
-          rank: 3 
-        },
-        { 
-          id: 4, 
-          username: 'SampleYapper', 
-          mindshare: 16.8, // This represents score: 0.168
-          tweets: 140, 
-          likes: 2800, 
-          impressions: 48000,
-          score: 0.168, 
-          rank: 4 
-        }
+        { id: 1, username: 'DemoUser1', mindshare: 28.9, tweets: 220, likes: 5800, impressions: 95000, score: 0.289, rank: 1 },
+        { id: 2, username: 'DemoUser2', mindshare: 24.1, tweets: 190, likes: 4500, impressions: 78000, score: 0.241, rank: 2 },
+        { id: 3, username: 'TestUser', mindshare: 19.3, tweets: 160, likes: 3200, impressions: 62000, score: 0.193, rank: 3 },
+        { id: 4, username: 'SampleYapper', mindshare: 16.8, tweets: 140, likes: 2800, impressions: 48000, score: 0.168, rank: 4 }
       ];
       setRankings(sampleData);
       setError(null);
@@ -226,7 +136,6 @@ const RankFinder = () => {
     return num.toLocaleString();
   };
 
-  // Calculate rewards for a specific user (both scenarios)
   const calculateUserRewards = (user) => {
     if (!user || !user.mindshare) return { 
       estimatedShare: 0, 
@@ -234,24 +143,18 @@ const RankFinder = () => {
       monthlyRewardShared: 0 
     };
     
-    // User's mindshare percentage (already in percentage form)
     const userMindshare = user.mindshare;
-    
-    // Calculate estimated share (mindshare / 100 to get decimal)
     const estimatedShare = userMindshare / 100;
-    
-    // Monthly reward = Monthly Pool * User's Share
     const monthlyRewardFull = MONTHLY_POOL_FULL * estimatedShare;
     const monthlyRewardShared = MONTHLY_POOL_SHARED * estimatedShare;
     
     return {
-      estimatedShare: (estimatedShare * 100).toFixed(4), // Convert back to percentage for display
+      estimatedShare: (estimatedShare * 100).toFixed(4),
       monthlyRewardFull: Math.round(monthlyRewardFull),
       monthlyRewardShared: Math.round(monthlyRewardShared)
     };
   };
 
-  // Find searched user for rewards tab
   const searchedUser = searchUser ? filteredRankings[0] : null;
 
   return (
@@ -379,7 +282,6 @@ const RankFinder = () => {
 
       <div className="max-w-6xl mx-auto">
         {activeTab === "rewards" ? (
-          // REWARDS TAB
           <div>
             <div className="flex justify-center mb-8">
               <input
@@ -406,6 +308,15 @@ const RankFinder = () => {
                 <div className="bg-gray-900 border border-gray-800 hover:border-yellow-600 rounded-lg p-6 transition-all">
                   <div className="mb-4">
                     <div className="flex items-center gap-3 mb-3">
+                      <img 
+                        src={getProfilePicUrl(searchedUser.username)}
+                        alt={searchedUser.username}
+                        className="w-12 h-12 rounded-full border-2 border-yellow-400/30 object-cover bg-gray-800"
+                        loading="eager"
+                        onError={(e) => {
+                          e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${searchedUser.username}&size=96&backgroundColor=1f2937`;
+                        }}
+                      />
                       <span className="font-bold text-yellow-400 text-lg bg-yellow-400/10 px-3 py-1 rounded-full">
                         #{searchedUser.rank}
                       </span>
@@ -425,76 +336,47 @@ const RankFinder = () => {
                   </div>
 
                   <div className="mb-4">
-                    <div className="text-center bg-gray-800/50 rounded-lg p-3 mb-3">
-                      <div className="text-lg font-bold text-green-400">
+                    <div className="text-center bg-gradient-to-br from-green-900/20 to-green-800/10 border border-green-700/40 rounded-xl p-5 mb-3">
+                                   
+                      <div className="text-xl font-bold text-green-400">
                         {calculateUserRewards(searchedUser).estimatedShare}%
                       </div>
                       <div className="text-sm text-gray-400">Estimated Share</div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="text-center bg-green-900/10 border border-green-800/30 rounded-lg p-3">
-                        <div className="text-xs text-green-400 mb-1 font-medium">Best Case</div>
-                        <div className="text-lg font-bold text-green-400">
-                          {calculateUserRewards(searchedUser).monthlyRewardFull.toLocaleString()}
-                        </div>
-                       
+                      <div className="h-px bg-gradient-to-r from-transparent via-green-500/30 to-transparent my-3"></div>
+                     
+                      <div className="text-2xl font-bold text-yellow-400">
+                        {calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()}
                       </div>
-                      <div className="text-center bg-yellow-900/10 border border-yellow-800/30 rounded-lg p-3">
-                        <div className="text-xs text-yellow-400 mb-1 font-medium">Likely Case</div>
-                        <div className="text-lg font-bold text-yellow-400">
-                          {calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()}
-                        </div>
-              
-                      </div>
+                      <div className="text-xs text-gray-500 mt-1">$GOATED Allocationper Month</div>
                     </div>
-                    <div className="text-xs text-gray-500 text-center mt-2">Monthly $GOATED Estimates</div>
                   </div>
                 </div>
-                
 
-                {/* Campaign Info */}
-                <div className="mt-8 bg-gray-900 border border-gray-700 rounded-lg p-6">
-                  <h3 className="text-xl font-bold text-yellow-400 mb-4 text-center">
-                    Campaign Metrics
+                <div className="mt-8 bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700 rounded-xl p-6 shadow-xl">
+                  <h3 className="text-xl font-bold text-yellow-400 mb-6 text-center">
+                    Campaign Overview
                   </h3>
                   
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="text-center bg-green-900/10 border border-green-800/30 rounded-lg p-3">
-                     
-                      <div className="text-xl font-bold text-green-400">
-                        {Math.round(MONTHLY_POOL_FULL).toLocaleString()}
-                      </div>
-                      <div className="text-xs text-gray-500">Full 0.08% allocation per Month</div>
+                  <div className="grid grid-cols-3 gap-4 text-center mb-6">
+                    <div className="bg-gradient-to-br from-yellow-900/20 to-yellow-800/10 border border-yellow-700/30 rounded-lg p-4">
+                      <div className="text-3xl font-bold text-yellow-400 mb-1">7M</div>
+                      <div className="text-xs text-gray-400">Total $GOATED<br />Allocation</div>
                     </div>
-                    <div className="text-center bg-yellow-900/10 border border-yellow-800/30 rounded-lg p-3">
-                
-                      <div className="text-xl font-bold text-yellow-400">
-                        {Math.round(MONTHLY_POOL_SHARED).toLocaleString()}
+                    <div className="bg-gradient-to-br from-green-900/20 to-green-800/10 border border-green-700/30 rounded-lg p-4">
+                      <div className="text-3xl font-bold text-green-400 mb-1">
+                        {Math.round(MONTHLY_POOL_SHARED / 1000).toLocaleString()}K
                       </div>
-                      <div className="text-xs text-gray-500">If shared with extended Kaito eco</div>
+                      <div className="text-xs text-gray-400">Monthly Pool<br />(Shared)</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-blue-900/20 to-blue-800/10 border border-blue-700/30 rounded-lg p-4">
+                      <div className="text-3xl font-bold text-blue-400 mb-1">9</div>
+                      <div className="text-xs text-gray-400">Campaign<br />Months</div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <div className="text-2xl font-bold text-yellow-400">
-                        7M
-                      </div>
-                      <div className="text-sm text-gray-400">$GOATED <br />  allocation</div>
-                    </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                     
-                      <div className="text-sm text-gray-400"></div>
-                    </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <div className="text-2xl font-bold text-yellow-400">
-                        9
-                      </div>
-                      <div className="text-sm text-gray-400">Months <br /> Duration</div>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-400 text-center mt-6 leading-relaxed">
+                  <div className="h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent mb-4"></div>
+
+                  <p className="text-xs text-gray-400 text-center leading-relaxed">
                     Unofficial community calculator. Actual rewards may vary. <br />
                     GOATFDN determines final allocations. <br /> Next snapshot: Nov 16th, 2025.
                   </p>
@@ -510,7 +392,6 @@ const RankFinder = () => {
             )}
           </div>
         ) : (
-          // LEADERBOARD TABS (7 & 30 days)
           <>
             {loading ? (
               <div className="text-center py-8">
@@ -527,6 +408,15 @@ const RankFinder = () => {
                     >
                       <div className="mb-4">
                         <div className="flex items-center gap-3 mb-3">
+                          <img 
+                            src={getProfilePicUrl(user.username)}
+                            alt={user.username}
+                            className="w-12 h-12 rounded-full border-2 border-yellow-400/30 object-cover bg-gray-800"
+                            loading="eager"
+                            onError={(e) => {
+                              e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${user.username}&size=96&backgroundColor=1f2937`;
+                            }}
+                          />
                           <span className="font-bold text-yellow-400 text-lg bg-yellow-400/10 px-3 py-1 rounded-full">
                             #{user.rank}
                           </span>
