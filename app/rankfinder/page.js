@@ -358,8 +358,8 @@ const RankFinder = () => {
                   </h3>
                   
                   <div className="grid grid-cols-3 gap-4 text-center mb-6">
-                    <div className="bg-gradient-to-br from-yellow-900/20 to-yellow-800/10 border border-yellow-700/30 rounded-lg p-4">
-                      <div className="text-3xl font-bold text-yellow-400 mb-1">4.6M</div>
+                    <div className="bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700  rounded-lg p-4">
+                      <div className="text-2xl font-bold text-yellow-400 mb-1">4.6M</div>
                       <div className="text-sm text-gray-400">$GOATED<br />Allocation</div>
                     </div>
                     <div className="bg-gradient-to-br from-green-900/20 to-green-800/10 border border-green-700/30 rounded-lg p-4">
