@@ -20,13 +20,13 @@ const RankFinder = () => {
   const MONTHLY_POOL_FULL = (TOTAL_ALLOCATION * ALLOCATION_PERCENT) / CAMPAIGN_MONTHS;
   const MONTHLY_POOL_SHARED = (TOTAL_ALLOCATION * ALLOCATION_PERCENT * YAPPERS_SHARE) / CAMPAIGN_MONTHS;
 
-  // Fast profile picture URL generator - no async needed
+  
   const getProfilePicUrl = (username) => {
     // Return cached if available
     if (profilePics[username]) {
       return profilePics[username];
     }
-    // Return unavatar immediately (it's fast and reliable)
+    
     return `https://unavatar.io/twitter/${username}`;
   };
 
@@ -311,7 +311,7 @@ const RankFinder = () => {
                       <img 
                         src={getProfilePicUrl(searchedUser.username)}
                         alt={searchedUser.username}
-                        cla4.6MssName="w-12 h-12 rounded-full border-2 border-yellow-400/30 object-cover bg-gray-800"
+                        className="w-12 h-12 rounded-full border-2 border-yellow-400/30 object-cover bg-gray-800"
                         loading="eager"
                         onError={(e) => {
                           e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${searchedUser.username}&size=96&backgroundColor=1f2937`;
