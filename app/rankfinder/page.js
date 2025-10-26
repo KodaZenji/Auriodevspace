@@ -347,7 +347,7 @@ const RankFinder = () => {
                       <div className="text-2xl font-bold text-yellow-400">
                         {calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">$GOATED Allocationper Month</div>
+                      <div className="text-xs text-gray-500 mt-1">$GOATED Allocation per Month</div>
                     </div>
                   </div>
                 </div>
