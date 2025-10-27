@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { RefreshCw } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { RefreshCw, Info, SquareArrowOutUpRight } from "lucide-react";
 import Image from "next/image";
 
 const RankFinder = () => {
@@ -11,6 +11,8 @@ const RankFinder = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("30");
   const [profilePics, setProfilePics] = useState({});
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const shareRef = useRef(null);
 
   // Rewards Calculator Constants
   const TOTAL_ALLOCATION = 1000000000;
@@ -305,24 +307,34 @@ const RankFinder = () => {
 
             {searchedUser ? (
               <div className="max-w-2xl mx-auto">
-                <div className="bg-gray-900 border border-gray-800 hover:border-yellow-600 rounded-lg p-6 transition-all">
+                <div className="bg-gray-900 border border-gray-800 hover:border-yellow-600 rounded-lg p-6 transition-all" ref={shareRef}>
                   <div className="mb-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <img 
-                        src={getProfilePicUrl(searchedUser.username)}
-                        alt={searchedUser.username}
-                        className="w-12 h-12 rounded-full border-2 border-yellow-400/30 object-cover bg-gray-800"
-                        loading="eager"
-                        onError={(e) => {
-                          e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${searchedUser.username}&size=96&backgroundColor=1f2937`;
-                        }}
-                      />
-                      <span className="font-bold text-yellow-400 text-lg bg-yellow-400/10 px-3 py-1 rounded-full">
-                        #{searchedUser.rank}
-                      </span>
-                      <span className="text-lg font-semibold text-white">
-                        {searchedUser.username}
-                      </span>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={getProfilePicUrl(searchedUser.username)}
+                          alt={searchedUser.username}
+                          className="w-12 h-12 rounded-full border-2 border-yellow-400/30 object-cover bg-gray-800"
+                          loading="eager"
+                          onError={(e) => {
+                            e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${searchedUser.username}&size=96&backgroundColor=1f2937`;
+                          }}
+                        />
+                        <span className="font-bold text-yellow-400 text-lg bg-yellow-400/10 px-3 py-1 rounded-full">
+                          #{searchedUser.rank}
+                        </span>
+                        <span className="text-lg font-semibold text-white">
+                          {searchedUser.username}
+                        </span>
+                      </div>
+                      <button
+    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-yellow-400 transition-all text-yellow-400 font-semibold"
+    onClick={() => alert("Coming Soon!")}
+    title="Share"
+  >
+
+  
+  </button>
                     </div>
                     
                     <div className="bg-yellow-400/10 rounded-lg p-3 mb-3">
@@ -344,42 +356,58 @@ const RankFinder = () => {
                       <div className="text-sm text-gray-400">Estimated Share</div>
                       <div className="h-px bg-gradient-to-r from-transparent via-green-500/30 to-transparent my-3"></div>
                      
-                      <div className="text-2xl font-bold text-yellow-400">
-                        {calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()}
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="text-2xl font-bold text-yellow-400">
+                          {calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()}
+                        </div>
+                        <button
+                          onClick={() => setShowDisclaimer(!showDisclaimer)}
+                          className="p-1 rounded-full hover:bg-gray-800/50 transition-all"
+                          title="More information"
+                        >
+                          <Info className="w-4 h-4 text-gray-400 hover:text-yellow-400" />
+                        </button>
                       </div>
                       <div className="text-sm text-gray-400 mt-1">$GOATED Allocation per Month</div>
+                      
+                      {showDisclaimer && (
+                        <div className="mt-4 p-3 bg-gray-900/50 border border-gray-700 rounded-lg text-center">
+                          <p className="text-xs text-gray-400 leading-relaxed">
+                          Actual rewards may vary. Unofficial community calculator.<br /> 
+                            GOATFDN determines final allocations. <br /> Next Snapshot: 16th Nov. 2025.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-8 bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700 rounded-xl p-6 shadow-xl">
                   <h3 className="text-xl font-bold text-yellow-400 mb-6 text-center">
-                    Campaign Overview
+  &nbsp;
+  &nbsp;
                   </h3>
                   
                   <div className="grid grid-cols-3 gap-4 text-center mb-6">
                     <div className="bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700  rounded-lg p-4">
-                      <div className="text-2xl font-bold text-yellow-400 mb-1">4.6M</div>
+                      <div className="text-2xl font-bold text-blue-400 mb-1">4.6M</div>
                       <div className="text-sm text-gray-400">$GOATED<br />Allocation</div>
                     </div>
                     <div className="bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700 rounded-lg p-4">
-                      <div className="text-2xl font-bold text-blue-400 mb-1">
+                      <div className="text-2xl font-bold text-green-400 mb-1">
                         {Math.round(MONTHLY_POOL_SHARED / 1000).toLocaleString()}K
                       </div>
                       <div className="text-sm text-gray-400">Monthly Pool<br />(Shared)</div>
                     </div>
                     <div className="bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700  rounded-lg p-4">
-                      <div className="text-2xl font-bold text-yellow-400 mb-1">9</div>
+                      <div className="text-2xl font-bold text-red-400 mb-1">9</div>
                       <div className="text-sm text-gray-400">Months<br />Duration</div>
                     </div>
                   </div>
-
-                  <div className="h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent mb-4"></div>
-
-                  <p className="text-xs text-gray-400 text-center leading-relaxed">
-                    Unofficial community calculator. Actual rewards may vary. <br />
-                    GOATFDN determines final allocations. <br /> Next snapshot: Nov 16th, 2025.
-                  </p>
+                  <div className="text-xl font-bold text-yellow-400 mb-6 text-center">
+  &nbsp;
+  </div>
+  
                 </div>
               </div>
             ) : (
