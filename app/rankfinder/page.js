@@ -348,27 +348,30 @@ const RankFinder = () => {
                   </div>
 
                   <div className="mb-4">
-                   <div className="text-center bg-gradient-to-br from-green-900/20 to-green-800/10 border border-green-700/40 rounded-xl p-5 mb-3">
-                                   
-                      <div className="text-xl font-bold text-green-400">
-                        {calculateUserRewards(searchedUser).estimatedShare}%
-                      </div>
-                      <div className="text-sm text-gray-400">Estimated Share</div>
-                      <div className="h-px bg-gradient-to-r from-transparent via-green-500/30 to-transparent my-3"></div>
-                     
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="text-2xl font-bold text-yellow-400">
-                          {calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()}
-                        </div>
-                        <button
-                          onClick={() => setShowDisclaimer(!showDisclaimer)}
-                          className="p-1 rounded-full hover:bg-gray-800/50 transition-all"
-                          title="More information"
-                        >
-                          <Info className="w-4 h-4 text-gray-400 hover:text-yellow-400" />
-                        </button>
-                      </div>
-                      <div className="text-sm text-gray-400 mt-1">$GOATED Allocation per Month</div>
+  <div className="text-center bg-gray-900/40 border border-gray-700/30 rounded-xl p-5 mb-3">
+    
+    <div className="text-xl font-bold text-gray-100">
+      {calculateUserRewards(searchedUser).estimatedShare}%
+    </div>
+    <div className="text-sm text-gray-400">Estimated Share</div>
+    
+    <div className="h-px bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent my-3"></div>
+    
+    <div className="flex items-center justify-center gap-2">
+      <div className="text-2xl font-bold text-yellow-400">
+        {calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()}
+      </div>
+      <button
+        onClick={() => setShowDisclaimer(!showDisclaimer)}
+        className="p-1 rounded-full hover:bg-gray-800/50 transition-all"
+        title="Disclaimer"
+      >
+        <Info className="w-4 h-4 text-gray-400 hover:text-yellow-400" />
+      </button>
+    </div>
+    <div className="text-sm text-gray-400 mt-1">$GOATED Allocation per Month</div>
+  </div>
+</div>
                       
                       {showDisclaimer && (
                         <div className="mt-4 p-3 bg-gray-900/50 border border-gray-700 rounded-lg text-center">
