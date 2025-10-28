@@ -328,18 +328,16 @@ const RankFinder = () => {
                         </span>
                       </div>
                       <button
-    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-yellow-400 transition-all text-yellow-400 font-semibold"
-    onClick={() => alert("Coming Soon!")}
-    title="Share"
-  >
-
-  
-  </button>
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-yellow-400 transition-all text-yellow-400 font-semibold"
+                        onClick={() => alert("Coming Soon!")}
+                        title="Share"
+                      >
+                      </button>
                     </div>
                     
                     <div className="bg-yellow-400/10 rounded-lg p-3 mb-3">
                       <div className="text-center">
-                        <div className="text-xl font-bold text-yellow-300">
+                        <div className="text-2xl font-bold text-yellow-400">
                           {Number(searchedUser.mindshare).toFixed(2)}%
                         </div>
                         <div className="text-sm text-gray-400">30-Day Mindshare</div>
@@ -348,69 +346,67 @@ const RankFinder = () => {
                   </div>
 
                   <div className="mb-4">
-  <div className="text-center bg-gray-900/40 border border-gray-700/30 rounded-xl p-5 mb-3">
-    
-    <div className="text-xl font-bold text-gray-100">
-      {calculateUserRewards(searchedUser).estimatedShare}%
-    </div>
-    <div className="text-sm text-gray-400">Estimated Share</div>
-    
-    <div className="h-px bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent my-3"></div>
-    
-    <div className="flex items-center justify-center gap-2">
-      <div className="text-2xl font-bold text-yellow-400">
-        {calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()}
-      </div>
-      <button
-        onClick={() => setShowDisclaimer(!showDisclaimer)}
-        className="p-1 rounded-full hover:bg-gray-800/50 transition-all"
-        title="Disclaimer"
-      >
-        <Info className="w-4 h-4 text-gray-400 hover:text-yellow-400" />
-      </button>
-    </div>
-    <div className="text-sm text-gray-400 mt-1">$GOATED Allocation per Month</div>
-  </div>
-</div>
+                    <div className="text-center bg-gray-900/40 border border-gray-700/30 rounded-xl p-5 mb-3">
+                      
+                      <div className="text-l font-bold text-gray-300">
+                        {calculateUserRewards(searchedUser).estimatedShare}%
+                      </div>
+                      <div className="text-sm text-gray-500">Estimated Share</div>
+                      
+                      <div className="h-px bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent my-3"></div>
+                      
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="text-3xl font-bold text-yellow-300">
+                          {calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()}
+                        </div>
+                        <button
+                          onClick={() => setShowDisclaimer(!showDisclaimer)}
+                          className="p-1 rounded-full hover:bg-gray-800/50 transition-all"
+                          title="Disclaimer"
+                        >
+                          <Info className="w-4 h-4 text-gray-400 hover:text-yellow-400" />
+                        </button>
+                      </div>
+                      <div className="text-sm text-gray-500 mt-1">$GOATED Allocation per Month</div>
                       
                       {showDisclaimer && (
                         <div className="mt-4 p-3 bg-gray-900/50 border border-gray-700 rounded-lg text-center">
                           <p className="text-xs text-gray-400 leading-relaxed">
-                          Actual rewards may vary. Unofficial community calculator.<br /> 
+                            Actual rewards may vary. Unofficial community calculator.<br /> 
                             GOATFDN determines final allocations. <br /> Next Snapshot: 16th Nov. 2025.
                           </p>
                         </div>
                       )}
+                      
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-8 bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700 rounded-xl p-6 shadow-xl">
                   <h3 className="text-xl font-bold text-yellow-400 mb-6 text-center">
-  &nbsp;
-  &nbsp;
+                    &nbsp;
+                    &nbsp;
                   </h3>
                   
                   <div className="grid grid-cols-3 gap-4 text-center mb-6">
                     <div className="bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700  rounded-lg p-4">
                       <div className="text-2xl font-bold text-blue-400 mb-1">4.6M</div>
-                      <div className="text-sm text-gray-400">$GOATED<br />Allocation</div>
+                      <div className="text-sm text-gray-500">$GOATED<br />Allocation</div>
                     </div>
                     <div className="bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700 rounded-lg p-4">
                       <div className="text-2xl font-bold text-green-400 mb-1">
                         {Math.round(MONTHLY_POOL_SHARED / 1000).toLocaleString()}K
                       </div>
-                      <div className="text-sm text-gray-400">Monthly Pool<br />(Shared)</div>
+                      <div className="text-sm text-gray-500">Monthly Pool<br />(Shared)</div>
                     </div>
                     <div className="bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700  rounded-lg p-4">
                       <div className="text-2xl font-bold text-red-400 mb-1">9</div>
-                      <div className="text-sm text-gray-400">Months<br />Duration</div>
+                      <div className="text-sm text-gray-500">Months<br />Duration</div>
                     </div>
                   </div>
                   <div className="text-xl font-bold text-yellow-400 mb-6 text-center">
-  &nbsp;
-  </div>
-  
+                    &nbsp;
+                  </div>
                 </div>
               </div>
             ) : (
