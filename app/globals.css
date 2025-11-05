@@ -62,7 +62,10 @@ body {
   min-height: 100vh;
   line-height: 1.6;
 }
-
+a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
 /* Glass Morphism Components - Exact Reference Match */
 .glass-card {
   background: var(--glass-bg-strong);
