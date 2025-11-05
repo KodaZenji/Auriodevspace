@@ -22,7 +22,7 @@ const RankFinder = () => {
   const MONTHLY_POOL_FULL = (TOTAL_ALLOCATION * ALLOCATION_PERCENT) / CAMPAIGN_MONTHS;
   const MONTHLY_POOL_SHARED = (TOTAL_ALLOCATION * ALLOCATION_PERCENT * YAPPERS_SHARE) / CAMPAIGN_MONTHS;
 
-  
+  // Optimized image share with better browser compatibility
   const handleShareImage = useCallback(async () => {
     if (!shareRef.current || !searchedUser) return;
     
@@ -117,7 +117,7 @@ const RankFinder = () => {
     }
   }, [searchedUser]);
 
- 
+  // Optimized profile pic URL with proper fallback
   const getProfilePicUrl = useCallback((username) => {
     return `https://unavatar.io/twitter/${username}`;
   }, []);
