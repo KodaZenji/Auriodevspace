@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { RefreshCw, Info, SquareArrowOutUpRight } from "lucide-react";
 import Image from "next/image";
+import { toPng } from "html-to-image";
+
 
 const RankFinder = () => {
   const [rankings, setRankings] = useState([]);
@@ -21,6 +23,66 @@ const RankFinder = () => {
   const CAMPAIGN_MONTHS = 9;
   const MONTHLY_POOL_FULL = (TOTAL_ALLOCATION * ALLOCATION_PERCENT) / CAMPAIGN_MONTHS;
   const MONTHLY_POOL_SHARED = (TOTAL_ALLOCATION * ALLOCATION_PERCENT * YAPPERS_SHARE) / CAMPAIGN_MONTHS;
+
+
+  const shareButtonRef = useRef(null);
+const handleShareImage = async () => {
+  if (!shareRef.current || !searchedUser) return;
+
+  // Hide share button and info icon before snapshot
+  if (shareButtonRef.current) {
+    shareButtonRef.current.style.visibility = "hidden";
+  }
+
+  const infoButtons = shareRef.current.querySelectorAll('[data-info-button]');
+  infoButtons.forEach(btn => (btn.style.display = "none"));
+
+  // Ensure disclaimer is not visible
+  setShowDisclaimer(false);
+
+  try {
+    // Wait briefly for UI updates to apply
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    const dataUrl = await toPng(shareRef.current, {
+      cacheBust: true,
+      backgroundColor: "#111827",
+      pixelRatio: 2,
+      skipAutoScale: true,
+    });
+
+    // Trigger PNG download
+    const timestamp = Date.now();
+    const downloadLink = document.createElement("a");
+    downloadLink.download = `-${searchedUser.username}-${timestamp}.png`;
+    downloadLink.href = dataUrl;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+
+    // Optional: share on X
+    const tweetText = `🔥 My Goat Network Reward this Month: #${searchedUser.rank} (${Number(
+      searchedUser.mindshare
+    ).toFixed(2)}% Mindshare)\nCheck yours 👉 https://auriodevspace.vercel.app/rankfinder`;
+
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`,
+      "_blank"
+    );
+
+  } catch (error) {
+    console.error("Error capturing image:", error);
+  } finally {
+    // Restore Info icon and share button after snapshot
+    if (shareButtonRef.current) {
+      shareButtonRef.current.style.visibility = "visible";
+    }
+    infoButtons.forEach(btn => (btn.style.display = "inline-flex"));
+  }
+};
+
+
+
 
   
   const getProfilePicUrl = (username) => {
@@ -311,28 +373,48 @@ const RankFinder = () => {
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <img 
-                          src={getProfilePicUrl(searchedUser.username)}
-                          alt={searchedUser.username}
-                          className="w-12 h-12 rounded-full border-2 border-yellow-400/30 object-cover bg-gray-800"
-                          loading="eager"
-                          onError={(e) => {
-                            e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${searchedUser.username}&size=96&backgroundColor=1f2937`;
-                          }}
-                        />
+                        <a
+                          href={`https://x.com/${searchedUser.username}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:opacity-80 transition-opacity"
+                          title={`View @${searchedUser.username} on X`}
+                        >
+                          <img
+                            src={`https://images.weserv.nl/?url=${encodeURIComponent(getProfilePicUrl(searchedUser.username))}`}
+                            alt={searchedUser.username}
+                            className="w-12 h-12 rounded-full border-2 border-yellow-400/30 object-cover bg-gray-800 cursor-pointer"
+                            loading="eager"
+                            onError={(e) => {
+                              e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${searchedUser.username}&size=96&backgroundColor=1f2937`;
+                            }}
+                          />
+
+                        </a>
                         <span className="font-bold text-yellow-400 text-lg bg-yellow-400/10 px-3 py-1 rounded-full">
                           #{searchedUser.rank}
                         </span>
-                        <span className="text-lg font-semibold text-white">
+                        <a
+                          href={`https://x.com/${searchedUser.username}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-lg font-semibold text-white hover:text-yellow-200 transition-colors"
+                          title={`View @${searchedUser.username} on X`}
+                        >
                           {searchedUser.username}
-                        </span>
+                        </a>
+
                       </div>
                       <button
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-yellow-400 transition-all text-yellow-400 font-semibold"
-                        onClick={() => alert("Coming Soon!")}
-                        title="Share"
+                        ref={shareButtonRef}
+                        onClick={handleShareImage}
+                        title="Share on X"
+                        className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-yellow-400 transition-all text-yellow-400"
                       >
+                        <SquareArrowOutUpRight className="w-5 h-5" />
                       </button>
+
+
                     </div>
                     
                     <div className="bg-yellow-400/10 rounded-lg p-3 mb-3">
@@ -360,12 +442,14 @@ const RankFinder = () => {
                           {calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()}
                         </div>
                         <button
+                          data-info-button
                           onClick={() => setShowDisclaimer(!showDisclaimer)}
                           className="p-1 rounded-full hover:bg-gray-800/50 transition-all"
                           title="Disclaimer"
                         >
                           <Info className="w-4 h-4 text-gray-400 hover:text-yellow-400" />
                         </button>
+
                       </div>
                       <div className="text-sm text-gray-500 mt-1">$GOATED Allocation per Month</div>
                       
@@ -435,21 +519,36 @@ const RankFinder = () => {
                     >
                       <div className="mb-4">
                         <div className="flex items-center gap-3 mb-3">
-                          <img 
-                            src={getProfilePicUrl(user.username)}
-                            alt={user.username}
-                            className="w-12 h-12 rounded-full border-2 border-yellow-400/30 object-cover bg-gray-800"
-                            loading="eager"
-                            onError={(e) => {
-                              e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${user.username}&size=96&backgroundColor=1f2937`;
-                            }}
-                          />
+                          <a
+                            href={`https://x.com/${user.username}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:opacity-80 transition-opacity"
+                            title={`View @${user.username} on X`}
+                          >
+                            <img
+                              src={getProfilePicUrl(user.username)}
+                              alt={user.username}
+                              className="w-12 h-12 rounded-full border-2 border-yellow-400/30 object-cover bg-gray-800 cursor-pointer"
+                              loading="eager"
+                              onError={(e) => {
+                                e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${user.username}&size=96&backgroundColor=1f2937`;
+                              }}
+                            />
+                          </a>
                           <span className="font-bold text-yellow-400 text-lg bg-yellow-400/10 px-3 py-1 rounded-full">
                             #{user.rank}
                           </span>
-                          <span className="text-lg font-semibold text-white">
+                         <a
+                            href={`https://x.com/${user.username}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-lg font-semibold text-white hover:text-yellow-200 transition-colors"
+                            title={`View @${user.username} on X`}
+                          >
                             {user.username}
-                          </span>
+                          </a>
+
                         </div>
                         
                         <div className="bg-yellow-400/10 rounded-lg p-3 mb-3">
