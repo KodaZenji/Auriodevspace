@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { RefreshCw, Info, SquareArrowOutUpRight } from "lucide-react";
-import { Analytics } from "@vercel/analytics/next"
 
 const RankFinder = () => {
   const [rankings, setRankings] = useState([]);
