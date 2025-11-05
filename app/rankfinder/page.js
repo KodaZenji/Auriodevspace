@@ -395,15 +395,14 @@ const RankFinder = () => {
                           #{searchedUser.rank}
                         </span>
                         <a
-                          href={`https://x.com/${searchedUser.username}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-lg font-semibold text-white hover:text-yellow-200 transition-colors"
-                          title={`View @${searchedUser.username} on X`}
-                        >
-                          {searchedUser.username}
-                        </a>
-
+  href={`https://x.com/${searchedUser.username}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="relative text-lg font-semibold text-white hover:text-yellow-200 transition-colors active:after:w-full after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:bg-yellow-400 after:w-0 after:transition-all after:duration-200"
+  title={`View @${searchedUser.username} on X`}
+>
+  {searchedUser.username}
+</a>
                       </div>
                       <button
                         ref={shareButtonRef}
