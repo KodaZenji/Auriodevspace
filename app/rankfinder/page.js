@@ -29,7 +29,8 @@ const RankFinder = () => {
     if (!shareRef.current || !searchedUser) return;
 
  
-    const { toPng } = await import("html-to-image");
+     const htmlToImage = await import("html-to-image");
+    const toPng = htmlToImage.toPng;
 
     // Hide share button before snapshot
     if (shareButtonRef.current) {
