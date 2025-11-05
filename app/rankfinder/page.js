@@ -59,7 +59,7 @@ const RankFinder = () => {
       downloadLink.click();
       document.body.removeChild(downloadLink);
 
-      const tweetText = `🔥 My Goat Network Reward this Month: #${searchedUser.rank} (${Number(
+      const tweetText = `🔥 My Goat Network Reward this Month: ${calculateUserRewards(searchedUser).monthlyRewardShared.toLocaleString()} (${Number(
         searchedUser.mindshare
       ).toFixed(2)}% Mindshare)\nCheck yours 👉 https://auriodevspace.vercel.app/rankfinder`;
 
