@@ -3,8 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { RefreshCw, Info, SquareArrowOutUpRight } from "lucide-react";
 import Image from "next/image";
-import { toPng } from "html-to-image";
-
 
 const RankFinder = () => {
   const [rankings, setRankings] = useState([]);
@@ -14,7 +12,9 @@ const RankFinder = () => {
   const [activeTab, setActiveTab] = useState("30");
   const [profilePics, setProfilePics] = useState({});
   const [showDisclaimer, setShowDisclaimer] = useState(false);
-  const shareRef = useRef(null);
+  const shareRef = useRef(null); 
+  const shareButtonRef = useRef(null);
+
 
   // Rewards Calculator Constants
   const TOTAL_ALLOCATION = 1000000000;
@@ -25,61 +25,60 @@ const RankFinder = () => {
   const MONTHLY_POOL_SHARED = (TOTAL_ALLOCATION * ALLOCATION_PERCENT * YAPPERS_SHARE) / CAMPAIGN_MONTHS;
 
 
-  const shareButtonRef = useRef(null);
-const handleShareImage = async () => {
-  if (!shareRef.current || !searchedUser) return;
+  const handleShareImage = async () => {
+    if (!shareRef.current || !searchedUser) return;
 
-  // Hide share button and info icon before snapshot
-  if (shareButtonRef.current) {
-    shareButtonRef.current.style.visibility = "hidden";
-  }
+ 
+    const { toPng } = await import("html-to-image");
 
-  const infoButtons = shareRef.current.querySelectorAll('[data-info-button]');
-  infoButtons.forEach(btn => (btn.style.display = "none"));
-
-  // Ensure disclaimer is not visible
-  setShowDisclaimer(false);
-
-  try {
-    // Wait briefly for UI updates to apply
-    await new Promise(resolve => setTimeout(resolve, 200));
-
-    const dataUrl = await toPng(shareRef.current, {
-      cacheBust: true,
-      backgroundColor: "#111827",
-      pixelRatio: 2,
-      skipAutoScale: true,
-    });
-
-    // Trigger PNG download
-    const timestamp = Date.now();
-    const downloadLink = document.createElement("a");
-    downloadLink.download = `-${searchedUser.username}-${timestamp}.png`;
-    downloadLink.href = dataUrl;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-
-    // Optional: share on X
-    const tweetText = `🔥 My Goat Network Reward this Month: #${searchedUser.rank} (${Number(
-      searchedUser.mindshare
-    ).toFixed(2)}% Mindshare)\nCheck yours 👉 https://auriodevspace.vercel.app/rankfinder`;
-
-    window.open(
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`,
-      "_blank"
-    );
-
-  } catch (error) {
-    console.error("Error capturing image:", error);
-  } finally {
-    // Restore Info icon and share button after snapshot
+    // Hide share button before snapshot
     if (shareButtonRef.current) {
-      shareButtonRef.current.style.visibility = "visible";
+      shareButtonRef.current.style.visibility = "hidden";
     }
-    infoButtons.forEach(btn => (btn.style.display = "inline-flex"));
-  }
-};
+
+    const infoButtons = shareRef.current.querySelectorAll("[data-info-button]");
+    infoButtons.forEach((btn) => (btn.style.display = "none"));
+    setShowDisclaimer(false);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      const dataUrl = await toPng(shareRef.current, {
+        cacheBust: true,
+        backgroundColor: "#111827",
+        pixelRatio: 2,
+        skipAutoScale: true,
+      });
+
+      const timestamp = Date.now();
+      const downloadLink = document.createElement("a");
+      downloadLink.download = `-${searchedUser.username}-${timestamp}.png`;
+      downloadLink.href = dataUrl;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+
+      const tweetText = `🔥 My Goat Network Reward this Month: #${searchedUser.rank} (${Number(
+        searchedUser.mindshare
+      ).toFixed(2)}% Mindshare)\nCheck yours 👉 https://auriodevspace.vercel.app/rankfinder`;
+
+      // open tweet in browser
+      if (typeof window !== "undefined") {
+        window.open(
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`,
+          "_blank"
+        );
+      }
+    } catch (error) {
+      console.error("Error capturing image:", error);
+    } finally {
+      if (shareButtonRef.current) {
+        shareButtonRef.current.style.visibility = "visible";
+      }
+      infoButtons.forEach((btn) => (btn.style.display = "inline-flex"));
+    }
+  };
+
 
 
 
