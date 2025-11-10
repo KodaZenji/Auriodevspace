@@ -18,8 +18,8 @@ const LandingPage = () => {
     
     {
       id: "Bitdealer",
-      title: " Rank and Rewards Checker",
-      description: "Check your Estimated rewards",
+      title: " Bitdealer Rewards Checker",
+      description: "Estimate your rewards instantly",
       color: "from-slate-800/90 to-slate-700/90", // Fixed typo: slate-704 to slate-700
       hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
       route: "/bitdealer",
