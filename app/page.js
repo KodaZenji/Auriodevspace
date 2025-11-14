@@ -34,7 +34,7 @@ const LandingPage = () => {
       color: "from-slate-800/90 to-slate-700/90", // 
       hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
       route: "/kaito-inner-ct",
-      logo: "/kaito-logo.png",
+      logo: "/kaito-Logo.png",
       logoAlt: "kaito Logo",
       }
       
