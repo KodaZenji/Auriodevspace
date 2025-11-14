@@ -26,6 +26,18 @@ const LandingPage = () => {
       logo: "/bitdealer-logo.png",
       logoAlt: "bit Logo",
     },
+     
+    {
+     id: "innerCT",
+      title: "Kaito Smart Accounts",
+      description: "HollyWeb3's Inner CT splash",
+      color: "from-slate-800/90 to-slate-700/90", // 
+      hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
+      route: "/kaito-innerCT",
+      logo: "/kaito-logo.png",
+      logoAlt: "kaito Logo",
+      }
+      
   ];
 
   return (
@@ -90,7 +102,7 @@ const LandingPage = () => {
 
                   {/* Center section: Content */}
                   <div className="flex flex-col text-center justify-center">
-                    <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-light tracking-wide text-white mb-2 lg:mb-3 leading-tight font-serif">
+                    <h3 className="text-lg sm:text-xl md:text-xl lg:text-3xl xl:text-2xl font-light tracking-wide text-white mb-2 lg:mb-3 leading-tight font-serif">
                       {module.title}
                     </h3>
                     <p className="text-xs sm:text-sm md:text-base text-white/90 leading-relaxed font-light tracking-wide text-justify px-2">

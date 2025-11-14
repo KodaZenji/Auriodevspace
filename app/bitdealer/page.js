@@ -112,9 +112,6 @@ const BitdealerRewardChecker = () => {
         </div>
 
 
-
-
-
         <div style={{ marginBottom: '2rem' }}>&nbsp;</div>
 
         {/* Tabs */}
@@ -429,8 +426,8 @@ const BitdealerRewardChecker = () => {
         )}
         <div style={{ marginBottom: '2rem' }}>&nbsp;</div>
 
-        {/* Footer */}
-        <div className="text-center text-gray-500 text-sm italic mt-12">
+          {/* Footer */}
+          <div className="text-center text-gray-500 text-sm italic mt-12">
           <p>
             Made By {' '}
             <a
@@ -446,7 +443,7 @@ const BitdealerRewardChecker = () => {
               Aurio
             </a>
           </p>
-        </div>
+         </div>
       </div>
     </div>
   );
