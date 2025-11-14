@@ -73,7 +73,7 @@ export default function Home() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter username, X handle, or wallet address..."
-                className="flex-1 px-6 py-4 border-2 border-gray-200 rounded-xl text-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
+                className="flex-1 px-6 py-4 border-2 border-gray-400 rounded-xl text-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
               />
               <button
                 type="submit"
@@ -302,7 +302,7 @@ export default function Home() {
           )}
 
           {/* Info Footer */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="mt-8 pt-6 border-t border-gray-400">
             <div className="text-center text-sm text-gray-500">
               <p className="mb-2">
                 🔥 Built with burner wallet authentication • 🔒 Your credentials stay private
