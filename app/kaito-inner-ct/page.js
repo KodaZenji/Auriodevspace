@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect } from "react";
 import { UserPlus, ChevronLeft, ChevronRight, LogOut, BadgeCheck } from "lucide-react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
