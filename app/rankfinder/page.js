@@ -473,7 +473,7 @@ const RankFinder = () => {
                   
                   <div className="grid grid-cols-3 gap-4 text-center mb-6">
                     <div className="bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700  rounded-lg p-4">
-                      <div className="text-2xl font-bold text-blue-400 mb-1">4.6M</div>
+                      <div className="text-2xl font-bold text-blue-400 mb-1">3.9M</div>
                       <div className="text-sm text-gray-500">$GOATED<br />Allocation</div>
                     </div>
                     <div className="bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700 rounded-lg p-4">
@@ -483,7 +483,7 @@ const RankFinder = () => {
                       <div className="text-sm text-gray-500">Monthly Pool<br />(Shared)</div>
                     </div>
                     <div className="bg-gradient-to-br from-gray-900 to-gray-800/50 border border-gray-700  rounded-lg p-4">
-                      <div className="text-2xl font-bold text-red-400 mb-1">9</div>
+                      <div className="text-2xl font-bold text-red-400 mb-1">8</div>
                       <div className="text-sm text-gray-500">Months<br />Duration</div>
                     </div>
                   </div>
