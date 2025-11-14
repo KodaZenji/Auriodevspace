@@ -33,7 +33,7 @@ const LandingPage = () => {
       description: "HollyWeb3's Inner CT splash",
       color: "from-slate-800/90 to-slate-700/90", // 
       hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
-      route: "/kaito-innerCT",
+      route: "/kaito-inner-ct",
       logo: "/kaito-logo.png",
       logoAlt: "kaito Logo",
       }

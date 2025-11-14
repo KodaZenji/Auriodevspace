@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { UserPlus, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
+import { UserPlus, ChevronLeft, ChevronRight, LogOut, BadgeCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 let supabase;
@@ -149,7 +149,7 @@ export default function HollyCTDashboard() {
     className="w-12 h-12 rounded-xl"
   />
 
-  <p className="text-sm text-gray-600 flex items-center gap-1 group-hover:text-blue-400  
+  <p className="text-sm text-gray-400 flex items-center gap-1 group-hover:text-blue-400  
   active:scale-[0.95] active:shadow-lg active:text-blue-500/40
   transition-all duration-200">
     holly
