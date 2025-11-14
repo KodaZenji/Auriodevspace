@@ -1,6 +1,6 @@
-import "./kaito-innerCT.css";
+import "./kaito-inner-ct.css";
 
-export default function KaitoInnerCTLayout({
+export default function KaitoInnerCTlayout({
   children,
 }: {
   children: React.ReactNode;
