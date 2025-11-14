@@ -40,6 +40,7 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  
 }
 
 export default nextConfig

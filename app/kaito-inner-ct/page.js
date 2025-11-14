@@ -134,6 +134,7 @@ export default function HollyCTDashboard() {
   }
 
   return (
+    
     <div className="min-h-screen bg-black text-white flex justify-center py-8 px-4">
       <div className="max-w-4xl w-full mx-auto p-4 md:p-8">
         <div className="flex items-center justify-between mb-10">
