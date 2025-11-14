@@ -1,11 +1,10 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import React, { useState, useEffect } from "react";
-import { UserPlus, ChevronLeft, ChevronRight, LogOut, BadgeCheck } from "lucide-react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { UserPlus, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+let supabase;
 
 export default function HollyCTDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -14,25 +13,39 @@ export default function HollyCTDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [newHandle, setNewHandle] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [mounted, setMounted] = useState(false);
   const itemsPerPage = 50;
-
-  const supabase = createClientComponentClient();
+  
   const router = useRouter();
 
-  // Check if user is logged in and is admin
   useEffect(() => {
-    checkAdmin();
-    fetchAccounts();
+    const initSupabase = async () => {
+      const { createClientComponentClient } = await import("@supabase/auth-helpers-nextjs");
+      supabase = createClientComponentClient();
+      setMounted(true);
+    };
+    
+    initSupabase();
   }, []);
 
+
+  useEffect(() => {
+    if (mounted) {
+      checkAdmin();
+      fetchAccounts();
+    }
+  }, [mounted]);
+
   const checkAdmin = async () => {
+    if (!supabase) return;
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
-
+      
       if (user) {
         const res = await fetch("/api/admin/check-admin");
         const data = await res.json();
-
+        
         if (data.admin) {
           setIsAdmin(true);
           sessionStorage.setItem("isAdmin", "true");
@@ -60,7 +73,9 @@ export default function HollyCTDashboard() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     sessionStorage.removeItem("isAdmin");
     setIsAdmin(false);
   };
@@ -110,10 +125,10 @@ export default function HollyCTDashboard() {
   const start = (currentPage - 1) * itemsPerPage;
   const pageItems = filtered.slice(start, start + itemsPerPage);
 
-  if (loadingAccounts) {
+  if (!mounted || loadingAccounts) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-2xl">Loading accounts...</div>
+        <div className="text-2xl">Loading...</div>
       </div>
     );
   }
