@@ -270,22 +270,22 @@ export default function HollyCTDashboard() {
         </div>
 
         {/* LIST */}
-        <div className="bg-gray-800 bg-opacity-70 rounded-xl border border-gray-700 p-3 space-y-2 mb-6">
+        <div className="bg-gray-800 bg-opacity-70 rounded-xl border border-gray-700 p-2 space-y-1 mb-6">
           {pageItems.length > 0 ? (
             pageItems.map((acc) => (
               <div
                 key={acc.id}
                 className="
-                  bg-gray-900 border border-gray-800 rounded-lg p-3
-                  grid grid-cols-[auto_1fr_auto] gap-3 items-center
-                  transition-all duration-300 cursor-pointer
-                  hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/40
-                  active:border-emerald-400 active:shadow-lg active:shadow-emerald-500/40 active:scale-[0.97]
+                  bg-gray-900 border border-gray-800 rounded-lg p-2
+                  grid grid-cols-[auto_1fr_auto] gap-2 items-center
+                  transition-all duration-200
+                  hover:border-emerald-400 hover:bg-gray-800/50
+                  active:border-emerald-400 active:bg-gray-800/50 active:scale-[0.99]
                 "
               >
                 <img
                   src={`https://unavatar.io/twitter/${acc.handle}`}
-                  className="w-10 h-10 rounded-full border-2 border-[#5D4037]"
+                  className="w-9 h-9 rounded-full border border-[#5D4037]"
                   onError={(e) => {
                     e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${acc.handle}`;
                   }}
@@ -295,10 +295,10 @@ export default function HollyCTDashboard() {
                   href={`https://x.com/${acc.handle}`}
                   target="_blank"
                   className="
-                    text-gray-400 font-medium text-sm truncate
-                    hover:text-blue-400 hover:shadow-lg 
-                    active:text-blue-500 active:scale-95
-                    transition-all duration-200
+                    text-gray-300 font-medium text-sm truncate
+                    hover:text-blue-400
+                    active:text-blue-500
+                    transition-colors duration-200
                   "
                 >
                   {acc.handle}
@@ -308,9 +308,9 @@ export default function HollyCTDashboard() {
                   href={`https://x.com/${acc.handle}`}
                   target="_blank"
                   className="
-                    px-4 py-2 bg-blue-500 text-white text-sm rounded-lg
-                    hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40
-                    active:bg-blue-700 active:scale-[0.95] active:shadow-lg active:shadow-blue-500/40
+                    px-3 py-1.5 bg-blue-500 text-white text-xs font-medium rounded-md
+                    hover:bg-blue-600
+                    active:bg-blue-700 active:scale-[0.97]
                     transition-all duration-200
                     whitespace-nowrap
                   "
