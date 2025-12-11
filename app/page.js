@@ -270,14 +270,14 @@ export default function HollyCTDashboard() {
         </div>
 
         {/* LIST */}
-        <div className="bg-gray-800 bg-opacity-70 rounded-xl border border-gray-700 p-4 space-y-3 mb-6">
+        <div className="bg-gray-800 bg-opacity-70 rounded-xl border border-gray-700 p-3 space-y-2 mb-6">
           {pageItems.length > 0 ? (
             pageItems.map((acc) => (
               <div
                 key={acc.id}
                 className="
-                  bg-gray-900 border border-gray-800 rounded-xl p-4
-                  grid grid-cols-[auto_1fr_auto] gap-4 items-center
+                  bg-gray-900 border border-gray-800 rounded-lg p-3
+                  grid grid-cols-[auto_1fr_auto] gap-3 items-center
                   transition-all duration-300 cursor-pointer
                   hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/40
                   active:border-emerald-400 active:shadow-lg active:shadow-emerald-500/40 active:scale-[0.97]
@@ -285,7 +285,7 @@ export default function HollyCTDashboard() {
               >
                 <img
                   src={`https://unavatar.io/twitter/${acc.handle}`}
-                  className="w-12 h-12 rounded-full border-2 border-[#5D4037]"
+                  className="w-10 h-10 rounded-full border-2 border-[#5D4037]"
                   onError={(e) => {
                     e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${acc.handle}`;
                   }}
@@ -295,7 +295,7 @@ export default function HollyCTDashboard() {
                   href={`https://x.com/${acc.handle}`}
                   target="_blank"
                   className="
-                    text-gray-400 font-semibold truncate
+                    text-gray-400 font-medium text-sm truncate
                     hover:text-blue-400 hover:shadow-lg 
                     active:text-blue-500 active:scale-95
                     transition-all duration-200
@@ -308,7 +308,7 @@ export default function HollyCTDashboard() {
                   href={`https://x.com/${acc.handle}`}
                   target="_blank"
                   className="
-                    px-6 py-3 bg-blue-500 text-white rounded-lg
+                    px-4 py-2 bg-blue-500 text-white text-sm rounded-lg
                     hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40
                     active:bg-blue-700 active:scale-[0.95] active:shadow-lg active:shadow-blue-500/40
                     transition-all duration-200
