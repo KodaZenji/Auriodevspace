@@ -1,132 +1,385 @@
 "use client";
 
-import React from "react";
-import { ChevronRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { UserPlus, ChevronLeft, ChevronRight, LogOut, BadgeCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-const LandingPage = () => {
-  const modules = [
-    {
-      id: "goatnetwork",
-      title: "GoatNetwork Rank Checker",
-      description: "Check your Rank instantly",
-      color: "from-slate-800/90 to-slate-700/90", // Fixed typo: slate-704 to slate-700
-      hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
-      route: "/rankfinder",
-      logo: "/download-removebg-preview.png",
-      logoAlt: "GoatNetwork Logo",
-    },
+let supabase;
+
+export default function HollyCTDashboard() {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loadingAccounts, setLoadingAccounts] = useState(true);
+  const [accounts, setAccounts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [newHandle, setNewHandle] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [mounted, setMounted] = useState(false);
+  const itemsPerPage = 50;
+  
+  const router = useRouter();
+
+  useEffect(() => {
+    const initSupabase = async () => {
+      const { createClientComponentClient } = await import("@supabase/auth-helpers-nextjs");
+      supabase = createClientComponentClient();
+      setMounted(true);
+    };
     
-    {
-      id: "Bitdealer",
-      title: " Bitdealer Rewards Checker",
-      description: "Estimate your rewards instantly",
-      color: "from-slate-800/90 to-slate-700/90", // Fixed typo: slate-704 to slate-700
-      hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
-      route: "/bitdealer",
-      logo: "/bitdealer-logo.png",
-      logoAlt: "bit Logo",
-    },
-     
-    {
-     id: "innerCT",
-      title: "Kaito Smart Accounts",
-      description: "HollyWeb3's Inner CT splash",
-      color: "from-slate-800/90 to-slate-700/90", // 
-      hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
-      route: "/kaito-inner-ct",
-      logo: "/kaito-Logo.png",
-      logoAlt: "kaito Logo",
-      }
+    initSupabase();
+  }, []);
+
+
+  useEffect(() => {
+    if (mounted) {
+      checkAdmin();
+      fetchAccounts();
+    }
+  }, [mounted]);
+
+  const checkAdmin = async () => {
+    if (!supabase) return;
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
       
-  ];
+      if (user) {
+        const res = await fetch("/api/admin/check-admin");
+        const data = await res.json();
+        
+        if (data.admin) {
+          setIsAdmin(true);
+          sessionStorage.setItem("isAdmin", "true");
+        }
+      }
+    } catch (err) {
+      console.error("Admin check failed:", err);
+    }
+  };
+
+  const fetchAccounts = async () => {
+    setLoadingAccounts(true);
+    try {
+      const res = await fetch("/api/accounts");
+      const data = await res.json();
+      if (!data.error) setAccounts(data);
+    } catch (e) {
+      console.error("Error fetching accounts", e);
+    }
+    setLoadingAccounts(false);
+  };
+
+  const handleLogin = () => {
+    router.push("/admin");
+  };
+
+  const handleLogout = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    sessionStorage.removeItem("isAdmin");
+    setIsAdmin(false);
+  };
+
+  const addAccount = async () => {
+    if (!newHandle.trim()) return;
+
+    const handle = newHandle.replace("@", "").trim();
+
+    const res = await fetch("/api/accounts/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ handle }),
+    });
+
+    const data = await res.json();
+
+    if (data.error) return alert("Failed: " + data.error);
+
+    await fetchAccounts();
+    setNewHandle("");
+    setCurrentPage(1);
+    alert("Account added.");
+  };
+
+  const removeAccount = async (handle) => {
+    if (!confirm(`Remove @${handle}?`)) return;
+
+    const res = await fetch("/api/accounts/remove", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ handle }),
+    });
+
+    const data = await res.json();
+
+    if (data.error) return alert("Delete failed: " + data.error);
+
+    await fetchAccounts();
+    alert("Account removed.");
+  };
+
+  const filtered = accounts.filter((a) =>
+    a.handle.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const pageItems = filtered.slice(start, start + itemsPerPage);
+
+  if (!mounted || loadingAccounts) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-2xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      {/* Separate Header */}
-      <header className="w-full px-2 sm:px-6 lg:px-8 py-3 sm:py-4 bg-white/10 backdrop-blur-md border-b border-white/20 fixed top-0 z-50 text-white">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          {/* Avatar Logo */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden border-2 border-white/20 bg-white/5 backdrop-blur-sm shadow-lg">
-              <img
-                src="/image.jpg"
-                alt="Aurio Avatar"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
+    <div className="min-h-screen bg-black text-white flex justify-center py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl w-full mx-auto p-4 md:p-8">
+        <div className="flex items-center justify-between mb-10">
+          <a
+            href="https://x.com/holly_web3"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 group"
+          >
+            <img
+              src="/holly.png"
+              alt="HollyWeb3 Logo"
+              className="w-12 h-12 rounded-xl"
+            />
 
-          {/* Title */}
-          <h1 className="text-base sm:text-xl md:text-2xl font-bold text-center flex-1 px-4 sm:px-4 truncate">
-
-          </h1>
-
-          {/* Spacer */}
-          <div className="w-13 sm:w-15"></div>
+            <p className="text-sm text-gray-400 flex items-center gap-1 group-hover:text-blue-400  
+            active:scale-[0.95] active:shadow-lg active:text-blue-500/40
+            transition-all duration-200">
+              holly
+              <BadgeCheck className="w-3 h-3 text-blue-500 group-hover:text-blue-400
+              active:scale-[0.95] active:text-blue-500/40
+              transition-all duration-200" />
+              's
+            </p>
+          </a>
         </div>
-      </header>
 
-      {/* Main Body with clean rounded cards */}
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-        {/* Adjustable blank space for all screen types */}
-        <div className="h-20 sm:h-24 md:h-32 lg:h-40 xl:h-48 pt-16 sm:pt-20"></div>
-        
-        <main className="flex items-center justify-center w-full px-4 sm:px-6 lg:px-8 pb-32 sm:pb-40 lg:pb-48">
-          <div className="w-full max-w-5xl mx-auto">
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-              {modules.map((module, index) => (
+        <div className="flex justify-center">
+          <p
+            className="
+              text-3xl font-bold
+              bg-gradient-to-r from-[#5D4037] via-[#7B5E57] to-[#A1887F]
+              bg-clip-text text-transparent
+              animate-[pulse_4s_ease-in-out_infinite]
+            "
+          >
+            Inner CT Splash
+          </p>
+        </div>
+        <p className="text-sm text-gray-400 mt-2 flex justify-center">
+          {filtered.length} accounts found now
+        </p>
+
+        <div> </div>
+
+        <div style={{ marginBottom: '0.2rem' }}>&nbsp;</div>
+
+        {/* ADMIN BUTTON */}
+        <div className="flex justify-end mb-4">
+          {!isAdmin ? (
+            <button
+              onClick={handleLogin}
+              className="px-4 py-2 bg-gradient-to-r from-[#4E342E] via-[#5D4037] to-[#6D4C41] 
+                hover:from-[#5D4037] hover:via-[#6D4C41] hover:to-[#4E342E] 
+                rounded-lg text-white flex items-center gap-2 whitespace-nowrap"
+            >
+              🔒 Admin Login
+            </button>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white flex items-center gap-2 whitespace-nowrap"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
+          )}
+        </div>
+
+        {/* ADMIN PANEL */}
+        {isAdmin && (
+          <div className="bg-gray-900 bg-opacity-30 p-6 rounded-xl border border-white border-opacity-10 mb-8">
+            <h2 className="text-2xl font-bold flex items-center gap-2 mb-4">
+              <UserPlus className="w-6 h-6" /> Add New Account
+            </h2>
+
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={newHandle}
+                onChange={(e) => setNewHandle(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addAccount()}
+                placeholder="Twitter handle"
+                className="flex-1 px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-20 text-white"
+              />
+              <button
+                onClick={addAccount}
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg whitespace-nowrap"
+              >
+                Add
+              </button>
+            </div>
+
+            <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
+              {accounts.map((acc) => (
                 <div
-                  key={module.id}
-                  onClick={() => (window.location.href = module.route)}
-                  className={`relative cursor-pointer bg-gradient-to-br ${module.color} ${module.hoverColor} 
-                    transition-all transform hover:scale-105 shadow-2xl group
-                    w-full sm:w-1/2 h-[200px] sm:h-[220px] lg:h-[250px]
-                    rounded-2xl lg:rounded-3xl overflow-hidden
-                    flex flex-col justify-center items-center p-4 sm:p-6
-                    border border-white/10`} // 
+                  key={acc.id}
+                  className="flex items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700"
                 >
-                  {/* Top section: Logo and Chevron */}
-                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                    <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/15 backdrop-blur-sm border border-white/30 group-hover:bg-white/25 transition-all duration-300 rounded-xl shadow-lg">
-                      <img
-                        src={module.logo}
-                        alt={module.logoAlt}
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
-                      />
-                    </div>
-                    <ChevronRight
-                      size={16}
-                      className="sm:w-5 sm:h-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-300"
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={`https://unavatar.io/twitter/${acc.handle}`}
+                      className="w-10 h-10 rounded-full border-2 border-purple-500"
+                      onError={(e) => {
+                        e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${acc.handle}`;
+                      }}
                     />
+                    <span>{acc.handle}</span>
                   </div>
-
-                  {/* Center section: Content */}
-                  <div className="flex flex-col text-center justify-center">
-                    <h3 className="text-lg sm:text-xl md:text-xl lg:text-3xl xl:text-2xl font-light tracking-wide text-white mb-2 lg:mb-3 leading-tight font-serif">
-                      {module.title}
-                    </h3>
-                    <p className="text-xs sm:text-sm md:text-base text-white/90 leading-relaxed font-light tracking-wide text-justify px-2">
-                      {module.description}
-                    </p>
-                  </div>
-
-                  {/* Decorative gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl lg:rounded-3xl"></div>
+                  <button
+                    onClick={() => removeAccount(acc.handle)}
+                    className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg whitespace-nowrap"
+                  >
+                    Remove
+                  </button>
                 </div>
               ))}
             </div>
           </div>
-        </main>
+        )}
 
-        <div className="h-20 sm:h-24 md:h-32 lg:h-40 xl:h-48"></div>
+        {/* SEARCH */}
+        <div className="bg-white bg-opacity-10 p-6 rounded-xl border border-white border-opacity-20 mb-6">
+          <input
+            type="text"
+            placeholder="  Search  username..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full px-4 py-3 rounded-lg bg-gray-400 bg-opacity-20 text-gray-600"
+          />
+        </div>
 
-        {/* Footer */}
-        <footer className="w-full px-3 sm:px-6 lg:px-8 py-3 sm:py-6 bg-white/5 backdrop-blur-md border-t border-white/20 text-center text-xs sm:text-sm text-white/70 mt-auto">
-          © 2025 Auriosweb3. All rights reserved.
-        </footer>
+        {/* LIST */}
+        <div className="bg-gray-800 bg-opacity-70 rounded-xl border border-gray-700 p-4 space-y-3 mb-6">
+          {pageItems.length > 0 ? (
+            pageItems.map((acc) => (
+              <div
+                key={acc.id}
+                className="
+                  bg-gray-900 border border-gray-800 rounded-xl p-4
+                  grid grid-cols-[auto_1fr_auto] gap-4 items-center
+                  transition-all duration-300 cursor-pointer
+                  hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/40
+                  active:border-emerald-400 active:shadow-lg active:shadow-emerald-500/40 active:scale-[0.97]
+                "
+              >
+                <img
+                  src={`https://unavatar.io/twitter/${acc.handle}`}
+                  className="w-12 h-12 rounded-full border-2 border-[#5D4037]"
+                  onError={(e) => {
+                    e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${acc.handle}`;
+                  }}
+                />
+
+                <a
+                  href={`https://x.com/${acc.handle}`}
+                  target="_blank"
+                  className="
+                    text-gray-400 font-semibold truncate
+                    hover:text-blue-400 hover:shadow-lg 
+                    active:text-blue-500 active:scale-95
+                    transition-all duration-200
+                  "
+                >
+                  {acc.handle}
+                </a>
+
+                <a
+                  href={`https://x.com/${acc.handle}`}
+                  target="_blank"
+                  className="
+                    px-6 py-3 bg-blue-500 text-white rounded-lg
+                    hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40
+                    active:bg-blue-700 active:scale-[0.95] active:shadow-lg active:shadow-blue-500/40
+                    transition-all duration-200
+                    whitespace-nowrap
+                  "
+                >
+                  Follow
+                </a>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-gray-400 py-6">
+              No accounts found
+            </div>
+          )}
+        </div>
+
+        {/* PAGINATION */}
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mb-8 flex-wrap">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              className="px-6 py-2 bg-blue-600 disabled:bg-gray-600 rounded-lg"
+            >
+              <ChevronLeft />
+            </button>
+
+            {[...Array(totalPages)].map((_, i) => {
+              const page = i + 1;
+              if (
+                page === 1 ||
+                page === totalPages ||
+                (page >= currentPage - 1 && page <= currentPage + 1)
+              ) {
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-4 py-2 rounded-lg ${
+                      currentPage === page
+                        ? "bg-blue-600"
+                        : "bg-blue bg-opacity-10"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              }
+              return (
+                <span key={`dots-${i}`} className="px-2 text-gray-400">
+                  ...
+                </span>
+              );
+            })}
+
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              className="px-4 py-2 bg-blue-600 disabled:bg-gray-600 rounded-lg"
+            >
+              <ChevronRight />
+            </button>
+          </div>
+        )}
+
+        <div className="text-center text-gray-400 text-sm">
+          Showing {start + 1}-{Math.min(start + itemsPerPage, filtered.length)} of{" "}
+          {filtered.length}
+        </div>
       </div>
-    </>
+    </div>
   );
-};
-
-export default LandingPage;
+}
