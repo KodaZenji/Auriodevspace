@@ -15,17 +15,6 @@ const LandingPage = () => {
       logo: "/download-removebg-preview.png",
       logoAlt: "GoatNetwork Logo",
     },
-    
-    {
-      id: "Bitdealer",
-      title: " Bitdealer Rewards Checker",
-      description: "Estimate your rewards instantly",
-      color: "from-slate-800/90 to-slate-700/90", // Fixed typo: slate-704 to slate-700
-      hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
-      route: "/bitdealer",
-      logo: "/bitdealer-logo.png",
-      logoAlt: "bit Logo",
-    },
      
     {
      id: "innerCT",

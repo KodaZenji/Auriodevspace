@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
-// This tells Next.js to render this page only on the client
+
 export const dynamic = "force-dynamic";
-export const runtime = "edge"; // Optional: use edge runtime
+export const runtime = "edge"; 
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -16,7 +16,7 @@ export default function AdminLogin() {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   
-  // Initialize Supabase only after component mounts
+ 
   const [supabase, setSupabase] = useState(null);
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export default function AdminLogin() {
     }
   };
 
-  // Show loading state until component is mounted
+  
   if (!mounted) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
