@@ -134,46 +134,41 @@ export default function HollyCTDashboard() {
   }
 
   return (
-    
-    <div className="min-h-screen bg-black text-white flex justify-center py-8 px-4">
+    <div className="min-h-screen bg-black text-white flex justify-center py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl w-full mx-auto p-4 md:p-8">
         <div className="flex items-center justify-between mb-10">
           <a
-  href="https://x.com/holly_web3"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="flex items-center gap-2 group"
->
-  <img
-    src="/holly.png"
-    alt="HollyWeb3 Logo"
-    className="w-12 h-12 rounded-xl"
-  />
+            href="https://x.com/holly_web3"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 group"
+          >
+            <img
+              src="/holly.png"
+              alt="HollyWeb3 Logo"
+              className="w-12 h-12 rounded-xl"
+            />
 
-  <p className="text-sm text-gray-400 flex items-center gap-1 group-hover:text-blue-400  
-  active:scale-[0.95] active:shadow-lg active:text-blue-500/40
-  transition-all duration-200">
-    holly
-    <BadgeCheck className="w-3 h-3 text-blue-500 group-hover:text-blue-400
-     active:scale-[0.95] active:text-blue-500/40
-    transition-all duration-200" />
-    's
-  </p>
-</a>
-
+            <p className="text-sm text-gray-400 flex items-center gap-1 group-hover:text-blue-400  
+            active:scale-[0.95] active:shadow-lg active:text-blue-500/40
+            transition-all duration-200">
+              holly
+              <BadgeCheck className="w-3 h-3 text-blue-500 group-hover:text-blue-400
+              active:scale-[0.95] active:text-blue-500/40
+              transition-all duration-200" />
+              's
+            </p>
+          </a>
         </div>
 
         <div className="flex justify-center">
           <p
             className="
-  text-3xl font-bold
-  bg-gradient-to-r from-[#5D4037] via-[#7B5E57] to-[#A1887F]
-  bg-clip-text text-transparent
-  animate-[pulse_4s_ease-in-out_infinite]
-"
-
-
-
+              text-3xl font-bold
+              bg-gradient-to-r from-[#5D4037] via-[#7B5E57] to-[#A1887F]
+              bg-clip-text text-transparent
+              animate-[pulse_4s_ease-in-out_infinite]
+            "
           >
             Inner CT Splash
           </p>
@@ -192,16 +187,15 @@ export default function HollyCTDashboard() {
             <button
               onClick={handleLogin}
               className="px-4 py-2 bg-gradient-to-r from-[#4E342E] via-[#5D4037] to-[#6D4C41] 
-           hover:from-[#5D4037] hover:via-[#6D4C41] hover:to-[#4E342E] 
-           rounded-lg text-white flex items-center gap-2"
-
+                hover:from-[#5D4037] hover:via-[#6D4C41] hover:to-[#4E342E] 
+                rounded-lg text-white flex items-center gap-2 whitespace-nowrap"
             >
               🔒 Admin Login
             </button>
           ) : (
             <button
               onClick={handleLogout}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white flex items-center gap-2"
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white flex items-center gap-2 whitespace-nowrap"
             >
               <LogOut className="w-4 h-4" />
               Logout
@@ -227,7 +221,7 @@ export default function HollyCTDashboard() {
               />
               <button
                 onClick={addAccount}
-                className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg"
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg whitespace-nowrap"
               >
                 Add
               </button>
@@ -251,7 +245,7 @@ export default function HollyCTDashboard() {
                   </div>
                   <button
                     onClick={() => removeAccount(acc.handle)}
-                    className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg"
+                    className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg whitespace-nowrap"
                   >
                     Remove
                   </button>
@@ -272,27 +266,26 @@ export default function HollyCTDashboard() {
               setCurrentPage(1);
             }}
             className="w-full px-4 py-3 rounded-lg bg-gray-400 bg-opacity-20 text-gray-600"
-
           />
         </div>
 
         {/* LIST */}
-        <div className="bg-gray-800 bg-opacity-70 rounded-xl border border-gray-700 p-4 space-y-3 mb-6">
+        <div className="bg-gray-800 bg-opacity-70 rounded-xl border border-gray-700 p-2 space-y-1 mb-6">
           {pageItems.length > 0 ? (
             pageItems.map((acc) => (
               <div
                 key={acc.id}
                 className="
-    bg-gray-900 border border-gray-800 rounded-xl p-4
-    grid grid-cols-[auto_1fr_auto] gap-4 items-center
-    transition-all duration-300 cursor-pointer
-    hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/40
-    active:border-emerald-400 active:shadow-lg active:shadow-emerald-500/40 active:scale-[0.97]
-  "
+                  bg-gray-900 border border-gray-800 rounded-lg p-2
+                  grid grid-cols-[auto_1fr_auto] gap-2 items-center
+                  transition-all duration-200
+                  hover:border-emerald-400 hover:bg-gray-800/50
+                  active:border-emerald-400 active:bg-gray-800/50 active:scale-[0.99]
+                "
               >
                 <img
                   src={`https://unavatar.io/twitter/${acc.handle}`}
-                  className="w-12 h-12 rounded-full border-2 border-[#5D4037]"
+                  className="w-9 h-9 rounded-full border border-[#5D4037]"
                   onError={(e) => {
                     e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${acc.handle}`;
                   }}
@@ -302,10 +295,11 @@ export default function HollyCTDashboard() {
                   href={`https://x.com/${acc.handle}`}
                   target="_blank"
                   className="
-  text-gray-400 font-semibold truncate
-  hover:text-blue-400 hover:shadow-lg 
-  active:text-blue-500 active:scale-95
-  transition-all duration-200"
+                    text-gray-300 font-medium text-sm truncate
+                    hover:text-blue-400
+                    active:text-blue-500
+                    transition-colors duration-200
+                  "
                 >
                   {acc.handle}
                 </a>
@@ -314,16 +308,16 @@ export default function HollyCTDashboard() {
                   href={`https://x.com/${acc.handle}`}
                   target="_blank"
                   className="
-      px-6 py-3 bg-blue-500 text-white rounded-lg
-      hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40
-      active:bg-blue-700 active:scale-[0.95] active:shadow-lg active:shadow-blue-500/40
-      transition-all duration-200
-    "
+                    px-3 py-1.5 bg-blue-500 text-white text-xs font-medium rounded-md
+                    hover:bg-blue-600
+                    active:bg-blue-700 active:scale-[0.97]
+                    transition-all duration-200
+                    whitespace-nowrap
+                  "
                 >
                   Follow
                 </a>
               </div>
-
             ))
           ) : (
             <div className="text-center text-gray-400 py-6">
@@ -334,7 +328,7 @@ export default function HollyCTDashboard() {
 
         {/* PAGINATION */}
         {totalPages > 1 && (
-          <div className="flex justify-center gap-2 mb-8">
+          <div className="flex justify-center gap-2 mb-8 flex-wrap">
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
@@ -354,10 +348,11 @@ export default function HollyCTDashboard() {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`px-4 py-2 rounded-lg ${currentPage === page
-                      ? "bg-blue-600"
-                      : "bg-blue bg-opacity-10"
-                      }`}
+                    className={`px-4 py-2 rounded-lg ${
+                      currentPage === page
+                        ? "bg-blue-600"
+                        : "bg-blue bg-opacity-10"
+                    }`}
                   >
                     {page}
                   </button>
@@ -385,7 +380,6 @@ export default function HollyCTDashboard() {
           {filtered.length}
         </div>
       </div>
-
     </div>
   );
 }
