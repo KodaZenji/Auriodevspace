@@ -209,7 +209,7 @@ export default function RankNexus() {
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text'
                   }}>
-                    <span className="text-blue-400">💎</span>
+                    <span className="text-blue-400"></span>
                     ${data.usdc_reward?.toFixed(2)}
                   </div>
                 </div>
@@ -247,7 +247,7 @@ export default function RankNexus() {
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text'
                   }}>
-                    <span className="text-blue-400">💎</span>
+                    <span className="text-blue-400"></span>
                     ${data.usdc_reward?.toFixed(2)}
                   </div>
                 </div>
@@ -404,12 +404,11 @@ export default function RankNexus() {
 
         {!results && !loading && (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
             <p className="text-gray-400 text-lg mb-2">
               Search once. Check everywhere.
             </p>
             <p className="text-gray-500 text-sm">
-              Enter an X username to see rankings on both platforms
+              Enter an X username to see rankings on available platforms 
             </p>
           </div>
         )}
