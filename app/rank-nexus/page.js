@@ -304,7 +304,6 @@ export default function RankNexus() {
               currentValue={goatDays}
               onValueChange={setGoatDays}
               options={[
-                { value: '1', label: '1d' },
                 { value: '7', label: '7d' },
                 { value: '30', label: '30d' }
               ]}
