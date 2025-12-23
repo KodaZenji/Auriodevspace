@@ -52,7 +52,6 @@ export default function RankNexus() {
         user => user.x_username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
       );
       
-      // Only set results if at least one platform has data
       if (!goatUser && !duckUser) {
         alert(`User @${searchUser} not found on any leaderboard`);
         setResults(null);
@@ -153,26 +152,22 @@ export default function RankNexus() {
 
         <div className="p-3 flex items-center justify-between">
           {showAvatar ? (
-            /* Single platform - show avatar + username */
-            <>
-              <div className="flex items-center gap-3 flex-1">
-                <img
-                  src={`https://unavatar.io/twitter/${username}`}
-                  alt={username}
-                  className="w-10 h-10 rounded-full object-cover bg-gray-800"
-                  style={{ border: '2px solid rgba(52, 211, 153, 0.3)' }}
-                  onError={(e) => {
-                    e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${username}&size=96&backgroundColor=1f2937`;
-                  }}
-                />
-                <div>
-                  <div className="text-white font-medium">@{username}</div>
-                  <div className="text-gray-400 text-xs">Rank: {data.rank}</div>
-                </div>
+            <div className="flex items-center gap-3 flex-1">
+              <img
+                src={`https://unavatar.io/twitter/${username}`}
+                alt={username}
+                className="w-10 h-10 rounded-full object-cover bg-gray-800"
+                style={{ border: '2px solid rgba(52, 211, 153, 0.3)' }}
+                onError={(e) => {
+                  e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${username}&size=96&backgroundColor=1f2937`;
+                }}
+              />
+              <div>
+                <div className="text-white font-medium">@{username}</div>
+                <div className="text-gray-400 text-xs">Rank: {data.rank}</div>
               </div>
-            </>
+            </div>
           ) : (
-            /* Multiple platforms - just show rank */
             <div className="flex items-center gap-3 flex-1">
               <div className="text-2xl font-bold" style={{
                 background: 'linear-gradient(135deg, #10b981, #34d399)',
@@ -187,72 +182,32 @@ export default function RankNexus() {
           )}
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              {platform === 'goat' ? (
-                <div className="text-right">
-                  <div className="text-xs text-gray-400">Mindshare</div>
-                  <div className="font-bold text-lg" style={{
-                    background: 'linear-gradient(135deg, #10b981, #34d399)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}>
-                    {data.mindshare?.toFixed(2)}%
-                  </div>
+            {platform === 'goat' ? (
+              <div className="text-right">
+                <div className="text-xs text-gray-400">Mindshare</div>
+                <div className="font-bold text-lg" style={{
+                  background: 'linear-gradient(135deg, #10b981, #34d399)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  {data.mindshare?.toFixed(2)}%
                 </div>
-              ) : (
-                <div className="text-right">
-                  <div className="text-xs text-gray-400">USDC Reward</div>
-                  <div className="font-bold text-lg flex items-center gap-1" style={{
-                    background: 'linear-gradient(135deg, #10b981, #34d399)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}>
-                    <span className="text-blue-400"></span>
-                    ${data.usdc_reward?.toFixed(2)}
-                  </div>
+              </div>
+            ) : (
+              <div className="text-right">
+                <div className="text-xs text-gray-400">USDC Reward</div>
+                <div className="font-bold text-lg flex items-center gap-1" style={{
+                  background: 'linear-gradient(135deg, #10b981, #34d399)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  <span className="text-blue-400">💎</span>
+                  ${data.usdc_reward?.toFixed(2)}
                 </div>
-              )}
-            </div>
-            <button
-              onClick={() => toggleCard(platform)}
-              className="text-gray-400 hover:text-white transition-colors ml-2"
-            >
-              <ChevronDown className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-            </button>
-          </div>
-        </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              {platform === 'goat' ? (
-                <div className="text-right">
-                  <div className="text-xs text-gray-400">Mindshare</div>
-                  <div className="font-bold text-lg" style={{
-                    background: 'linear-gradient(135deg, #10b981, #34d399)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}>
-                    {data.mindshare?.toFixed(2)}%
-                  </div>
-                </div>
-              ) : (
-                <div className="text-right">
-                  <div className="text-xs text-gray-400">USDC Reward</div>
-                  <div className="font-bold text-lg flex items-center gap-1" style={{
-                    background: 'linear-gradient(135deg, #10b981, #34d399)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}>
-                    <span className="text-blue-400"></span>
-                    ${data.usdc_reward?.toFixed(2)}
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
             <button
               onClick={() => toggleCard(platform)}
               className="text-gray-400 hover:text-white transition-colors ml-2"
@@ -355,7 +310,6 @@ export default function RankNexus() {
 
         {results && (
           <div className="animate-fade-in">
-            {/* Show avatar header only if found on BOTH platforms */}
             {results.foundOn.goat && results.foundOn.duck && (
               <div className="bg-slate-800 rounded-xl p-6 mb-6 border border-slate-700 text-center">
                 <img
@@ -371,7 +325,6 @@ export default function RankNexus() {
               </div>
             )}
 
-            {/* Leaderboard Cards */}
             {results.goat && (
               <LeaderboardCard 
                 platform="goat" 
@@ -404,11 +357,12 @@ export default function RankNexus() {
 
         {!results && !loading && (
           <div className="text-center py-12">
+            <div className="text-6xl mb-4">🔍</div>
             <p className="text-gray-400 text-lg mb-2">
               Search once. Check everywhere.
             </p>
             <p className="text-gray-500 text-sm">
-              Enter an X username to see rankings on available platforms 
+              Enter an X username to see rankings on both platforms
             </p>
           </div>
         )}
