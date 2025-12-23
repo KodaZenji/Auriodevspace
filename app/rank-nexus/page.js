@@ -163,7 +163,7 @@ export default function RankNexus() {
                 }}
               />
               <div>
-                <div className="text-white font-medium">@{username}</div>
+                <div className="text-white font-medium">{username}</div>
                 <div className="text-gray-400 text-xs">Rank: {data.rank}</div>
               </div>
             </div>
@@ -321,7 +321,7 @@ export default function RankNexus() {
                     e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${results.username}&size=160&backgroundColor=1f2937`;
                   }}
                 />
-                <h2 className="text-xl font-bold text-white">@{results.username}</h2>
+                <h2 className="text-xl font-bold text-white">{results.username}</h2>
               </div>
             )}
 
@@ -357,12 +357,11 @@ export default function RankNexus() {
 
         {!results && !loading && (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
             <p className="text-gray-400 text-lg mb-2">
               Search once. Check everywhere.
             </p>
             <p className="text-gray-500 text-sm">
-              Enter an X username to see rankings on both platforms
+              Enter an X username to see rankings on available platforms
             </p>
           </div>
         )}
