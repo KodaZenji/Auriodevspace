@@ -1,4 +1,5 @@
-import "./kaito-inner-ct.css";
+import "../globals.css";
+
 
 export default function KaitoInnerCTlayout({
   children,
