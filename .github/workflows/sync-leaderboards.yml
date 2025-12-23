@@ -1,0 +1,18 @@
+name: Sync Leaderboards
+
+on:
+  schedule:
+    # Run every 8 hours at 00:00, 08:00, 16:00 UTC
+    - cron: '0 0,8,16 * * *'
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Sync Leaderboard Data
+        run: |
+          curl -X POST https://auriodevspace.vercel.app/api/sync-leaderboards \
+            -H "Authorization: Bearer ${{ secrets.SYNC_SECRET }}" \
+            -H "Content-Type: application/json"
