@@ -1,58 +1,87 @@
-import React, { useState } from 'react';
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Search, RefreshCw, ChevronDown } from 'lucide-react';
 
-const RankNexus = () => {
+export default function RankNexus() {
   const [searchUser, setSearchUser] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [expandedCards, setExpandedCards] = useState({ goat: false, duck: false });
-  const [goatDays, setGoatDays] = useState('30');
-  const [duckEpoch, setDuckEpoch] = useState('1');
+  const [goatDays, setGoatDays] = useState('7');
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [nextUpdateIn, setNextUpdateIn] = useState('');
 
-  // Mock data - replace with actual API calls
-  const mockGoatData = {
-    '7': [
-      { rank: 1, username: "wjf110", mindshare: 2.45, tweets: 42, likes: 980, impressions: 17500 },
-      { rank: 2, username: "egyptk6", mindshare: 1.89, tweets: 35, likes: 725, impressions: 13500 },
-      { rank: 3, username: "Counselor_Ayo", mindshare: 1.65, tweets: 28, likes: 560, impressions: 9800 }
-    ],
-    '30': [
-      { rank: 1, username: "wjf110", mindshare: 2.67, tweets: 180, likes: 4200, impressions: 75000 },
-      { rank: 2, username: "egyptk6", mindshare: 2.03, tweets: 150, likes: 3100, impressions: 58000 },
-      { rank: 3, username: "Counselor_Ayo", mindshare: 1.86, tweets: 120, likes: 2400, impressions: 42000 }
-    ]
-  };
-
-  const mockDuckData = {
-    '1': [
-      { rank: 1, x_username: "wjf110", x_score: 11193, dd_score: 0, user_share: 2.67, usdc_reward: 267.24 },
-      { rank: 2, x_username: "egyptk6", x_score: 8500, dd_score: 0, user_share: 2.03, usdc_reward: 168.2 },
-      { rank: 3, x_username: "Counselor_Ayo", x_score: 7800, dd_score: 0, user_share: 1.86, usdc_reward: 163.67 }
-    ]
-  };
+  useEffect(() => {
+    if (lastUpdated) {
+      const interval = setInterval(() => {
+        const now = new Date();
+        const lastUpdate = new Date(lastUpdated);
+        const hoursSinceUpdate = (now - lastUpdate) / (1000 * 60 * 60);
+        const hoursUntilNext = 8 - (hoursSinceUpdate % 8);
+        const minutesUntilNext = Math.floor((hoursUntilNext % 1) * 60);
+        setNextUpdateIn(`${Math.floor(hoursUntilNext)}h:${minutesUntilNext.toString().padStart(2, '0')}m`);
+      }, 1000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [lastUpdated]);
 
   const handleSearch = async () => {
     if (!searchUser.trim()) return;
     
     setLoading(true);
     
-    setTimeout(() => {
-      const goatUser = mockGoatData[goatDays].find(
-        user => user.username.toLowerCase() === searchUser.toLowerCase()
+    try {
+      const response = await fetch(`/api/leaderboards?days=${goatDays}`);
+      const data = await response.json();
+      
+      if (data.error) {
+        alert(data.error);
+        setLoading(false);
+        return;
+      }
+      
+      setLastUpdated(data.yappers.last_updated);
+      
+      const goatUser = data.yappers.data.find(
+        user => user.username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
       );
-      const duckUser = mockDuckData[duckEpoch].find(
-        user => user.x_username.toLowerCase() === searchUser.toLowerCase()
+      
+      const duckUser = data.duelduck.data.find(
+        user => user.x_username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
       );
       
       setResults({
-        goat: goatUser || { notFound: true },
-        duck: duckUser || { notFound: true }
+        goat: goatUser ? {
+          rank: goatUser.rank,
+          username: goatUser.username,
+          mindshare: goatUser.mindshare * 100,
+          tweets: goatUser.tweet_counts,
+          likes: goatUser.total_likes,
+          impressions: goatUser.total_impressions,
+          score: goatUser.score
+        } : { notFound: true },
+        duck: duckUser ? {
+          rank: data.duelduck.data.indexOf(duckUser) + 1,
+          x_username: duckUser.x_username,
+          x_score: duckUser.x_score,
+          dd_score: duckUser.dd_score,
+          user_share: duckUser.user_share,
+          usdc_reward: duckUser.usdc_reward,
+          total_score: duckUser.total_score
+        } : { notFound: true }
       });
+    } catch (error) {
+      console.error('Error searching:', error);
+      alert('Failed to search. Please try again.');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const formatNumber = (num) => {
+    if (!num) return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toLocaleString();
@@ -71,12 +100,11 @@ const RankNexus = () => {
     
     return (
       <div 
-        className="bg-slate-800 rounded-lg border mb-3 overflow-hidden transition-all"
+        className="bg-slate-800 rounded-lg mb-3 overflow-hidden transition-all"
         style={{
           border: isFound ? '1px solid rgba(52, 211, 153, 0.5)' : '1px solid rgb(51, 65, 85)'
         }}
       >
-        {/* Card Header with Platform Name and Time Switch */}
         <div className="px-3 pt-2 pb-1 border-b border-slate-700/50 flex items-center justify-between">
           <h3 className="font-semibold text-xs" style={{
             background: 'linear-gradient(135deg, #10b981, #34d399, #6ee7b7)',
@@ -93,18 +121,8 @@ const RankNexus = () => {
                   key={option.value}
                   onClick={() => {
                     onValueChange(option.value);
-                    if (results) {
-                      const userData = platform === 'goat' 
-                        ? mockGoatData[option.value].find(
-                            user => user.username.toLowerCase() === searchUser.toLowerCase()
-                          )
-                        : mockDuckData[option.value].find(
-                            user => user.x_username.toLowerCase() === searchUser.toLowerCase()
-                          );
-                      setResults({ 
-                        ...results, 
-                        [platform]: userData || { notFound: true } 
-                      });
+                    if (searchUser.trim()) {
+                      handleSearch();
                     }
                   }}
                   className="px-2 py-0.5 rounded text-xs font-medium transition-all"
@@ -124,7 +142,6 @@ const RankNexus = () => {
         </div>
 
         <div className="p-3 flex items-center justify-between">
-          {/* Left: Rank and Username */}
           <div className="flex items-center gap-3 flex-1">
             {isFound ? (
               <>
@@ -149,7 +166,6 @@ const RankNexus = () => {
             )}
           </div>
 
-          {/* Right: Score and Expand */}
           {isFound && (
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2">
@@ -160,7 +176,7 @@ const RankNexus = () => {
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text'
                   }}>
-                    {data.mindshare.toFixed(2)}%
+                    {data.mindshare?.toFixed(2)}%
                   </span>
                 ) : (
                   <>
@@ -171,7 +187,7 @@ const RankNexus = () => {
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text'
                     }}>
-                      ${data.usdc_reward.toFixed(2)}
+                      ${data.usdc_reward?.toFixed(2)}
                     </span>
                   </>
                 )}
@@ -186,7 +202,6 @@ const RankNexus = () => {
           )}
         </div>
 
-        {/* Expanded Details */}
         {isExpanded && isFound && (
           <div className="border-t border-slate-700 bg-slate-900/50 px-3 py-3">
             <div className="grid grid-cols-3 gap-3">
@@ -209,7 +224,7 @@ const RankNexus = () => {
                 <>
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
                     <div className="text-gray-400 text-xs mb-1">X Score</div>
-                    <div className="text-white font-bold">{data.x_score.toLocaleString()}</div>
+                    <div className="text-white font-bold">{data.x_score?.toLocaleString()}</div>
                   </div>
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
                     <div className="text-gray-400 text-xs mb-1">DD Score</div>
@@ -232,7 +247,6 @@ const RankNexus = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
       <div className="max-w-2xl mx-auto pt-8">
         
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 
             className="text-4xl font-bold mb-2"
@@ -248,7 +262,6 @@ const RankNexus = () => {
           <p className="text-gray-400">Your Cross-Platform Leaderboard Hub</p>
         </div>
 
-        {/* Search Box */}
         <div className="bg-slate-800 rounded-xl p-4 mb-6 border border-slate-700">
           <div className="flex gap-3">
             <div className="flex-1 relative">
@@ -280,7 +293,6 @@ const RankNexus = () => {
           </div>
         </div>
 
-        {/* Results */}
         {results && (
           <div className="animate-fade-in">
             <h2 className="text-white font-semibold mb-3 px-2">Search Results</h2>
@@ -292,6 +304,7 @@ const RankNexus = () => {
               currentValue={goatDays}
               onValueChange={setGoatDays}
               options={[
+                { value: '1', label: '1d' },
                 { value: '7', label: '7d' },
                 { value: '30', label: '30d' }
               ]}
@@ -300,17 +313,11 @@ const RankNexus = () => {
               platform="duck" 
               data={results.duck} 
               platformName="DuelDuck"
-              timeSwitch={true}
-              currentValue={duckEpoch}
-              onValueChange={setDuckEpoch}
-              options={[
-                { value: '1', label: 'Epoch I' }
-              ]}
+              timeSwitch={false}
             />
           </div>
         )}
 
-        {/* Initial State */}
         {!results && !loading && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔍</div>
@@ -323,9 +330,12 @@ const RankNexus = () => {
           </div>
         )}
 
-        {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm pb-8">
-          <p>Data syncs every 8 hours • Next update in 04h:38m</p>
+          <p>
+            {nextUpdateIn 
+              ? `Data syncs every 8 hours • Next update in ${nextUpdateIn}`
+              : 'Data syncs every 8 hours'}
+          </p>
         </div>
       </div>
 
@@ -343,17 +353,7 @@ const RankNexus = () => {
         .animate-fade-in {
           animation: fade-in 0.3s ease-out;
         }
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        .animate-spin {
-          animation: spin 1s linear infinite;
-        }
       `}</style>
     </div>
   );
-};
-
-export default RankNexus;
+}
