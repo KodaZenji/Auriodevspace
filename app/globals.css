@@ -1,10 +1,10 @@
 /* === Kaito InnerCT Dashboard Styles === */
 
-/* Inherit Tailwind defaults */
-@import "tailwindcss";
-
 /* Import Lexend from Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
+/* Inherit Tailwind defaults */
+@import "tailwindcss";
 
 /* Apply Lexend globally */
 body {
