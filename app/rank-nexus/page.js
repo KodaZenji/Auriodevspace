@@ -18,7 +18,7 @@ export default function RankNexus() {
         const now = new Date();
         const lastUpdate = new Date(lastUpdated);
         const hoursSinceUpdate = (now - lastUpdate) / (1000 * 60 * 60);
-        const hoursUntilNext = 8 - (hoursSinceUpdate % 8);
+        const hoursUntilNext = 24 - (hoursSinceUpdate % 24);
         const minutesUntilNext = Math.floor((hoursUntilNext % 1) * 60);
         setNextUpdateIn(`${Math.floor(hoursUntilNext)}h:${minutesUntilNext.toString().padStart(2, '0')}m`);
       }, 1000);
@@ -304,7 +304,6 @@ export default function RankNexus() {
               currentValue={goatDays}
               onValueChange={setGoatDays}
               options={[
-                { value: '1', label: '1d' },
                 { value: '7', label: '7d' },
                 { value: '30', label: '30d' }
               ]}
@@ -333,8 +332,8 @@ export default function RankNexus() {
         <div className="mt-8 text-center text-gray-500 text-sm pb-8">
           <p>
             {nextUpdateIn 
-              ? `Data syncs every 8 hours • Next update in ${nextUpdateIn}`
-              : 'Data syncs every 8 hours'}
+              ? `Data syncs daily at 8 AM UTC • Next update in ${nextUpdateIn}`
+              : 'Data syncs daily at 8 AM UTC'}
           </p>
         </div>
       </div>

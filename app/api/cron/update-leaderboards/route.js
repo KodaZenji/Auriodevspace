@@ -7,7 +7,6 @@ const supabase = createClient(
 );
 
 export async function GET(request) {
-  // Verify the request is from Vercel Cron
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -17,11 +16,36 @@ export async function GET(request) {
     const results = {
       yappers: {},
       duelduck: null,
+      cleanup: {},
       timestamp: new Date().toISOString()
     };
 
-    // Fetch and store Yappers data for 1, 7, and 30 days
-    for (const days of [1, 7, 30]) {
+    // Clean up old data first (keep only last 7 days of data)
+    console.log('Cleaning up old data...');
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const { error: cleanupYappersError, count: yappersDeleted } = await supabase
+      .from('yappers_leaderboard')
+      .delete()
+      .lt('fetched_at', sevenDaysAgo.toISOString())
+      .select('id', { count: 'exact', head: true });
+    
+    const { error: cleanupDuckError, count: duckDeleted } = await supabase
+      .from('duelduck_leaderboard')
+      .delete()
+      .lt('fetched_at', sevenDaysAgo.toISOString())
+      .select('id', { count: 'exact', head: true });
+    
+    results.cleanup = {
+      yappers_deleted: yappersDeleted || 0,
+      duelduck_deleted: duckDeleted || 0
+    };
+    
+    console.log(`✅ Cleanup: Deleted ${yappersDeleted || 0} old Yappers records, ${duckDeleted || 0} old DuelDuck records`);
+
+    // Fetch and store Yappers data for 7 and 30 days only
+    for (const days of [7, 30]) {
       console.log(`Fetching Yappers data for ${days} days...`);
       const yappersData = await fetchYappersData(days);
       if (yappersData) {
@@ -124,7 +148,8 @@ async function storeYappersData(yappers, days) {
     throw error;
   }
 
-  await supabase
+  // Update cache metadata
+  const { error: cacheError } = await supabase
     .from('leaderboard_cache')
     .upsert({
       cache_type: 'yappers',
@@ -134,6 +159,10 @@ async function storeYappersData(yappers, days) {
     }, {
       onConflict: 'cache_type,days'
     });
+
+  if (cacheError) {
+    console.error('Error updating Yappers cache:', cacheError);
+  }
 
   console.log(`✅ Stored ${records.length} Yappers records for ${days} days`);
 }
@@ -165,15 +194,21 @@ async function storeDuelDuckData(leaders) {
     throw error;
   }
 
-  await supabase
+  // Update cache metadata - use days: 0 for duelduck (represents "epoch" or "all")
+  const { error: cacheError } = await supabase
     .from('leaderboard_cache')
     .upsert({
       cache_type: 'duelduck',
+      days: 0,
       last_updated: fetchedAt,
       record_count: records.length
     }, {
       onConflict: 'cache_type,days'
     });
+
+  if (cacheError) {
+    console.error('Error updating DuelDuck cache:', cacheError);
+  }
 
   console.log(`✅ Stored ${records.length} DuelDuck records`);
 }

@@ -23,12 +23,12 @@ export async function GET(request) {
       console.error('Yappers cache error:', yappersCacheError);
     }
 
-    // Get the latest fetch timestamp for duelduck
+    // Get the latest fetch timestamp for duelduck (days = 0)
     const { data: duelDuckCache, error: duelDuckCacheError } = await supabase
       .from('leaderboard_cache')
       .select('last_updated')
       .eq('cache_type', 'duelduck')
-      .is('days', null)
+      .eq('days', 0)
       .single();
 
     if (duelDuckCacheError) {
