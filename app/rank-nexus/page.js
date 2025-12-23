@@ -52,7 +52,20 @@ export default function RankNexus() {
         user => user.x_username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
       );
       
+      // Only set results if at least one platform has data
+      if (!goatUser && !duckUser) {
+        alert(`User @${searchUser} not found on any leaderboard`);
+        setResults(null);
+        setLoading(false);
+        return;
+      }
+
       setResults({
+        username: searchUser.replace('@', ''),
+        foundOn: {
+          goat: !!goatUser,
+          duck: !!duckUser
+        },
         goat: goatUser ? {
           rank: goatUser.rank,
           username: goatUser.username,
@@ -61,7 +74,7 @@ export default function RankNexus() {
           likes: goatUser.total_likes,
           impressions: goatUser.total_impressions,
           score: goatUser.score
-        } : { notFound: true },
+        } : null,
         duck: duckUser ? {
           rank: data.duelduck.data.indexOf(duckUser) + 1,
           x_username: duckUser.x_username,
@@ -70,7 +83,7 @@ export default function RankNexus() {
           user_share: duckUser.user_share,
           usdc_reward: duckUser.usdc_reward,
           total_score: duckUser.total_score
-        } : { notFound: true }
+        } : null
       });
     } catch (error) {
       console.error('Error searching:', error);
@@ -96,14 +109,11 @@ export default function RankNexus() {
 
   const LeaderboardCard = ({ platform, data, platformName, timeSwitch, currentValue, onValueChange, options }) => {
     const isExpanded = expandedCards[platform];
-    const isFound = !data?.notFound;
     
     return (
       <div 
         className="bg-slate-800 rounded-lg mb-3 overflow-hidden transition-all"
-        style={{
-          border: isFound ? '1px solid rgba(52, 211, 153, 0.5)' : '1px solid rgb(51, 65, 85)'
-        }}
+        style={{ border: '1px solid rgba(52, 211, 153, 0.5)' }}
       >
         <div className="px-3 pt-2 pb-1 border-b border-slate-700/50 flex items-center justify-between">
           <h3 className="font-semibold text-xs" style={{
@@ -143,66 +153,56 @@ export default function RankNexus() {
 
         <div className="p-3 flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
-            {isFound ? (
-              <>
-                <div className="text-xl font-bold text-gray-400 w-6">
-                  {data.rank}
-                </div>
-                <div className="flex items-center gap-2">
-                  <img
-                    src={`https://unavatar.io/twitter/${data.username || data.x_username}`}
-                    alt={data.username || data.x_username}
-                    className="w-8 h-8 rounded-full object-cover bg-gray-800"
-                    style={{ border: '2px solid rgba(52, 211, 153, 0.3)' }}
-                    onError={(e) => {
-                      e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${data.username || data.x_username}&size=96&backgroundColor=1f2937`;
-                    }}
-                  />
-                  <span className="text-white font-medium">@{data.username || data.x_username}</span>
-                </div>
-              </>
-            ) : (
-              <span className="text-gray-400 font-medium text-sm">Not Found</span>
-            )}
+            <div className="text-2xl font-bold" style={{
+              background: 'linear-gradient(135deg, #10b981, #34d399)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>
+              {data.rank}
+            </div>
+            <div className="text-gray-400 text-sm">Rank</div>
           </div>
 
-          {isFound && (
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2">
-                {platform === 'goat' ? (
-                  <span className="font-bold text-lg" style={{
+              {platform === 'goat' ? (
+                <div className="text-right">
+                  <div className="text-xs text-gray-400">Mindshare</div>
+                  <div className="font-bold text-lg" style={{
                     background: 'linear-gradient(135deg, #10b981, #34d399)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text'
                   }}>
                     {data.mindshare?.toFixed(2)}%
-                  </span>
-                ) : (
-                  <>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-right">
+                  <div className="text-xs text-gray-400">USDC Reward</div>
+                  <div className="font-bold text-lg flex items-center gap-1" style={{
+                    background: 'linear-gradient(135deg, #10b981, #34d399)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}>
                     <span className="text-blue-400">💎</span>
-                    <span className="font-bold text-lg" style={{
-                      background: 'linear-gradient(135deg, #10b981, #34d399)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text'
-                    }}>
-                      ${data.usdc_reward?.toFixed(2)}
-                    </span>
-                  </>
-                )}
-              </div>
-              <button
-                onClick={() => toggleCard(platform)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <ChevronDown className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-              </button>
+                    ${data.usdc_reward?.toFixed(2)}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+            <button
+              onClick={() => toggleCard(platform)}
+              className="text-gray-400 hover:text-white transition-colors ml-2"
+            >
+              <ChevronDown className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
         </div>
 
-        {isExpanded && isFound && (
+        {isExpanded && (
           <div className="border-t border-slate-700 bg-slate-900/50 px-3 py-3">
             <div className="grid grid-cols-3 gap-3">
               {platform === 'goat' ? (
@@ -231,7 +231,7 @@ export default function RankNexus() {
                     <div className="text-white font-bold">{data.dd_score}</div>
                   </div>
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
-                    <div className="text-gray-400 text-xs mb-1">Your Share</div>
+                    <div className="text-gray-400 text-xs mb-1">Share</div>
                     <div className="text-white font-bold">{data.user_share}%</div>
                   </div>
                 </>
@@ -295,25 +295,44 @@ export default function RankNexus() {
 
         {results && (
           <div className="animate-fade-in">
-            <h2 className="text-white font-semibold mb-3 px-2">Search Results</h2>
-            <LeaderboardCard 
-              platform="goat" 
-              data={results.goat} 
-              platformName="Goat Network"
-              timeSwitch={true}
-              currentValue={goatDays}
-              onValueChange={setGoatDays}
-              options={[
-                { value: '7', label: '7d' },
-                { value: '30', label: '30d' }
-              ]}
-            />
-            <LeaderboardCard 
-              platform="duck" 
-              data={results.duck} 
-              platformName="DuelDuck"
-              timeSwitch={false}
-            />
+            {/* User Profile Header */}
+            <div className="bg-slate-800 rounded-xl p-6 mb-6 border border-slate-700 text-center">
+              <img
+                src={`https://unavatar.io/twitter/${results.username}`}
+                alt={results.username}
+                className="w-20 h-20 rounded-full mx-auto mb-3 border-4"
+                style={{ borderColor: 'rgba(52, 211, 153, 0.5)' }}
+                onError={(e) => {
+                  e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${results.username}&size=160&backgroundColor=1f2937`;
+                }}
+              />
+              <h2 className="text-2xl font-bold text-white">@{results.username}</h2>
+            </div>
+
+            {/* Leaderboard Cards - Only show where found */}
+            {results.goat && (
+              <LeaderboardCard 
+                platform="goat" 
+                data={results.goat} 
+                platformName="Goat Network"
+                timeSwitch={true}
+                currentValue={goatDays}
+                onValueChange={setGoatDays}
+                options={[
+                  { value: '7', label: '7d' },
+                  { value: '30', label: '30d' }
+                ]}
+              />
+            )}
+            
+            {results.duck && (
+              <LeaderboardCard 
+                platform="duck" 
+                data={results.duck} 
+                platformName="DuelDuck"
+                timeSwitch={false}
+              />
+            )}
           </div>
         )}
 
