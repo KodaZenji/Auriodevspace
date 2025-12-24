@@ -135,9 +135,9 @@ async function fetchDuelDuckData() {
 /* ✅ ADICHAIN FETCH WITH SCRAPEAPI */
 async function fetchAdichainData() {
   try {
-    const scrapeApiKey = process.env.SCRAPEAPI_KEY;
+    const scraperApiKey = process.env.SCRAPEAPI_KEY;
     
-    if (!scrapeApiKey) {
+    if (!scraperApiKey) {
       console.error('❌ SCRAPEAPI_KEY not set');
       return null;
     }
@@ -152,10 +152,10 @@ async function fetchAdichainData() {
       console.log(`Fetching Adichain page ${page}/${TOTAL_PAGES}...`);
 
       const targetUrl = `https://www.xeet.ai/api/topics/adi/tournament?page=${page}&limit=${LIMIT}&timeframe=all&tournamentId=3396f69f-70c1-4703-9b01-47b147e095ef`;
-      const scrapeApiUrl = `https://api.scrape.do?token=${scrapeApiKey}&url=${encodeURIComponent(targetUrl)}`;
+      const scraperApiUrl = `http://api.scraperapi.com?api_key=${scraperApiKey}&url=${encodeURIComponent(targetUrl)}`;
 
       try {
-        const res = await fetch(scrapeApiUrl, {
+        const res = await fetch(scraperApiUrl, {
           method: 'GET',
           cache: 'no-store'
         });
