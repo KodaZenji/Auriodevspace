@@ -239,60 +239,72 @@ async function fetchAdichainData() {
 
 async function fetchHeyElsaData(period) {
   try {
+    const scraperApiKey = process.env.SCRAPER_API_KEY;
+    
+    if (!scraperApiKey) {
+      console.error('❌ SCRAPER_API_KEY not set');
+      return null;
+    }
+
     let allUsers = [];
     let page = 1;
     const pageSize = 50;
     const maxPages = 20;
+    const DELAY_MS = 4000; // 3 seconds between requests
 
     while (page <= maxPages) {
       console.log(`Fetching HeyElsa ${period} page ${page}...`);
       
-      const response = await fetch(
-        `https://api.wallchain.xyz/voices/companies/heyelsa/leaderboard?page=${page}&pageSize=${pageSize}&orderBy=position&ascending=false&period=${period}`,
-        { 
-          cache: 'no-store',
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-            'Accept': 'application/json, text/plain, */*',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Referer': 'https://www.heyelsa.com/',
-            'Origin': 'https://www.heyelsa.com',
-            'Sec-Ch-Ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-            'Sec-Ch-Ua-Mobile': '?0',
-            'Sec-Ch-Ua-Platform': '"Windows"',
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'cross-site'
-          }
+      const targetUrl = `https://api.wallchain.xyz/voices/companies/heyelsa/leaderboard?page=${page}&pageSize=${pageSize}&orderBy=position&ascending=false&period=${period}`;
+      const scraperApiUrl = `http://api.scraperapi.com?api_key=${scraperApiKey}&url=${encodeURIComponent(targetUrl)}`;
+      
+      try {
+        const response = await fetch(scraperApiUrl, {
+          method: 'GET',
+          cache: 'no-store'
+        });
+        
+        if (response.status === 429) {
+          console.warn(`⚠️ 429 on HeyElsa ${period} page ${page}, backing off...`);
+          await sleep(DELAY_MS * 2);
+          page--;
+          continue;
         }
-      );
-      
-      if (!response.ok) {
-        console.error(`HeyElsa API returned ${response.status} for ${period} page ${page}`);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.entries || data.entries.length === 0) {
+        
+        if (!response.ok) {
+          console.error(`❌ HeyElsa ${period} page ${page} failed with status ${response.status}`);
+          break;
+        }
+        
+        const data = await response.json();
+        
+        if (!data.entries || data.entries.length === 0) {
+          console.log(`ℹ️ HeyElsa ${period} page ${page} returned no data, stopping`);
+          break;
+        }
+        
+        allUsers = allUsers.concat(data.entries);
+        console.log(`✅ HeyElsa ${period} page ${page}: ${data.entries.length} users (total: ${allUsers.length})`);
+        
+        if (page >= data.totalPages || data.entries.length < pageSize) {
+          break;
+        }
+        
+        page++;
+        
+        // Don't delay after the last page
+        if (page <= maxPages) {
+          await sleep(DELAY_MS);
+        }
+        
+      } catch (fetchError) {
+        console.error(`❌ Error fetching HeyElsa ${period} page ${page}:`, fetchError.message);
         break;
       }
-      
-      allUsers = allUsers.concat(data.entries);
-      
-      if (page >= data.totalPages || data.entries.length < pageSize) {
-        break;
-      }
-      
-      page++;
-      
-      // Add a small delay between requests to avoid rate limiting
-      await sleep(1000);
     }
     
     console.log(`✅ Fetched total of ${allUsers.length} HeyElsa users for ${period}`);
-    return allUsers;
+    return allUsers.length > 0 ? allUsers : null;
     
   } catch (error) {
     console.error(`Error fetching HeyElsa data for ${period}:`, error);
