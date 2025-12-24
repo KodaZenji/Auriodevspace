@@ -35,12 +35,25 @@ export async function GET(request) {
       console.error('DuelDuck cache error:', duelDuckCacheError);
     }
 
-    if (!yappersCache || !duelDuckCache) {
+    // Get the latest fetch timestamp for adichain (days = 0)
+    const { data: adichainCache, error: adichainCacheError } = await supabase
+      .from('leaderboard_cache')
+      .select('last_updated')
+      .eq('cache_type', 'adichain')
+      .eq('days', 0)
+      .single();
+
+    if (adichainCacheError) {
+      console.error('Adichain cache error:', adichainCacheError);
+    }
+
+    if (!yappersCache || !duelDuckCache || !adichainCache) {
       return NextResponse.json(
         { 
           error: 'No cached data available. Please wait for the cron job to run, or trigger it manually.',
           yappersCache: !!yappersCache,
-          duelDuckCache: !!duelDuckCache
+          duelDuckCache: !!duelDuckCache,
+          adichainCache: !!adichainCache
         },
         { status: 404 }
       );
@@ -71,6 +84,18 @@ export async function GET(request) {
       throw duelDuckError;
     }
 
+    // Fetch Adichain data
+    const { data: adichainData, error: adichainError } = await supabase
+      .from('adichain_leaderboard')
+      .select('*')
+      .eq('fetched_at', adichainCache.last_updated)
+      .order('rank_total', { ascending: true });
+
+    if (adichainError) {
+      console.error('Error fetching Adichain data:', adichainError);
+      throw adichainError;
+    }
+
     return NextResponse.json({
       success: true,
       days,
@@ -83,6 +108,11 @@ export async function GET(request) {
         data: duelDuckData || [],
         last_updated: duelDuckCache.last_updated,
         count: duelDuckData?.length || 0
+      },
+      adichain: {
+        data: adichainData || [],
+        last_updated: adichainCache.last_updated,
+        count: adichainData?.length || 0
       }
     });
   } catch (error) {
