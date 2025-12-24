@@ -135,10 +135,10 @@ async function fetchDuelDuckData() {
 /* ✅ ADICHAIN FETCH WITH SCRAPEAPI */
 async function fetchAdichainData() {
   try {
-    const scrapeApiKey = process.env.SCRAPEAPI_KEY;
+    const scraperApiKey = process.env.SCRAPER_API_KEY;
     
-    if (!scrapeApiKey) {
-      console.error('❌ SCRAPEAPI_KEY not set');
+    if (!scraperApiKey) {
+      console.error('❌ SCRAPER_API_KEY not set');
       return null;
     }
 
