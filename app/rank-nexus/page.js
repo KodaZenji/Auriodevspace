@@ -8,7 +8,7 @@ export default function RankNexus() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [expandedCards, setExpandedCards] = useState({ goat: false, duck: false });
-  const [goatDays, setGoatDays] = useState('7');
+  const [goatDays, setGoatDays] = useState('30');
   const [lastUpdated, setLastUpdated] = useState(null);
   const [nextUpdateIn, setNextUpdateIn] = useState('');
 
