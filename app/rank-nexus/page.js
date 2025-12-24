@@ -7,8 +7,9 @@ export default function RankNexus() {
   const [searchUser, setSearchUser] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
-  const [expandedCards, setExpandedCards] = useState({ goat: false, duck: false, adi: false });
+  const [expandedCards, setExpandedCards] = useState({ goat: false, duck: false, adi: false, elsa: false });
   const [goatDays, setGoatDays] = useState('30');
+  const [elsaPeriod, setElsaPeriod] = useState('7d');
   const [lastUpdated, setLastUpdated] = useState(null);
   const [nextUpdateIn, setNextUpdateIn] = useState('');
 
@@ -33,7 +34,7 @@ export default function RankNexus() {
     setLoading(true);
     
     try {
-      const response = await fetch(`/api/leaderboards?days=${goatDays}`);
+      const response = await fetch(`/api/leaderboards?days=${goatDays}&elsaPeriod=${elsaPeriod}`);
       const data = await response.json();
       
       if (data.error) {
@@ -56,7 +57,11 @@ export default function RankNexus() {
         user => user.handle.toLowerCase() === searchUser.toLowerCase().replace('@', '')
       );
       
-      if (!goatUser && !duckUser && !adiUser) {
+      const elsaUser = data.heyelsa.data.find(
+        user => user.username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
+      );
+      
+      if (!goatUser && !duckUser && !adiUser && !elsaUser) {
         alert(`User @${searchUser} not found on any leaderboard`);
         setResults(null);
         setLoading(false);
@@ -68,7 +73,8 @@ export default function RankNexus() {
         foundOn: {
           goat: !!goatUser,
           duck: !!duckUser,
-          adi: !!adiUser
+          adi: !!adiUser,
+          elsa: !!elsaUser
         },
         goat: goatUser ? {
           rank: goatUser.rank,
@@ -95,6 +101,14 @@ export default function RankNexus() {
           signal_points: adiUser.signal_points,
           noise_points: adiUser.noise_points,
           rank_change: adiUser.rank_change
+        } : null,
+        elsa: elsaUser ? {
+          rank: elsaUser.position,
+          username: elsaUser.username,
+          mindshare_percentage: elsaUser.mindshare_percentage,
+          position_change: elsaUser.position_change,
+          app_use_multiplier: elsaUser.app_use_multiplier,
+          score: elsaUser.score
         } : null
       });
     } catch (error) {
@@ -220,7 +234,7 @@ export default function RankNexus() {
                   ${data.usdc_reward?.toFixed(2)}
                 </div>
               </div>
-            ) : (
+            ) : platform === 'adi' ? (
               <div className="text-right">
                 <div className="text-xs text-gray-400">Xeets</div>
                 <div className="font-bold text-lg" style={{
@@ -230,6 +244,18 @@ export default function RankNexus() {
                   backgroundClip: 'text'
                 }}>
                   {data.total_points?.toFixed(2)}
+                </div>
+              </div>
+            ) : (
+              <div className="text-right">
+                <div className="text-xs text-gray-400">Mindshare</div>
+                <div className="font-bold text-lg" style={{
+                  background: 'linear-gradient(135deg, #10b981, #34d399)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  {data.mindshare_percentage?.toFixed(2)}%
                 </div>
               </div>
             )}
@@ -275,7 +301,7 @@ export default function RankNexus() {
                     <div className="text-white font-bold">{data.user_share}%</div>
                   </div>
                 </>
-              ) : (
+              ) : platform === 'adi' ? (
                 <>
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
                     <div className="text-gray-400 text-xs mb-1">Rank Change</div>
@@ -288,6 +314,21 @@ export default function RankNexus() {
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
                     <div className="text-gray-400 text-xs mb-1">Noise</div>
                     <div className="text-white font-bold">{formatNumber(data.noise_points)}</div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-center bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-gray-400 text-xs mb-1">Rank Change</div>
+                    <div className="text-white font-bold">{data.position_change || 0}</div>
+                  </div>
+                  <div className="text-center bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-gray-400 text-xs mb-1">Multiplier</div>
+                    <div className="text-white font-bold">{data.app_use_multiplier?.toFixed(2)}</div>
+                  </div>
+                  <div className="text-center bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-gray-400 text-xs mb-1">X Score</div>
+                    <div className="text-white font-bold">{formatNumber(data.score)}</div>
                   </div>
                 </>
               )}
@@ -304,6 +345,7 @@ export default function RankNexus() {
     if (results.foundOn.goat) count++;
     if (results.foundOn.duck) count++;
     if (results.foundOn.adi) count++;
+    if (results.foundOn.elsa) count++;
     return count;
   };
 
@@ -408,6 +450,24 @@ export default function RankNexus() {
                 data={results.adi} 
                 platformName="Adichain"
                 timeSwitch={false}
+                showAvatar={countFoundPlatforms() === 1}
+                username={results.username}
+              />
+            )}
+
+            {results.elsa && (
+              <LeaderboardCard 
+                platform="elsa" 
+                data={results.elsa} 
+                platformName="HeyElsa"
+                timeSwitch={true}
+                currentValue={elsaPeriod}
+                onValueChange={setElsaPeriod}
+                options={[
+                  { value: 'epoch-2', label: 'E2' },
+                  { value: '7d', label: '7d' },
+                  { value: '30d', label: '30d' }
+                ]}
                 showAvatar={countFoundPlatforms() === 1}
                 username={results.username}
               />
