@@ -1,72 +1,148 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
+export const maxDuration = 300; // 5 minutes
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Delay helper
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Fetch a single page with retry/backoff
-async function fetchAdichainPage(page, limit = 50, retries = 5) {
+// Fetch with proper browser headers
+async function fetchAdichainPage(page, limit = 100, maxRetries = 3) {
   const url = `https://www.xeet.ai/api/topics/adi/tournament?page=${page}&limit=${limit}&timeframe=all&tournamentId=3396f69f-70c1-4703-9b01-47b147e095ef`;
 
-  for (let attempt = 0; attempt < retries; attempt++) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const res = await fetch(url, {
         headers: {
-          'User-Agent': 'Mozilla/5.0', // prevent Cloudflare blocks
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json, text/plain, */*',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Referer': 'https://www.xeet.ai/',
+          'Origin': 'https://www.xeet.ai',
+          'Connection': 'keep-alive',
+          'Sec-Fetch-Dest': 'empty',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Site': 'same-origin',
         },
         cache: 'no-store'
       });
+      
       if (res.status === 429) {
-        console.warn(`429 rate limit on page ${page}, backing off...`);
-        await delay(5000 + Math.random() * 5000);
+        console.warn(`⚠️ 429 on page ${page}, attempt ${attempt + 1}/${maxRetries}`);
+        
+        if (attempt === maxRetries - 1) {
+          console.error(`❌ Page ${page} failed - rate limited`);
+          return null;
+        }
+        
+        // Exponential backoff: 10s, 20s, 40s
+        const backoffMs = Math.pow(2, attempt) * 10000;
+        console.log(`Waiting ${backoffMs/1000}s before retry...`);
+        await delay(backoffMs);
         continue;
       }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      
       const data = await res.json();
-      if (!data.success) throw new Error(data.message || 'Unknown API error');
+      
+      if (!data.success) {
+        throw new Error(data.message || 'API returned success: false');
+      }
+      
       return data;
+      
     } catch (err) {
-      console.error(`Error fetching Adichain page ${page}:`, err.message);
-      if (attempt < retries - 1) await delay(3000 + Math.random() * 2000);
-      else throw err;
+      console.error(`Error on page ${page}, attempt ${attempt + 1}:`, err.message);
+      
+      if (attempt === maxRetries - 1) {
+        console.error(`❌ Page ${page} failed after ${maxRetries} attempts`);
+        return null;
+      }
+      
+      await delay(3000);
     }
   }
+  
   return null;
 }
 
-// Fetch all pages safely
-async function fetchAllAdichainData() {
+// Fetch exactly 15 pages with 100 items each = 1500 users max
+async function fetchAdichainData() {
   const allUsers = [];
-  let page = 1;
-  let totalPages = 1;
-  const LIMIT = 50;
+  const PAGES_TO_FETCH = 15;
+  const LIMIT = 100;
+  let successfulPages = 0;
+  let failedPages = 0;
 
-  while (page <= totalPages) {
-    console.log(`Fetching Adichain page ${page}...`);
-    const data = await fetchAdichainPage(page, LIMIT);
-    if (!data) break;
+  console.log(`📊 Fetching ${PAGES_TO_FETCH} pages with ${LIMIT} items each...`);
 
-    allUsers.push(...data.data);
-
-    totalPages = data.meta.totalPages || 1;
-    page++;
-    await delay(500); // small delay between pages
+  for (let page = 1; page <= PAGES_TO_FETCH; page++) {
+    console.log(`Fetching Adichain page ${page}/${PAGES_TO_FETCH}...`);
+    
+    const data = await fetchAdichainPage(page, LIMIT, 3);
+    
+    if (!data || !data.data) {
+      failedPages++;
+      console.warn(`⚠️ Page ${page} failed (${failedPages} total failures)`);
+      
+      // If too many failures, stop early
+      if (failedPages >= 5) {
+        console.error(`❌ Stopping: ${failedPages} pages failed`);
+        break;
+      }
+      
+      // Wait longer after a failure
+      await delay(5000);
+      continue;
+    }
+    
+    successfulPages++;
+    const pageUsers = data.data || [];
+    allUsers.push(...pageUsers);
+    
+    console.log(`✅ Page ${page}: ${pageUsers.length} users (total: ${allUsers.length})`);
+    
+    // Don't delay after the last page
+    if (page < PAGES_TO_FETCH) {
+      // Random delay between 1.5-3 seconds to avoid rate limits
+      const delayMs = 1500 + Math.random() * 1500;
+      await delay(delayMs);
+    }
   }
 
-  console.log(`✅ Fetched total of ${allUsers.length} Adichain users across ${totalPages} pages`);
+  console.log(`✅ Fetched ${allUsers.length} users from ${successfulPages} pages (${failedPages} failures)`);
   return allUsers;
 }
 
-// Store in Supabase
 async function storeAdichainData(users) {
+  if (users.length === 0) {
+    console.log('⚠️ No users to store');
+    return;
+  }
+
   const fetchedAt = new Date().toISOString();
+
+  // Delete old data first
+  const { error: deleteError } = await supabase
+    .from('adichain_leaderboard')
+    .delete()
+    .neq('adichain_id', ''); // Delete all
+
+  if (deleteError) {
+    console.error('Error deleting old data:', deleteError);
+  } else {
+    console.log('🗑️ Cleared old Adichain data');
+  }
 
   const records = users.map(user => ({
     adichain_id: user.id,
@@ -90,9 +166,21 @@ async function storeAdichainData(users) {
     fetched_at: fetchedAt
   }));
 
-  const { error } = await supabase.from('adichain_leaderboard').insert(records);
-  if (error) throw error;
+  // Insert in batches of 500 to avoid timeout
+  const batchSize = 500;
+  for (let i = 0; i < records.length; i += batchSize) {
+    const batch = records.slice(i, i + batchSize);
+    const { error } = await supabase.from('adichain_leaderboard').insert(batch);
+    
+    if (error) {
+      console.error(`Error inserting batch ${i}-${i + batch.length}:`, error);
+      throw error;
+    }
+    
+    console.log(`✅ Inserted batch ${Math.floor(i / batchSize) + 1} (${batch.length} records)`);
+  }
 
+  // Update cache
   const { error: cacheError } = await supabase
     .from('leaderboard_cache')
     .upsert({
@@ -104,33 +192,47 @@ async function storeAdichainData(users) {
       onConflict: 'cache_type,days'
     });
 
-  if (cacheError) console.error('Error updating Adichain cache:', cacheError);
+  if (cacheError) {
+    console.error('Error updating cache:', cacheError);
+  }
 
   console.log(`✅ Stored ${records.length} Adichain records`);
 }
 
-// Next.js API handler
 export async function GET(request) {
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const startTime = Date.now();
+
   try {
-    console.log('Fetching Adichain data...');
-    const adichainData = await fetchAllAdichainData();
+    console.log('🚀 Starting Adichain leaderboard sync...');
+    
+    const adichainData = await fetchAdichainData();
+    
     if (adichainData.length > 0) {
       await storeAdichainData(adichainData);
+    } else {
+      console.warn('⚠️ No Adichain data fetched');
     }
+
+    const duration = Math.round((Date.now() - startTime) / 1000);
 
     return NextResponse.json({
       success: true,
-      message: 'Adichain leaderboard updated successfully',
+      message: 'Adichain leaderboard updated',
       count: adichainData.length,
+      duration_seconds: duration,
       timestamp: new Date().toISOString()
     });
+    
   } catch (err) {
-    console.error('Failed to update Adichain leaderboard:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('❌ Failed to update Adichain leaderboard:', err);
+    return NextResponse.json({ 
+      error: err.message,
+      stack: err.stack
+    }, { status: 500 });
   }
 }
