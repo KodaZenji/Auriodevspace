@@ -22,6 +22,7 @@ export async function GET(request) {
       yappers: {},
       duelduck: null,
       adichain: null,
+      heyelsa: {},
       cleanup: {},
       timestamp: new Date().toISOString()
     };
@@ -49,14 +50,21 @@ export async function GET(request) {
       .lt('fetched_at', sevenDaysAgo.toISOString())
       .select('id', { count: 'exact', head: true });
 
+    const { count: heyelsaDeleted } = await supabase
+      .from('heyelsa_leaderboard')
+      .delete()
+      .lt('fetched_at', sevenDaysAgo.toISOString())
+      .select('id', { count: 'exact', head: true });
+
     results.cleanup = {
       yappers_deleted: yappersDeleted || 0,
       duelduck_deleted: duckDeleted || 0,
-      adichain_deleted: adichainDeleted || 0
+      adichain_deleted: adichainDeleted || 0,
+      heyelsa_deleted: heyelsaDeleted || 0
     };
 
     console.log(
-      `✅ Cleanup: Deleted ${yappersDeleted || 0} Yappers, ${duckDeleted || 0} DuelDuck, ${adichainDeleted || 0} Adichain`
+      `✅ Cleanup: Deleted ${yappersDeleted || 0} Yappers, ${duckDeleted || 0} DuelDuck, ${adichainDeleted || 0} Adichain, ${heyelsaDeleted || 0} HeyElsa`
     );
 
     // 🔹 Yappers (7 & 30 days)
@@ -83,6 +91,18 @@ export async function GET(request) {
     if (adichainData) {
       await storeAdichainData(adichainData);
       results.adichain = { success: true, count: adichainData.length };
+    }
+
+    // 🔹 HeyElsa (epoch-2, 7d, 30d)
+    for (const period of ['epoch-2', '7d', '30d']) {
+      console.log(`Fetching HeyElsa data for ${period}...`);
+      const heyelsaData = await fetchHeyElsaData(period);
+      if (heyelsaData) {
+        await storeHeyElsaData(heyelsaData, period);
+        results.heyelsa[period] = { success: true, count: heyelsaData.length };
+      } else {
+        results.heyelsa[period] = { success: false, error: 'Failed to fetch' };
+      }
     }
 
     return NextResponse.json({
@@ -145,7 +165,7 @@ async function fetchAdichainData() {
     const allUsers = [];
     const TOTAL_PAGES = 15;
     const LIMIT = 100;
-    const DELAY_MS = 5000; // 5 seconds between requests
+    const DELAY_MS = 5000;
     let failedPages = 0;
 
     for (let page = 1; page <= TOTAL_PAGES; page++) {
@@ -163,7 +183,7 @@ async function fetchAdichainData() {
         if (res.status === 429) {
           console.warn(`⚠️ 429 on page ${page}, backing off...`);
           await sleep(DELAY_MS * 2);
-          page--; // Retry this page
+          page--;
           continue;
         }
 
@@ -171,13 +191,12 @@ async function fetchAdichainData() {
           console.error(`❌ Page ${page} failed with status ${res.status}`);
           failedPages++;
           
-          // Stop if too many failures
           if (failedPages >= 5) {
             console.error(`❌ Stopping: ${failedPages} pages failed`);
             break;
           }
           
-          await sleep(10000); // Wait 10s after failure
+          await sleep(10000);
           continue;
         }
 
@@ -192,7 +211,6 @@ async function fetchAdichainData() {
         allUsers.push(...rows);
         console.log(`✅ Page ${page}: ${rows.length} users (total: ${allUsers.length})`);
 
-        // Don't delay after the last page
         if (page < TOTAL_PAGES) {
           await sleep(DELAY_MS);
         }
@@ -215,6 +233,47 @@ async function fetchAdichainData() {
 
   } catch (e) {
     console.error('Adichain fetch error:', e);
+    return null;
+  }
+}
+
+async function fetchHeyElsaData(period) {
+  try {
+    let allUsers = [];
+    let page = 1;
+    const pageSize = 50;
+    const maxPages = 20;
+
+    while (page <= maxPages) {
+      console.log(`Fetching HeyElsa ${period} page ${page}...`);
+      
+      const response = await fetch(
+        `https://api.wallchain.xyz/voices/companies/heyelsa/leaderboard?page=${page}&pageSize=${pageSize}&orderBy=position&ascending=false&period=${period}`,
+        { cache: 'no-store' }
+      );
+      
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const data = await response.json();
+      
+      if (!data.entries || data.entries.length === 0) {
+        break;
+      }
+      
+      allUsers = allUsers.concat(data.entries);
+      
+      if (page >= data.totalPages || data.entries.length < pageSize) {
+        break;
+      }
+      
+      page++;
+    }
+    
+    console.log(`✅ Fetched total of ${allUsers.length} HeyElsa users for ${period}`);
+    return allUsers;
+    
+  } catch (error) {
+    console.error(`Error fetching HeyElsa data for ${period}:`, error);
     return null;
   }
 }
@@ -293,4 +352,55 @@ async function storeAdichainData(users) {
     },
     { onConflict: 'cache_type,days' }
   );
+}
+
+async function storeHeyElsaData(users, period) {
+  const fetched_at = new Date().toISOString();
+  
+  const records = users.map(user => ({
+    heyelsa_id: user.xInfo?.id,
+    x_id: user.xInfo?.id,
+    name: user.xInfo?.name,
+    username: user.xInfo?.username,
+    image_url: user.xInfo?.imageUrl,
+    rank: user.xInfo?.rank,
+    score: user.xInfo?.score,
+    score_percentile: user.xInfo?.scorePercentile,
+    score_quantile: user.xInfo?.scoreQuantile,
+    mindshare_percentage: user.mindsharePercentage,
+    relative_mindshare: user.relativeMindshare,
+    app_use_multiplier: user.appUseMultiplier,
+    position: user.position,
+    position_change: user.positionChange,
+    period: period,
+    fetched_at: fetched_at
+  }));
+
+  const { error } = await supabase
+    .from('heyelsa_leaderboard')
+    .insert(records);
+
+  if (error) {
+    console.error(`Error storing HeyElsa data for ${period}:`, error);
+    throw error;
+  }
+
+  const periodMap = {
+    'epoch-2': 0,
+    '7d': 7,
+    '30d': 30
+  };
+
+  await supabase
+    .from('leaderboard_cache')
+    .upsert({
+      cache_type: 'heyelsa',
+      days: periodMap[period],
+      last_updated: fetched_at,
+      record_count: records.length
+    }, {
+      onConflict: 'cache_type,days'
+    });
+
+  console.log(`✅ Stored ${records.length} HeyElsa records for ${period}`);
 }
