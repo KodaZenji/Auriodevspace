@@ -135,16 +135,16 @@ async function fetchDuelDuckData() {
 /* ✅ ADICHAIN FETCH WITH SCRAPEAPI */
 async function fetchAdichainData() {
   try {
-    const scraperApiKey = process.env.SCRAPEAPI_KEY;
+    const scrapeApiKey = process.env.SCRAPEAPI_KEY;
     
-    if (!scraperApiKey) {
+    if (!scrapeApiKey) {
       console.error('❌ SCRAPEAPI_KEY not set');
       return null;
     }
 
     const allUsers = [];
-    const TOTAL_PAGES = 25;
-    const LIMIT = 50;
+    const TOTAL_PAGES = 15;
+    const LIMIT = 100;
     const DELAY_MS = 5000; // 5 seconds between requests
     let failedPages = 0;
 
