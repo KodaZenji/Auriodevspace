@@ -7,7 +7,7 @@ export default function RankNexus() {
   const [searchUser, setSearchUser] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
-  const [expandedCards, setExpandedCards] = useState({ goat: false, duck: false });
+  const [expandedCards, setExpandedCards] = useState({ goat: false, duck: false, adi: false });
   const [goatDays, setGoatDays] = useState('30');
   const [lastUpdated, setLastUpdated] = useState(null);
   const [nextUpdateIn, setNextUpdateIn] = useState('');
@@ -52,7 +52,11 @@ export default function RankNexus() {
         user => user.x_username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
       );
       
-      if (!goatUser && !duckUser) {
+      const adiUser = data.adichain.data.find(
+        user => user.handle.toLowerCase() === searchUser.toLowerCase().replace('@', '')
+      );
+      
+      if (!goatUser && !duckUser && !adiUser) {
         alert(`User @${searchUser} not found on any leaderboard`);
         setResults(null);
         setLoading(false);
@@ -63,7 +67,8 @@ export default function RankNexus() {
         username: searchUser.replace('@', ''),
         foundOn: {
           goat: !!goatUser,
-          duck: !!duckUser
+          duck: !!duckUser,
+          adi: !!adiUser
         },
         goat: goatUser ? {
           rank: goatUser.rank,
@@ -82,6 +87,14 @@ export default function RankNexus() {
           user_share: duckUser.user_share,
           usdc_reward: duckUser.usdc_reward,
           total_score: duckUser.total_score
+        } : null,
+        adi: adiUser ? {
+          rank: adiUser.rank_total,
+          handle: adiUser.handle,
+          total_points: adiUser.total_points,
+          signal_points: adiUser.signal_points,
+          noise_points: adiUser.noise_points,
+          rank_change: adiUser.rank_change
         } : null
       });
     } catch (error) {
@@ -194,7 +207,7 @@ export default function RankNexus() {
                   {data.mindshare?.toFixed(2)}%
                 </div>
               </div>
-            ) : (
+            ) : platform === 'duck' ? (
               <div className="text-right">
                 <div className="text-xs text-gray-400">USDC Reward</div>
                 <div className="font-bold text-lg flex items-center gap-1" style={{
@@ -205,6 +218,18 @@ export default function RankNexus() {
                 }}>
                   <span className="text-blue-400">💎</span>
                   ${data.usdc_reward?.toFixed(2)}
+                </div>
+              </div>
+            ) : (
+              <div className="text-right">
+                <div className="text-xs text-gray-400">Xeets</div>
+                <div className="font-bold text-lg" style={{
+                  background: 'linear-gradient(135deg, #10b981, #34d399)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  {data.total_points?.toFixed(2)}
                 </div>
               </div>
             )}
@@ -235,7 +260,7 @@ export default function RankNexus() {
                     <div className="text-white font-bold">{formatNumber(data.impressions)}</div>
                   </div>
                 </>
-              ) : (
+              ) : platform === 'duck' ? (
                 <>
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
                     <div className="text-gray-400 text-xs mb-1">X Score</div>
@@ -250,12 +275,36 @@ export default function RankNexus() {
                     <div className="text-white font-bold">{data.user_share}%</div>
                   </div>
                 </>
+              ) : (
+                <>
+                  <div className="text-center bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-gray-400 text-xs mb-1">Rank Change</div>
+                    <div className="text-white font-bold">{data.rank_change || 0}</div>
+                  </div>
+                  <div className="text-center bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-gray-400 text-xs mb-1">Signal</div>
+                    <div className="text-white font-bold">{formatNumber(data.signal_points)}</div>
+                  </div>
+                  <div className="text-center bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-gray-400 text-xs mb-1">Noise</div>
+                    <div className="text-white font-bold">{formatNumber(data.noise_points)}</div>
+                  </div>
+                </>
               )}
             </div>
           </div>
         )}
       </div>
     );
+  };
+
+  const countFoundPlatforms = () => {
+    if (!results) return 0;
+    let count = 0;
+    if (results.foundOn.goat) count++;
+    if (results.foundOn.duck) count++;
+    if (results.foundOn.adi) count++;
+    return count;
   };
 
   return (
@@ -310,7 +359,7 @@ export default function RankNexus() {
 
         {results && (
           <div className="animate-fade-in">
-            {results.foundOn.goat && results.foundOn.duck && (
+            {countFoundPlatforms() >= 2 && (
               <div className="bg-slate-800 rounded-xl p-6 mb-6 border border-slate-700 text-center">
                 <img
                   src={`https://unavatar.io/twitter/${results.username}`}
@@ -337,7 +386,7 @@ export default function RankNexus() {
                   { value: '7', label: '7d' },
                   { value: '30', label: '30d' }
                 ]}
-                showAvatar={!results.foundOn.duck}
+                showAvatar={countFoundPlatforms() === 1}
                 username={results.username}
               />
             )}
@@ -348,7 +397,18 @@ export default function RankNexus() {
                 data={results.duck} 
                 platformName="DuelDuck"
                 timeSwitch={false}
-                showAvatar={!results.foundOn.goat}
+                showAvatar={countFoundPlatforms() === 1}
+                username={results.username}
+              />
+            )}
+
+            {results.adi && (
+              <LeaderboardCard 
+                platform="adi" 
+                data={results.adi} 
+                platformName="Adichain"
+                timeSwitch={false}
+                showAvatar={countFoundPlatforms() === 1}
                 username={results.username}
               />
             )}
