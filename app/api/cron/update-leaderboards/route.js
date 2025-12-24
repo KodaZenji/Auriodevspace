@@ -16,6 +16,7 @@ export async function GET(request) {
     const results = {
       yappers: {},
       duelduck: null,
+      adichain: null,
       cleanup: {},
       timestamp: new Date().toISOString()
     };
@@ -37,12 +38,19 @@ export async function GET(request) {
       .lt('fetched_at', sevenDaysAgo.toISOString())
       .select('id', { count: 'exact', head: true });
     
+    const { error: cleanupAdichainError, count: adichainDeleted } = await supabase
+      .from('adichain_leaderboard')
+      .delete()
+      .lt('fetched_at', sevenDaysAgo.toISOString())
+      .select('id', { count: 'exact', head: true });
+    
     results.cleanup = {
       yappers_deleted: yappersDeleted || 0,
-      duelduck_deleted: duckDeleted || 0
+      duelduck_deleted: duckDeleted || 0,
+      adichain_deleted: adichainDeleted || 0
     };
     
-    console.log(`✅ Cleanup: Deleted ${yappersDeleted || 0} old Yappers records, ${duckDeleted || 0} old DuelDuck records`);
+    console.log(`✅ Cleanup: Deleted ${yappersDeleted || 0} old Yappers, ${duckDeleted || 0} old DuelDuck, ${adichainDeleted || 0} old Adichain records`);
 
     // Fetch and store Yappers data for 7 and 30 days only
     for (const days of [7, 30]) {
@@ -73,6 +81,22 @@ export async function GET(request) {
       };
     } else {
       results.duelduck = {
+        success: false,
+        error: 'Failed to fetch'
+      };
+    }
+
+    // Fetch and store Adichain data
+    console.log('Fetching Adichain data...');
+    const adichainData = await fetchAdichainData();
+    if (adichainData) {
+      await storeAdichainData(adichainData);
+      results.adichain = {
+        success: true,
+        count: adichainData.length
+      };
+    } else {
+      results.adichain = {
         success: false,
         error: 'Failed to fetch'
       };
@@ -211,4 +235,100 @@ async function storeDuelDuckData(leaders) {
   }
 
   console.log(`✅ Stored ${records.length} DuelDuck records`);
+}
+
+async function fetchAdichainData() {
+  try {
+    let allUsers = [];
+    let page = 1;
+    let hasMore = true;
+    const limit = 50;
+
+    while (hasMore) {
+      console.log(`Fetching Adichain page ${page}...`);
+      
+      const response = await fetch(
+        `https://www.xeet.ai/api/topics/adi/tournament?page=${page}&limit=${limit}&timeframe=all&tournamentId=3396f69f-70c1-4703-9b01-47b147e095ef`,
+        { cache: 'no-store' }
+      );
+      
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const data = await response.json();
+      
+      if (!data.success || !data.data || data.data.length === 0) {
+        hasMore = false;
+        break;
+      }
+      
+      allUsers = allUsers.concat(data.data);
+      
+      // Check if there are more pages
+      if (data.data.length < limit) {
+        hasMore = false; // Last page
+      } else {
+        page++;
+      }
+    }
+    
+    console.log(`✅ Fetched total of ${allUsers.length} Adichain users across ${page} pages`);
+    return allUsers;
+    
+  } catch (error) {
+    console.error('Error fetching Adichain data:', error);
+    return null;
+  }
+}
+
+async function storeAdichainData(users) {
+  const fetchedAt = new Date().toISOString();
+  
+  const records = users.map(user => ({
+    adichain_id: user.id,
+    tournament_id: user.tournamentId,
+    user_id: user.userId,
+    twitter_id: user.twitterId,
+    handle: user.handle,
+    name: user.name,
+    avatar_url: user.avatarUrl,
+    signal_points: user.signalPoints,
+    noise_points: user.noisePoints,
+    bonus_points: user.bonusPoints,
+    pending_points: user.pendingPoints,
+    total_points: user.totalPoints,
+    multiplier: user.multiplier,
+    mindshare_pct: user.mindsharePct,
+    rank_signal: user.rankSignal,
+    rank_noise: user.rankNoise,
+    rank_total: user.rankTotal,
+    rank_change: user.rankChange,
+    fetched_at: fetchedAt
+  }));
+
+  const { error } = await supabase
+    .from('adichain_leaderboard')
+    .insert(records);
+
+  if (error) {
+    console.error('Error storing Adichain data:', error);
+    throw error;
+  }
+
+  // Update cache metadata - use days: 0 for adichain
+  const { error: cacheError } = await supabase
+    .from('leaderboard_cache')
+    .upsert({
+      cache_type: 'adichain',
+      days: 0,
+      last_updated: fetchedAt,
+      record_count: records.length
+    }, {
+      onConflict: 'cache_type,days'
+    });
+
+  if (cacheError) {
+    console.error('Error updating Adichain cache:', cacheError);
+  }
+
+  console.log(`✅ Stored ${records.length} Adichain records`);
 }
