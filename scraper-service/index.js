@@ -127,7 +127,7 @@ async function scrapeAdichain(maxPages = 15) {
   }
 }
 
-// ============= HEYELSA (Playwright) =============
+// ============= HEYELSA (Playwright with retry logic) =============
 async function scrapeHeyElsa(period, maxPages = 20) {
   let browser;
   
@@ -408,6 +408,48 @@ app.get('/scrape-all', async (req, res) => {
       success: false,
       error: error.message
     });
+  }
+});
+
+// ============= INDIVIDUAL SCRAPER ENDPOINTS =============
+
+app.get('/scrape/yappers', async (req, res) => {
+  const days = parseInt(req.query.days || '7');
+  try {
+    const data = await scrapeYappers(days);
+    res.json({ success: true, days, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/scrape/duelduck', async (req, res) => {
+  try {
+    const data = await scrapeDuelDuck();
+    res.json({ success: true, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/scrape/adichain', async (req, res) => {
+  const maxPages = parseInt(req.query.maxPages || '15');
+  try {
+    const data = await scrapeAdichain(maxPages);
+    res.json({ success: true, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/scrape/heyelsa', async (req, res) => {
+  const period = req.query.period || '7d';
+  const maxPages = parseInt(req.query.maxPages || '20');
+  try {
+    const data = await scrapeHeyElsa(period, maxPages);
+    res.json({ success: true, period, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
