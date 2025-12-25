@@ -6,28 +6,17 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// ⏱ helper
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export async function GET(request) {
+  // Security: Check cron secret
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const results = {
-      yappers: {},
-      duelduck: null,
-      adichain: null,
-      heyelsa: {},
-      cleanup: {},
-      timestamp: new Date().toISOString()
-    };
-
-    // 🧹 Cleanup (keep last 7 days)
+    console.log('🚀 Starting leaderboard update via Railway...');
+    
+    // 🧹 CLEANUP OLD DATA (keep last 7 days)
     console.log('Cleaning up old data...');
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -56,263 +45,103 @@ export async function GET(request) {
       .lt('fetched_at', sevenDaysAgo.toISOString())
       .select('id', { count: 'exact', head: true });
 
-    results.cleanup = {
-      yappers_deleted: yappersDeleted || 0,
-      duelduck_deleted: duckDeleted || 0,
-      adichain_deleted: adichainDeleted || 0,
-      heyelsa_deleted: heyelsaDeleted || 0
+    console.log(`✅ Cleanup: Deleted ${yappersDeleted || 0} Yappers, ${duckDeleted || 0} DuelDuck, ${adichainDeleted || 0} Adichain, ${heyelsaDeleted || 0} HeyElsa`);
+    
+    // Call your Railway scraper (scrapes everything at once)
+    const railwayUrl = process.env.RAILWAY_SCRAPER_URL;
+    
+    if (!railwayUrl) {
+      throw new Error('RAILWAY_SCRAPER_URL not configured');
+    }
+
+    console.log(`Calling Railway: ${railwayUrl}/scrape-all`);
+    
+    const response = await fetch(`${railwayUrl}/scrape-all`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // Important: Vercel has 60s timeout, but Railway keeps running
+      signal: AbortSignal.timeout(55000), // 55 seconds max wait
+    });
+
+    if (!response.ok) {
+      throw new Error(`Railway responded with ${response.status}`);
+    }
+
+    const scrapedData = await response.json();
+    console.log('✅ Railway scraping complete:', scrapedData);
+
+    // Now store all the data in Supabase
+    const results = {
+      yappers: {},
+      duelduck: null,
+      adichain: null,
+      heyelsa: {},
+      cleanup: {
+        yappers_deleted: yappersDeleted || 0,
+        duelduck_deleted: duckDeleted || 0,
+        adichain_deleted: adichainDeleted || 0,
+        heyelsa_deleted: heyelsaDeleted || 0
+      },
+      timestamp: new Date().toISOString()
     };
 
-    console.log(
-      `✅ Cleanup: Deleted ${yappersDeleted || 0} Yappers, ${duckDeleted || 0} DuelDuck, ${adichainDeleted || 0} Adichain, ${heyelsaDeleted || 0} HeyElsa`
-    );
-
-    // 🔹 Yappers (7 & 30 days)
-    for (const days of [7, 30]) {
-      console.log(`Fetching Yappers data for ${days} days...`);
-      const data = await fetchYappersData(days);
-      if (data) {
-        await storeYappersData(data, days);
-        results.yappers[days] = { success: true, count: data.length };
+    // Store Yappers data (7d and 30d)
+    if (scrapedData.results?.yappers) {
+      for (const [days, yappersData] of Object.entries(scrapedData.results.yappers)) {
+        if (yappersData.data && yappersData.data.length > 0) {
+          await storeYappersData(yappersData.data, parseInt(days));
+          results.yappers[days] = { success: true, count: yappersData.count };
+          console.log(`✅ Stored ${yappersData.count} Yappers (${days}d)`);
+        }
       }
     }
 
-    // 🔹 DuelDuck
-    console.log('Fetching DuelDuck data...');
-    const duelDuckData = await fetchDuelDuckData();
-    if (duelDuckData) {
-      await storeDuelDuckData(duelDuckData);
-      results.duelduck = { success: true, count: duelDuckData.length };
+    // Store DuelDuck data
+    if (scrapedData.results?.duelduck?.data) {
+      await storeDuelDuckData(scrapedData.results.duelduck.data);
+      results.duelduck = { success: true, count: scrapedData.results.duelduck.count };
+      console.log(`✅ Stored ${scrapedData.results.duelduck.count} DuelDuck users`);
     }
 
-    // 🔹 Adichain (WITH SCRAPEAPI)
-    console.log('Fetching Adichain data...');
-    const adichainData = await fetchAdichainData();
-    if (adichainData) {
-      await storeAdichainData(adichainData);
-      results.adichain = { success: true, count: adichainData.length };
+    // Store Adichain data
+    if (scrapedData.results?.adichain?.data) {
+      await storeAdichainData(scrapedData.results.adichain.data);
+      results.adichain = { success: true, count: scrapedData.results.adichain.count };
+      console.log(`✅ Stored ${scrapedData.results.adichain.count} Adichain users`);
     }
 
-    // 🔹 HeyElsa (epoch-2, 7d, 30d)
-    for (const period of ['epoch-2', '7d', '30d']) {
-      console.log(`Fetching HeyElsa data for ${period}...`);
-      const heyelsaData = await fetchHeyElsaData(period);
-      if (heyelsaData) {
-        await storeHeyElsaData(heyelsaData, period);
-        results.heyelsa[period] = { success: true, count: heyelsaData.length };
-      } else {
-        results.heyelsa[period] = { success: false, error: 'Failed to fetch' };
+    // Store HeyElsa data (epoch-2, 7d, 30d)
+    if (scrapedData.results?.heyelsa) {
+      for (const [period, heyelsaData] of Object.entries(scrapedData.results.heyelsa)) {
+        if (heyelsaData.data && heyelsaData.data.length > 0) {
+          await storeHeyElsaData(heyelsaData.data, period);
+          results.heyelsa[period] = { success: true, count: heyelsaData.count };
+          console.log(`✅ Stored ${heyelsaData.count} HeyElsa users (${period})`);
+        }
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Leaderboards updated successfully',
+      message: 'Leaderboards updated successfully via Railway',
       results
     });
 
   } catch (error) {
-    console.error('Cron error:', error);
+    console.error('❌ Cron error:', error);
     return NextResponse.json(
-      { error: 'Failed to update leaderboards', details: error.message },
+      { 
+        error: 'Failed to update leaderboards', 
+        details: error.message 
+      },
       { status: 500 }
     );
   }
 }
 
-/* ================= FETCHERS ================= */
-
-async function fetchYappersData(days) {
-  try {
-    const res = await fetch(
-      `https://yappers-api.goat.network/leaderboard?days=${days}&limit=1000`,
-      { cache: 'no-store' }
-    );
-    if (!res.ok) throw new Error(res.status);
-    const json = await res.json();
-    return json.yappers || [];
-  } catch (e) {
-    console.error('Yappers fetch error:', e);
-    return null;
-  }
-}
-
-async function fetchDuelDuckData() {
-  try {
-    const res = await fetch(
-      'https://api.duelduck.com/mention-challenge/leaderboard?opts.pagination.page_size=1000&opts.pagination.page_num=1&opts.order.order_by=total_score&opts.order.order_type=desc&challenge_id=131938ae-0b07-4ac5-8b67-4c1d3cbbee5e',
-      { cache: 'no-store' }
-    );
-    if (!res.ok) throw new Error(res.status);
-    const json = await res.json();
-    return json.leaders || [];
-  } catch (e) {
-    console.error('DuelDuck fetch error:', e);
-    return null;
-  }
-}
-
-/* ✅ ADICHAIN FETCH WITH SCRAPEAPI */
-async function fetchAdichainData() {
-  try {
-    const scraperApiKey = process.env.SCRAPER_API_KEY;
-    
-    if (!scraperApiKey) {
-      console.error('❌ SCRAPER_API_KEY not set');
-      return null;
-    }
-
-    const allUsers = [];
-    const TOTAL_PAGES = 15;
-    const LIMIT = 100;
-    const DELAY_MS = 5000;
-    let failedPages = 0;
-
-    for (let page = 1; page <= TOTAL_PAGES; page++) {
-      console.log(`Fetching Adichain page ${page}/${TOTAL_PAGES}...`);
-
-      const targetUrl = `https://www.xeet.ai/api/topics/adi/tournament?page=${page}&limit=${LIMIT}&timeframe=all&tournamentId=3396f69f-70c1-4703-9b01-47b147e095ef`;
-      const scraperApiUrl = `http://api.scraperapi.com?api_key=${scraperApiKey}&url=${encodeURIComponent(targetUrl)}`;
-
-      try {
-        const res = await fetch(scraperApiUrl, {
-          method: 'GET',
-          cache: 'no-store'
-        });
-
-        if (res.status === 429) {
-          console.warn(`⚠️ 429 on page ${page}, backing off...`);
-          await sleep(DELAY_MS * 2);
-          page--;
-          continue;
-        }
-
-        if (!res.ok) {
-          console.error(`❌ Page ${page} failed with status ${res.status}`);
-          failedPages++;
-          
-          if (failedPages >= 5) {
-            console.error(`❌ Stopping: ${failedPages} pages failed`);
-            break;
-          }
-          
-          await sleep(10000);
-          continue;
-        }
-
-        const json = await res.json();
-        const rows = json?.data ?? [];
-
-        if (rows.length === 0) {
-          console.log(`ℹ️ Page ${page} returned no data, stopping`);
-          break;
-        }
-
-        allUsers.push(...rows);
-        console.log(`✅ Page ${page}: ${rows.length} users (total: ${allUsers.length})`);
-
-        if (page < TOTAL_PAGES) {
-          await sleep(DELAY_MS);
-        }
-
-      } catch (fetchError) {
-        console.error(`❌ Error fetching page ${page}:`, fetchError.message);
-        failedPages++;
-        
-        if (failedPages >= 5) {
-          console.error(`❌ Stopping: ${failedPages} pages failed`);
-          break;
-        }
-        
-        await sleep(10000);
-      }
-    }
-
-    console.log(`✅ Fetched ${allUsers.length} Adichain users (${failedPages} failures)`);
-    return allUsers.length > 0 ? allUsers : null;
-
-  } catch (e) {
-    console.error('Adichain fetch error:', e);
-    return null;
-  }
-}
-
-async function fetchHeyElsaData(period) {
-  try {
-    const scraperApiKey = process.env.SCRAPER_API_KEY;
-    
-    if (!scraperApiKey) {
-      console.error('❌ SCRAPER_API_KEY not set');
-      return null;
-    }
-
-    let allUsers = [];
-    let page = 1;
-    const pageSize = 50;
-    const maxPages = 20;
-    const DELAY_MS = 4000; // 3 seconds between requests
-
-    while (page <= maxPages) {
-      console.log(`Fetching HeyElsa ${period} page ${page}...`);
-      
-      const targetUrl = `https://api.wallchain.xyz/voices/companies/heyelsa/leaderboard?page=${page}&pageSize=${pageSize}&orderBy=position&ascending=false&period=${period}`;
-      const scraperApiUrl = `http://api.scraperapi.com?api_key=${scraperApiKey}&url=${encodeURIComponent(targetUrl)}`;
-      
-      try {
-        const response = await fetch(scraperApiUrl, {
-          method: 'GET',
-          cache: 'no-store'
-        });
-        
-        if (response.status === 429) {
-          console.warn(`⚠️ 429 on HeyElsa ${period} page ${page}, backing off...`);
-          await sleep(DELAY_MS * 2);
-          page--;
-          continue;
-        }
-        
-        if (!response.ok) {
-          console.error(`❌ HeyElsa ${period} page ${page} failed with status ${response.status}`);
-          break;
-        }
-        
-        const data = await response.json();
-        
-        if (!data.entries || data.entries.length === 0) {
-          console.log(`ℹ️ HeyElsa ${period} page ${page} returned no data, stopping`);
-          break;
-        }
-        
-        allUsers = allUsers.concat(data.entries);
-        console.log(`✅ HeyElsa ${period} page ${page}: ${data.entries.length} users (total: ${allUsers.length})`);
-        
-        if (page >= data.totalPages || data.entries.length < pageSize) {
-          break;
-        }
-        
-        page++;
-        
-        // Don't delay after the last page
-        if (page <= maxPages) {
-          await sleep(DELAY_MS);
-        }
-        
-      } catch (fetchError) {
-        console.error(`❌ Error fetching HeyElsa ${period} page ${page}:`, fetchError.message);
-        break;
-      }
-    }
-    
-    console.log(`✅ Fetched total of ${allUsers.length} HeyElsa users for ${period}`);
-    return allUsers.length > 0 ? allUsers : null;
-    
-  } catch (error) {
-    console.error(`Error fetching HeyElsa data for ${period}:`, error);
-    return null;
-  }
-}
-
-/* ================= STORES ================= */
+/* ================= STORE FUNCTIONS ================= */
 
 async function storeYappersData(yappers, days) {
   const fetched_at = new Date().toISOString();
@@ -410,14 +239,7 @@ async function storeHeyElsaData(users, period) {
     fetched_at: fetched_at
   }));
 
-  const { error } = await supabase
-    .from('heyelsa_leaderboard')
-    .insert(records);
-
-  if (error) {
-    console.error(`Error storing HeyElsa data for ${period}:`, error);
-    throw error;
-  }
+  await supabase.from('heyelsa_leaderboard').insert(records);
 
   const periodMap = {
     'epoch-2': 0,
@@ -425,16 +247,12 @@ async function storeHeyElsaData(users, period) {
     '30d': 30
   };
 
-  await supabase
-    .from('leaderboard_cache')
-    .upsert({
-      cache_type: 'heyelsa',
-      days: periodMap[period],
-      last_updated: fetched_at,
-      record_count: records.length
-    }, {
-      onConflict: 'cache_type,days'
-    });
-
-  console.log(`✅ Stored ${records.length} HeyElsa records for ${period}`);
+  await supabase.from('leaderboard_cache').upsert({
+    cache_type: 'heyelsa',
+    days: periodMap[period],
+    last_updated: fetched_at,
+    record_count: records.length
+  }, {
+    onConflict: 'cache_type,days'
+  });
 }
