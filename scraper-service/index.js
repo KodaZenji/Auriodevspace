@@ -127,7 +127,7 @@ async function scrapeAdichain(maxPages = 15) {
   }
 }
 
-// ============= HEYELSA (Playwright with retry logic) =============
+// ============= HEYELSA (Playwright with correct data structure) =============
 async function scrapeHeyElsa(period, maxPages = 20) {
   let browser;
   
@@ -192,15 +192,37 @@ async function scrapeHeyElsa(period, maxPages = 20) {
         const bodyText = await page.evaluate(() => document.body.textContent);
         const data = JSON.parse(bodyText);
 
-        if (!data.entries || data.entries.length === 0) {
+        // FIX: Check for the correct data structure based on your API
+        // Instead of looking for data.entries, look for the actual response structure
+        let usersOnPage = [];
+        
+        if (data.data) {
+          // If the API returns data in a 'data' array
+          usersOnPage = Array.isArray(data.data) ? data.data : [];
+        } else if (data.leaderboard) {
+          // If the API returns data in a 'leaderboard' array
+          usersOnPage = Array.isArray(data.leaderboard) ? data.leaderboard : [];
+        } else if (data.users) {
+          // If the API returns data in a 'users' array
+          usersOnPage = Array.isArray(data.users) ? data.users : [];
+        } else if (Array.isArray(data)) {
+          // If the API returns a direct array
+          usersOnPage = data;
+        } else {
+          // If it's a single object with xInfo, check if it's wrapped in another structure
+          console.log(`[HeyElsa ${period}] Unexpected data structure:`, Object.keys(data));
+          break;
+        }
+
+        if (usersOnPage.length === 0) {
           console.log(`[HeyElsa ${period}] No more data at page ${currentPage}`);
           break;
         }
 
-        allUsers.push(...data.entries);
-        console.log(`[HeyElsa ${period}] ✅ Page ${currentPage}: ${data.entries.length} users (total: ${allUsers.length})`);
+        allUsers.push(...usersOnPage);
+        console.log(`[HeyElsa ${period}] ✅ Page ${currentPage}: ${usersOnPage.length} users (total: ${allUsers.length})`);
 
-        if (currentPage >= data.totalPages || data.entries.length < pageSize) {
+        if (currentPage >= data.totalPages || usersOnPage.length < pageSize) {
           break;
         }
 

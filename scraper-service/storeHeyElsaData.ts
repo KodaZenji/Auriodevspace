@@ -1,4 +1,9 @@
-import { supabase } from '@/lib/supabase'; // adjust path if needed
+import { createClient } from '@supabase/supabase-js'; // Use createClient directly
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);// adjust path if needed
 import crypto from 'crypto';
 
 export async function storeHeyElsaData(users: any[], period: string, fetched_at: string) {
