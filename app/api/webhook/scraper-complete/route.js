@@ -18,6 +18,9 @@ export async function POST(request) {
     
     const scrapedData = await request.json();
 
+    // ✅ CREATE ONE TIMESTAMP FOR EVERYTHING
+    const fetched_at = new Date().toISOString();
+
     if (!scrapedData.success) {
       throw new Error(scrapedData.error || 'Scraping failed');
     }
@@ -27,14 +30,14 @@ export async function POST(request) {
       duelduck: null,
       adichain: null,
       heyelsa: {},
-      timestamp: new Date().toISOString()
+      timestamp: fetched_at
     };
 
     // Store Yappers data (7d and 30d)
     if (scrapedData.results?.yappers) {
       for (const [days, yappersData] of Object.entries(scrapedData.results.yappers)) {
         if (yappersData.data && yappersData.data.length > 0) {
-          await storeYappersData(yappersData.data, parseInt(days));
+          await storeYappersData(yappersData.data, parseInt(days), fetched_at);
           results.yappers[days] = { success: true, count: yappersData.count };
           console.log(`✅ Stored ${yappersData.count} Yappers (${days}d)`);
         }
@@ -43,14 +46,14 @@ export async function POST(request) {
 
     // Store DuelDuck data
     if (scrapedData.results?.duelduck?.data) {
-      await storeDuelDuckData(scrapedData.results.duelduck.data);
+      await storeDuelDuckData(scrapedData.results.duelduck.data, fetched_at);
       results.duelduck = { success: true, count: scrapedData.results.duelduck.count };
       console.log(`✅ Stored ${scrapedData.results.duelduck.count} DuelDuck users`);
     }
 
     // Store Adichain data
     if (scrapedData.results?.adichain?.data) {
-      await storeAdichainData(scrapedData.results.adichain.data);
+      await storeAdichainData(scrapedData.results.adichain.data, fetched_at);
       results.adichain = { success: true, count: scrapedData.results.adichain.count };
       console.log(`✅ Stored ${scrapedData.results.adichain.count} Adichain users`);
     }
@@ -59,7 +62,7 @@ export async function POST(request) {
     if (scrapedData.results?.heyelsa) {
       for (const [period, heyelsaData] of Object.entries(scrapedData.results.heyelsa)) {
         if (heyelsaData.data && heyelsaData.data.length > 0) {
-          await storeHeyElsaData(heyelsaData.data, period);
+          await storeHeyElsaData(heyelsaData.data, period, fetched_at);
           results.heyelsa[period] = { success: true, count: heyelsaData.count };
           console.log(`✅ Stored ${heyelsaData.count} HeyElsa users (${period})`);
         }
@@ -88,9 +91,7 @@ export async function POST(request) {
 
 /* ================= STORE FUNCTIONS ================= */
 
-async function storeYappersData(yappers, days) {
-  const fetched_at = new Date().toISOString();
-
+async function storeYappersData(yappers, days, fetched_at) {
   await supabase.from('yappers_leaderboard').insert(
     yappers.map(y => ({ ...y, days, fetched_at }))
   );
@@ -106,9 +107,7 @@ async function storeYappersData(yappers, days) {
   );
 }
 
-async function storeDuelDuckData(leaders) {
-  const fetched_at = new Date().toISOString();
-
+async function storeDuelDuckData(leaders, fetched_at) {
   await supabase.from('duelduck_leaderboard').insert(
     leaders.map(l => ({ ...l, fetched_at }))
   );
@@ -124,9 +123,7 @@ async function storeDuelDuckData(leaders) {
   );
 }
 
-async function storeAdichainData(users) {
-  const fetched_at = new Date().toISOString();
-
+async function storeAdichainData(users, fetched_at) {
   await supabase.from('adichain_leaderboard').insert(
     users.map(u => ({
       adichain_id: u.id,
@@ -162,9 +159,7 @@ async function storeAdichainData(users) {
   );
 }
 
-async function storeHeyElsaData(users, period) {
-  const fetched_at = new Date().toISOString();
-  
+async function storeHeyElsaData(users, period, fetched_at) {
   const records = users.map(user => ({
     heyelsa_id: user.xInfo?.id,
     x_id: user.xInfo?.id,
