@@ -124,7 +124,7 @@ export async function GET(request) {
         .from('heyelsa_leaderboard')
         .select('*')
         .eq('fetched_at', heyelsaCache.last_updated)
-        .eq('period', elsaPeriod)
+        .eq('days', elsaPeriodMap[elsaPeriod] || 7)  // ← CHANGED: Use days instead of period
         .order('position', { ascending: true });
 
       if (heyelsaError) {
