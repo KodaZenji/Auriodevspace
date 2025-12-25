@@ -84,6 +84,14 @@ async function scrapeAdichain(maxPages = 15) {
           timeout: 30000 
         });
 
+        // Handle rate limiting with exponential backoff
+        if (response.status() === 429) {
+          console.warn(`[Adichain] ⚠️ Rate limit hit on page ${pageNum}, waiting 30s...`);
+          await sleep(30000); // Wait 30 seconds
+          pageNum--; // Retry same page
+          continue;
+        }
+
         if (!response.ok()) {
           console.error(`[Adichain] Failed: ${response.status()}`);
           break;
@@ -100,8 +108,8 @@ async function scrapeAdichain(maxPages = 15) {
         allUsers.push(...json.data);
         console.log(`[Adichain] ✅ Page ${pageNum}: ${json.data.length} users (total: ${allUsers.length})`);
 
-        // Delay between pages (3-5 seconds)
-        await sleep(3000 + Math.random() * 2000);
+        // Longer delay for Adichain (5-8 seconds to avoid 429)
+        await sleep(5000 + Math.random() * 3000);
       } catch (err) {
         console.error(`[Adichain] Error on page ${pageNum}:`, err.message);
         break;
