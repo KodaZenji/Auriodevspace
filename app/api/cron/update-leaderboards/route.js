@@ -6,13 +6,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Period mapping for cache
-const periodMap: Record<string, number> = {
-  'epoch-2': 0,
-  '7d': 7,
-  '30d': 30
-};
-
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -21,12 +14,11 @@ export async function GET(request: Request) {
 
   try {
     console.log('🚀 Starting daily leaderboard update...');
-
-    // 🧹 CLEANUP OLD DATA (Yappers / DuelDuck / Adichain)
-    console.log('Cleaning up old data...');
+    
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
+    // Yappers / DuelDuck / Adichain cleanup
     const yappersDeleted = await supabase
       .from('yappers_leaderboard')
       .delete()
@@ -45,41 +37,33 @@ export async function GET(request: Request) {
       .lt('fetched_at', sevenDaysAgo.toISOString())
       .select('id', { count: 'exact', head: true });
 
-    // ✅ HeyElsa: do NOT delete blindly, cleanup is cache-aware
-    // Only delete rows NOT referenced in leaderboard_cache
+    // HeyElsa snapshot-aware cleanup
     const { error: heyElsaCleanupError } = await supabase
       .from('heyelsa_leaderboard')
       .delete()
-      .not('fetched_at', 'in', supabase
+      .not('snapshot_id', 'in', supabase
         .from('leaderboard_cache')
-        .select('last_updated')
+        .select('snapshot_id')
         .eq('cache_type', 'heyelsa')
       );
+
     if (heyElsaCleanupError) console.error('Error cleaning HeyElsa leaderboard:', heyElsaCleanupError);
 
     console.log(`✅ Cleanup done`);
 
-    // 🚂 Trigger Railway scraper (async)
+    // Trigger Railway scraper
     const railwayUrl = process.env.RAILWAY_SCRAPER_URL;
     const webhookUrl = 'https://auriodevspace.vercel.app/api/webhook/scraper-complete';
-
     if (!railwayUrl) throw new Error('RAILWAY_SCRAPER_URL not configured');
-
-    console.log(`🚂 Triggering Railway scraper...`);
-    console.log(`📥 Webhook callback: ${webhookUrl}`);
 
     const triggerResponse = await fetch(
       `${railwayUrl}/scrape-all-async?webhook=${encodeURIComponent(webhookUrl)}`,
-      {
-        method: 'GET',
-        signal: AbortSignal.timeout(10000)
-      }
+      { method: 'GET', signal: AbortSignal.timeout(10000) }
     );
 
     if (!triggerResponse.ok) throw new Error(`Railway trigger failed: ${triggerResponse.status}`);
 
     const triggerResult = await triggerResponse.json();
-    console.log('✅ Railway scraping triggered successfully');
 
     return NextResponse.json({
       success: true,
@@ -88,17 +72,13 @@ export async function GET(request: Request) {
         yappers_deleted: yappersDeleted?.count || 0,
         duelduck_deleted: duckDeleted?.count || 0,
         adichain_deleted: adichainDeleted?.count || 0,
-        heyelsa_deleted: 0 // cache-aware cleanup, can't count reliably
+        heyelsa_deleted: 0 // snapshot-aware
       },
-      scraping: triggerResult,
-      note: 'Data will be stored via webhook when scraping completes (~10-15 minutes)'
+      scraping: triggerResult
     });
 
   } catch (error) {
     console.error('❌ Cron error:', error);
-    return NextResponse.json(
-      { error: 'Failed to trigger leaderboard update', details: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to trigger leaderboard update', details: error.message }, { status: 500 });
   }
 }
