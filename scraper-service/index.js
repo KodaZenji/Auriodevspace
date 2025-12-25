@@ -119,9 +119,11 @@ async function scrapeAdichain(maxPages = 15) {
   }
 }
 
-// ============= HEYELSA (Playwright) =============
+// ============= HEYELSA (Playwright with retry logic) =============
 async function scrapeHeyElsa(period, maxPages = 20) {
   let browser;
+  let retries = 0;
+  const MAX_RETRIES = 3;
   
   try {
     console.log(`Starting HeyElsa scrape for ${period}...`);
@@ -145,6 +147,7 @@ async function scrapeHeyElsa(period, maxPages = 20) {
     const allUsers = [];
     let currentPage = 1;
     const pageSize = 50;
+    let consecutiveErrors = 0;
 
     while (currentPage <= maxPages) {
       console.log(`HeyElsa ${period} page ${currentPage}...`);
@@ -157,10 +160,28 @@ async function scrapeHeyElsa(period, maxPages = 20) {
           timeout: 30000 
         });
 
-        if (!response.ok()) {
-          console.error(`Failed: ${response.status()}`);
-          break;
+        // Handle rate limiting
+        if (response.status() === 429) {
+          console.warn(`⚠️ Rate limit hit on page ${currentPage}, waiting 30s...`);
+          await sleep(30000); // Wait 30 seconds
+          continue; // Retry same page
         }
+
+        if (!response.ok()) {
+          consecutiveErrors++;
+          console.error(`Failed: ${response.status()}`);
+          
+          if (consecutiveErrors >= 3) {
+            console.error(`❌ Too many errors, stopping at page ${currentPage}`);
+            break;
+          }
+          
+          await sleep(5000); // Wait 5s before next attempt
+          continue;
+        }
+
+        // Reset error counter on success
+        consecutiveErrors = 0;
 
         const bodyText = await page.evaluate(() => document.body.textContent);
         const data = JSON.parse(bodyText);
@@ -178,16 +199,27 @@ async function scrapeHeyElsa(period, maxPages = 20) {
         }
 
         currentPage++;
-        await sleep(2000);
+        
+        // Longer delay to avoid rate limits (3-5 seconds random)
+        const delay = 3000 + Math.random() * 2000;
+        await sleep(delay);
+        
       } catch (err) {
+        consecutiveErrors++;
         console.error(`Error on page ${currentPage}:`, err.message);
-        break;
+        
+        if (consecutiveErrors >= 3) {
+          console.error(`❌ Too many consecutive errors, stopping`);
+          break;
+        }
+        
+        await sleep(5000);
       }
     }
 
     await browser.close();
     console.log(`✅ HeyElsa ${period} complete: ${allUsers.length} users`);
-    return allUsers;
+    return allUsers.length > 0 ? allUsers : null;
 
   } catch (error) {
     if (browser) await browser.close();
@@ -214,24 +246,31 @@ app.get('/scrape-all', async (req, res) => {
       heyelsa: {}
     };
 
-    // Yappers (7d & 30d)
+    // Yappers (7d & 30d) - Fast and safe
     for (const days of [7, 30]) {
       results.yappers[days] = await scrapeYappers(days);
       await sleep(2000);
     }
 
-    // DuelDuck
+    // DuelDuck - Fast and safe
     results.duelduck = await scrapeDuelDuck();
-    await sleep(2000);
+    await sleep(3000);
 
-    // Adichain
+    // Adichain - Takes ~2-3 minutes
     results.adichain = await scrapeAdichain(15);
-    await sleep(2000);
+    await sleep(5000); // Longer break before HeyElsa
 
-    // HeyElsa (all periods)
+    // HeyElsa (all periods) - Takes ~5-8 minutes total
+    // Add longer delays between periods to avoid rate limits
     for (const period of ['epoch-2', '7d', '30d']) {
+      console.log(`\n--- Starting ${period} period ---`);
       results.heyelsa[period] = await scrapeHeyElsa(period, 20);
-      await sleep(3000);
+      
+      // Wait 10 seconds between different periods
+      if (period !== '30d') {
+        console.log('Waiting 10s before next period...');
+        await sleep(10000);
+      }
     }
 
     res.json({
