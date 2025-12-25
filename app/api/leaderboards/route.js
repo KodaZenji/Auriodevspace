@@ -55,11 +55,10 @@ export async function GET(request) {
       '30d': 30
     };
 
-    // Get the latest fetch timestamp for heyelsa based on selected period
-    // Cache uses days (number), data table uses period (text)
+    // ✅ Get HeyElsa cache with snapshot_id
     const { data: heyelsaCache, error: heyelsaCacheError } = await supabase
       .from('leaderboard_cache')
-      .select('last_updated')
+      .select('last_updated, snapshot_id')
       .eq('cache_type', 'heyelsa')
       .eq('days', elsaPeriodMap[elsaPeriod])
       .single();
@@ -118,20 +117,39 @@ export async function GET(request) {
       throw adichainError;
     }
 
-    // Fetch HeyElsa data for the selected period
+    // ✅ Fetch HeyElsa data using snapshot_id (most reliable)
     let heyelsaData = [];
     if (heyelsaCache) {
-      const { data: heyelsaResult, error: heyelsaError } = await supabase
-        .from('heyelsa_leaderboard')
-        .select('*')
-        .eq('fetched_at', heyelsaCache.last_updated)
-        .eq('period', elsaPeriod)  // Use period (text) for data query
-        .order('position', { ascending: true });
+      // Try fetching by snapshot_id first (most reliable)
+      if (heyelsaCache.snapshot_id) {
+        const { data: heyelsaResult, error: heyelsaError } = await supabase
+          .from('heyelsa_leaderboard')
+          .select('*')
+          .eq('snapshot_id', heyelsaCache.snapshot_id)
+          .eq('period', elsaPeriod)
+          .order('position', { ascending: true });
 
-      if (heyelsaError) {
-        console.error('Error fetching HeyElsa data:', heyelsaError);
-      } else {
-        heyelsaData = heyelsaResult || [];
+        if (heyelsaError) {
+          console.error('Error fetching HeyElsa data by snapshot_id:', heyelsaError);
+        } else {
+          heyelsaData = heyelsaResult || [];
+        }
+      }
+      
+      // Fallback to fetched_at if snapshot_id query failed
+      if (heyelsaData.length === 0) {
+        const { data: heyelsaResult, error: heyelsaError } = await supabase
+          .from('heyelsa_leaderboard')
+          .select('*')
+          .eq('fetched_at', heyelsaCache.last_updated)
+          .eq('period', elsaPeriod)
+          .order('position', { ascending: true });
+
+        if (heyelsaError) {
+          console.error('Error fetching HeyElsa data by fetched_at:', heyelsaError);
+        } else {
+          heyelsaData = heyelsaResult || [];
+        }
       }
     }
 
@@ -157,6 +175,7 @@ export async function GET(request) {
       heyelsa: {
         data: heyelsaData,
         last_updated: heyelsaCache?.last_updated || null,
+        snapshot_id: heyelsaCache?.snapshot_id || null,
         count: heyelsaData?.length || 0
       }
     });
