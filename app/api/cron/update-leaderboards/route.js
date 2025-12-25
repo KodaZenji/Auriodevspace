@@ -49,7 +49,7 @@ export async function GET(request) {
     
     // 🚂 TRIGGER RAILWAY SCRAPER (Fire and Forget)
     const railwayUrl = process.env.RAILWAY_SCRAPER_URL;
-    const webhookUrl = `${process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL}/api/webhook/scraper-complete`;
+    const webhookUrl = 'https://auriodevspace.vercel.app/api/webhook/scraper-complete';
     
     if (!railwayUrl) {
       throw new Error('RAILWAY_SCRAPER_URL not configured');
