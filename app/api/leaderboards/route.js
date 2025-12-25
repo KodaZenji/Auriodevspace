@@ -56,11 +56,12 @@ export async function GET(request) {
     };
 
     // Get the latest fetch timestamp for heyelsa based on selected period
+    // Cache uses days (number), data table uses period (text)
     const { data: heyelsaCache, error: heyelsaCacheError } = await supabase
       .from('leaderboard_cache')
       .select('last_updated')
       .eq('cache_type', 'heyelsa')
-      .eq('days', elsaPeriodMap[elsaPeriod] || 7)
+      .eq('days', elsaPeriodMap[elsaPeriod])
       .single();
 
     if (heyelsaCacheError) {
@@ -124,7 +125,7 @@ export async function GET(request) {
         .from('heyelsa_leaderboard')
         .select('*')
         .eq('fetched_at', heyelsaCache.last_updated)
-        .eq('days', elsaPeriodMap[elsaPeriod] || 7)  // ← CHANGED: Use days instead of period
+        .eq('period', elsaPeriod)  // Use period (text) for data query
         .order('position', { ascending: true });
 
       if (heyelsaError) {
