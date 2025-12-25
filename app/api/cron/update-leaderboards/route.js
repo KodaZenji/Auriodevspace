@@ -2,11 +2,11 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export async function GET(request: Request) {
+export async function GET(request) {
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Yappers / DuelDuck / Adichain cleanup
+    // Cleanup old Yappers / DuelDuck / Adichain entries
     const yappersDeleted = await supabase
       .from('yappers_leaderboard')
       .delete()
@@ -38,6 +38,7 @@ export async function GET(request: Request) {
       .select('id', { count: 'exact', head: true });
 
     // HeyElsa snapshot-aware cleanup
+    // Keep only entries whose snapshot_id exists in leaderboard_cache
     const { error: heyElsaCleanupError } = await supabase
       .from('heyelsa_leaderboard')
       .delete()
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
         .eq('cache_type', 'heyelsa')
       );
 
-    if (heyElsaCleanupError) console.error('Error cleaning HeyElsa leaderboard:', heyElsaCleanupError);
+    if (heyElsaCleanupError) console.error('❌ Error cleaning HeyElsa leaderboard:', heyElsaCleanupError);
 
     console.log(`✅ Cleanup done`);
 
