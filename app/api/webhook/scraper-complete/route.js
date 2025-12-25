@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';  // ✅ Needed for snapshot_id
+import crypto from 'crypto';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -19,12 +19,6 @@ export async function POST(request) {
     
     const scrapedData = await request.json();
 
-    // ✅ CREATE ONE TIMESTAMP FOR EVERYTHING
-    const fetched_at = new Date().toISOString();
-
-    // ✅ CREATE A SNAPSHOT ID FOR HEYELSA
-    const snapshot_id = crypto.randomUUID();
-
     if (!scrapedData.success) {
       throw new Error(scrapedData.error || 'Scraping failed');
     }
@@ -34,14 +28,14 @@ export async function POST(request) {
       duelduck: null,
       adichain: null,
       heyelsa: {},
-      timestamp: fetched_at
+      timestamp: new Date().toISOString()
     };
 
     // Store Yappers data (7d and 30d)
     if (scrapedData.results?.yappers) {
       for (const [days, yappersData] of Object.entries(scrapedData.results.yappers)) {
         if (yappersData.data && yappersData.data.length > 0) {
-          await storeYappersData(yappersData.data, parseInt(days), fetched_at);
+          await storeYappersData(yappersData.data, parseInt(days));
           results.yappers[days] = { success: true, count: yappersData.count };
           console.log(`✅ Stored ${yappersData.count} Yappers (${days}d)`);
         }
@@ -50,25 +44,33 @@ export async function POST(request) {
 
     // Store DuelDuck data
     if (scrapedData.results?.duelduck?.data) {
-      await storeDuelDuckData(scrapedData.results.duelduck.data, fetched_at);
+      await storeDuelDuckData(scrapedData.results.duelduck.data);
       results.duelduck = { success: true, count: scrapedData.results.duelduck.count };
       console.log(`✅ Stored ${scrapedData.results.duelduck.count} DuelDuck users`);
     }
 
     // Store Adichain data
     if (scrapedData.results?.adichain?.data) {
-      await storeAdichainData(scrapedData.results.adichain.data, fetched_at);
+      await storeAdichainData(scrapedData.results.adichain.data);
       results.adichain = { success: true, count: scrapedData.results.adichain.count };
       console.log(`✅ Stored ${scrapedData.results.adichain.count} Adichain users`);
     }
 
-    // Store HeyElsa data (epoch-2, 7d, 30d) with snapshot_id
+    // Store HeyElsa data with snapshots (epoch-2, 7d, 30d)
+    // ✅ CRITICAL: Each period gets its own unique snapshot_id
     if (scrapedData.results?.heyelsa) {
       for (const [period, heyelsaData] of Object.entries(scrapedData.results.heyelsa)) {
         if (heyelsaData.data && heyelsaData.data.length > 0) {
-          await storeHeyElsaData(heyelsaData.data, period, fetched_at, snapshot_id);
-          results.heyelsa[period] = { success: true, count: heyelsaData.count };
-          console.log(`✅ Stored ${heyelsaData.count} HeyElsa users (${period}) with snapshot ${snapshot_id}`);
+          // Generate unique snapshot for THIS period
+          const periodSnapshotId = crypto.randomUUID();
+          
+          await storeHeyElsaData(heyelsaData.data, period, periodSnapshotId);
+          results.heyelsa[period] = { 
+            success: true, 
+            count: heyelsaData.count,
+            snapshot_id: periodSnapshotId
+          };
+          console.log(`✅ Stored ${heyelsaData.count} HeyElsa users (${period}) - Snapshot: ${periodSnapshotId}`);
         }
       }
     }
@@ -95,7 +97,9 @@ export async function POST(request) {
 
 /* ================= STORE FUNCTIONS ================= */
 
-async function storeYappersData(yappers, days, fetched_at) {
+async function storeYappersData(yappers, days) {
+  const fetched_at = new Date().toISOString();
+
   await supabase.from('yappers_leaderboard').insert(
     yappers.map(y => ({ ...y, days, fetched_at }))
   );
@@ -111,7 +115,9 @@ async function storeYappersData(yappers, days, fetched_at) {
   );
 }
 
-async function storeDuelDuckData(leaders, fetched_at) {
+async function storeDuelDuckData(leaders) {
+  const fetched_at = new Date().toISOString();
+
   await supabase.from('duelduck_leaderboard').insert(
     leaders.map(l => ({ ...l, fetched_at }))
   );
@@ -127,7 +133,9 @@ async function storeDuelDuckData(leaders, fetched_at) {
   );
 }
 
-async function storeAdichainData(users, fetched_at) {
+async function storeAdichainData(users) {
+  const fetched_at = new Date().toISOString();
+
   await supabase.from('adichain_leaderboard').insert(
     users.map(u => ({
       adichain_id: u.id,
@@ -163,7 +171,10 @@ async function storeAdichainData(users, fetched_at) {
   );
 }
 
-async function storeHeyElsaData(users, period, fetched_at, snapshot_id) {
+// ✅ HeyElsa with snapshot support - Each period gets unique snapshot
+async function storeHeyElsaData(users, period, snapshotId) {
+  const fetched_at = new Date().toISOString();
+  
   const records = users.map(user => ({
     heyelsa_id: user.xInfo?.id,
     x_id: user.xInfo?.id,
@@ -181,7 +192,7 @@ async function storeHeyElsaData(users, period, fetched_at, snapshot_id) {
     position_change: user.positionChange,
     period: period,
     fetched_at: fetched_at,
-    snapshot_id: snapshot_id // ✅ added
+    snapshot_id: snapshotId  // ✅ Use passed snapshot ID
   }));
 
   await supabase.from('heyelsa_leaderboard').insert(records);
@@ -192,12 +203,16 @@ async function storeHeyElsaData(users, period, fetched_at, snapshot_id) {
     '30d': 30
   };
 
+  // ✅ Store snapshot_id in cache for this specific period
   await supabase.from('leaderboard_cache').upsert({
     cache_type: 'heyelsa',
     days: periodMap[period],
     last_updated: fetched_at,
+    snapshot_id: snapshotId,  // ✅ Store this period's snapshot ID
     record_count: records.length
   }, {
     onConflict: 'cache_type,days'
   });
+
+  return snapshotId;
 }
