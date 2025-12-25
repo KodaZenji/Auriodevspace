@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';  // ✅ Needed for snapshot_id
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -20,6 +21,9 @@ export async function POST(request) {
 
     // ✅ CREATE ONE TIMESTAMP FOR EVERYTHING
     const fetched_at = new Date().toISOString();
+
+    // ✅ CREATE A SNAPSHOT ID FOR HEYELSA
+    const snapshot_id = crypto.randomUUID();
 
     if (!scrapedData.success) {
       throw new Error(scrapedData.error || 'Scraping failed');
@@ -58,13 +62,13 @@ export async function POST(request) {
       console.log(`✅ Stored ${scrapedData.results.adichain.count} Adichain users`);
     }
 
-    // Store HeyElsa data (epoch-2, 7d, 30d)
+    // Store HeyElsa data (epoch-2, 7d, 30d) with snapshot_id
     if (scrapedData.results?.heyelsa) {
       for (const [period, heyelsaData] of Object.entries(scrapedData.results.heyelsa)) {
         if (heyelsaData.data && heyelsaData.data.length > 0) {
-          await storeHeyElsaData(heyelsaData.data, period, fetched_at);
+          await storeHeyElsaData(heyelsaData.data, period, fetched_at, snapshot_id);
           results.heyelsa[period] = { success: true, count: heyelsaData.count };
-          console.log(`✅ Stored ${heyelsaData.count} HeyElsa users (${period})`);
+          console.log(`✅ Stored ${heyelsaData.count} HeyElsa users (${period}) with snapshot ${snapshot_id}`);
         }
       }
     }
@@ -159,7 +163,7 @@ async function storeAdichainData(users, fetched_at) {
   );
 }
 
-async function storeHeyElsaData(users, period, fetched_at) {
+async function storeHeyElsaData(users, period, fetched_at, snapshot_id) {
   const records = users.map(user => ({
     heyelsa_id: user.xInfo?.id,
     x_id: user.xInfo?.id,
@@ -176,7 +180,8 @@ async function storeHeyElsaData(users, period, fetched_at) {
     position: user.position,
     position_change: user.positionChange,
     period: period,
-    fetched_at: fetched_at
+    fetched_at: fetched_at,
+    snapshot_id: snapshot_id // ✅ added
   }));
 
   await supabase.from('heyelsa_leaderboard').insert(records);
