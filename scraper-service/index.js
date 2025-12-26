@@ -49,10 +49,10 @@ async function scrapeDuelDuck() {
 // ============= ADICHAIN (Playwright) =============
 async function scrapeAdichain(maxPages = 15) {
   let browser;
-  
+
   try {
     console.log('[Adichain] Starting scrape...');
-    
+
     browser = await chromium.launch({
       headless: true,
       args: [
@@ -79,9 +79,9 @@ async function scrapeAdichain(maxPages = 15) {
       const url = `https://www.xeet.ai/api/topics/adi/tournament?page=${pageNum}&limit=${limit}&timeframe=all&tournamentId=3396f69f-70c1-4703-9b01-47b147e095ef`;
 
       try {
-        const response = await page.goto(url, { 
+        const response = await page.goto(url, {
           waitUntil: 'networkidle',
-          timeout: 30000 
+          timeout: 30000
         });
 
         // Handle rate limiting with exponential backoff
@@ -130,10 +130,10 @@ async function scrapeAdichain(maxPages = 15) {
 // ============= HEYELSA (Playwright with correct data structure) =============
 async function scrapeHeyElsa(period, maxPages = 20) {
   let browser;
-  
+
   try {
     console.log(`[HeyElsa ${period}] Starting scrape...`);
-    
+
     browser = await chromium.launch({
       headless: true,
       args: [
@@ -162,9 +162,9 @@ async function scrapeHeyElsa(period, maxPages = 20) {
       const url = `https://api.wallchain.xyz/voices/companies/heyelsa/leaderboard?page=${currentPage}&pageSize=${pageSize}&orderBy=position&ascending=false&period=${period}`;
 
       try {
-        const response = await page.goto(url, { 
+        const response = await page.goto(url, {
           waitUntil: 'networkidle',
-          timeout: 30000 
+          timeout: 30000
         });
 
         // Handle rate limiting
@@ -177,12 +177,12 @@ async function scrapeHeyElsa(period, maxPages = 20) {
         if (!response.ok()) {
           consecutiveErrors++;
           console.error(`[HeyElsa ${period}] Failed: ${response.status()}`);
-          
+
           if (consecutiveErrors >= 3) {
             console.error(`[HeyElsa ${period}] ❌ Too many errors, stopping`);
             break;
           }
-          
+
           await sleep(5000);
           continue;
         }
@@ -192,26 +192,37 @@ async function scrapeHeyElsa(period, maxPages = 20) {
         const bodyText = await page.evaluate(() => document.body.textContent);
         const data = JSON.parse(bodyText);
 
-        // FIX: Check for the correct data structure based on your API
-        // Instead of looking for data.entries, look for the actual response structure
+        // Handle HeyElsa API response structure based on the API format you provided
         let usersOnPage = [];
-        
-        if (data.data) {
+
+        // The HeyElsa API might return data in different structures
+        // Based on your example, it could be a single object or an array
+        if (data.data && Array.isArray(data.data)) {
           // If the API returns data in a 'data' array
-          usersOnPage = Array.isArray(data.data) ? data.data : [];
-        } else if (data.leaderboard) {
+          usersOnPage = data.data;
+        } else if (data.entries && Array.isArray(data.entries)) {
+          // If the API returns data in an 'entries' array
+          usersOnPage = data.entries;
+        } else if (data.leaderboard && Array.isArray(data.leaderboard)) {
           // If the API returns data in a 'leaderboard' array
-          usersOnPage = Array.isArray(data.leaderboard) ? data.leaderboard : [];
-        } else if (data.users) {
-          // If the API returns data in a 'users' array
-          usersOnPage = Array.isArray(data.users) ? data.users : [];
+          usersOnPage = data.leaderboard;
+        } else if (data.items && Array.isArray(data.items)) {
+          // If the API returns data in an 'items' array
+          usersOnPage = data.items;
         } else if (Array.isArray(data)) {
           // If the API returns a direct array
           usersOnPage = data;
         } else {
-          // If it's a single object with xInfo, check if it's wrapped in another structure
-          console.log(`[HeyElsa ${period}] Unexpected data structure:`, Object.keys(data));
-          break;
+          // If it's a single user object (not an array), wrap it in an array
+          // This handles the case where the API returns a single object with xInfo
+          if (data.xInfo && typeof data.xInfo === 'object') {
+            usersOnPage = [data];
+            console.log(`[HeyElsa ${period}] Single user object detected, wrapping in array`);
+          } else {
+            console.log(`[HeyElsa ${period}] Unexpected data structure:`, Object.keys(data));
+            console.log(`[HeyElsa ${period}] Data sample:`, JSON.stringify(data, null, 2).substring(0, 500));
+            break;
+          }
         }
 
         if (usersOnPage.length === 0) {
@@ -222,25 +233,28 @@ async function scrapeHeyElsa(period, maxPages = 20) {
         allUsers.push(...usersOnPage);
         console.log(`[HeyElsa ${period}] ✅ Page ${currentPage}: ${usersOnPage.length} users (total: ${allUsers.length})`);
 
-        if (currentPage >= data.totalPages || usersOnPage.length < pageSize) {
+        // Check if we've reached the end of available data
+        // If we got fewer results than the page size, we've reached the end
+        if (usersOnPage.length < pageSize) {
+          console.log(`[HeyElsa ${period}] Reached end of data at page ${currentPage}`);
           break;
         }
 
         currentPage++;
-        
+
         // Delay between pages (3-5 seconds random)
         const delay = 3000 + Math.random() * 2000;
         await sleep(delay);
-        
+
       } catch (err) {
         consecutiveErrors++;
         console.error(`[HeyElsa ${period}] Error on page ${currentPage}:`, err.message);
-        
+
         if (consecutiveErrors >= 3) {
           console.error(`[HeyElsa ${period}] ❌ Too many consecutive errors`);
           break;
         }
-        
+
         await sleep(5000);
       }
     }
@@ -265,17 +279,17 @@ app.get('/health', (req, res) => {
 // NEW: Async scrape endpoint with webhook callback
 app.get('/scrape-all-async', async (req, res) => {
   const webhookUrl = req.query.webhook || process.env.WEBHOOK_URL;
-  
+
   if (!webhookUrl) {
-    return res.status(400).json({ 
-      success: false, 
-      error: 'webhook parameter required' 
+    return res.status(400).json({
+      success: false,
+      error: 'webhook parameter required'
     });
   }
 
   // Immediately respond to prevent timeout
-  res.json({ 
-    success: true, 
+  res.json({
+    success: true,
     message: 'Scraping started in background. Will callback when complete.',
     estimatedTime: '10-15 minutes'
   });
@@ -283,7 +297,7 @@ app.get('/scrape-all-async', async (req, res) => {
   // Run scraping in background
   (async () => {
     console.log('\n=== 🚀 BACKGROUND SCRAPING STARTED ===\n');
-    
+
     try {
       const results = {
         yappers: {},
@@ -310,7 +324,7 @@ app.get('/scrape-all-async', async (req, res) => {
       for (const period of ['epoch-2', '7d', '30d']) {
         console.log(`\n--- Starting ${period} period ---`);
         results.heyelsa[period] = await scrapeHeyElsa(period, 20);
-        
+
         if (period !== '30d') {
           console.log('Waiting 10s before next period...');
           await sleep(10000);
@@ -350,7 +364,7 @@ app.get('/scrape-all-async', async (req, res) => {
 
     } catch (error) {
       console.error('❌ Background scraping error:', error);
-      
+
       // Notify webhook of failure
       try {
         await fetch(webhookUrl, {
@@ -374,7 +388,7 @@ app.get('/scrape-all-async', async (req, res) => {
 // Keep original endpoint for direct testing
 app.get('/scrape-all', async (req, res) => {
   console.log('\n=== SCRAPING ALL LEADERBOARDS ===\n');
-  
+
   try {
     const results = {
       yappers: {},
@@ -401,7 +415,7 @@ app.get('/scrape-all', async (req, res) => {
     for (const period of ['epoch-2', '7d', '30d']) {
       console.log(`\n--- Starting ${period} period ---`);
       results.heyelsa[period] = await scrapeHeyElsa(period, 20);
-      
+
       if (period !== '30d') {
         console.log('Waiting 10s before next period...');
         await sleep(10000);
