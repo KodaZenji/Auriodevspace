@@ -14,7 +14,7 @@ export async function GET(request) {
 
   try {
     console.log('🚀 Starting daily leaderboard update...');
-    
+
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -38,17 +38,38 @@ export async function GET(request) {
       .select('id', { count: 'exact', head: true });
 
     // HeyElsa snapshot-aware cleanup
-    // Keep only entries whose snapshot_id exists in leaderboard_cache
-    const { error: heyElsaCleanupError } = await supabase
-      .from('heyelsa_leaderboard')
-      .delete()
-      .not('snapshot_id', 'in', supabase
-        .from('leaderboard_cache')
-        .select('snapshot_id')
-        .eq('cache_type', 'heyelsa')
-      );
+    // First fetch the snapshot_ids that should be preserved
+    const { data: activeSnapshots, error: fetchError } = await supabase
+      .from('leaderboard_cache')
+      .select('snapshot_id')
+      .eq('cache_type', 'heyelsa');
 
-    if (heyElsaCleanupError) console.error('❌ Error cleaning HeyElsa leaderboard:', heyElsaCleanupError);
+    if (fetchError) {
+      console.error('❌ Error fetching active HeyElsa snapshots:', fetchError);
+    } else {
+      const snapshotIds = activeSnapshots?.map(item => item.snapshot_id) || [];
+
+      // Delete HeyElsa entries whose snapshot_id is NOT in the active snapshots list
+      if (snapshotIds.length > 0) {
+        const { error: heyElsaCleanupError } = await supabase
+          .from('heyelsa_leaderboard')
+          .delete()
+          .not('snapshot_id', 'in', snapshotIds);
+
+        if (heyElsaCleanupError) {
+          console.error('❌ Error cleaning HeyElsa leaderboard:', heyElsaCleanupError);
+        }
+      } else {
+        // If there are no active snapshots, delete all HeyElsa data
+        const { error: heyElsaCleanupError } = await supabase
+          .from('heyelsa_leaderboard')
+          .delete();
+
+        if (heyElsaCleanupError) {
+          console.error('❌ Error cleaning HeyElsa leaderboard:', heyElsaCleanupError);
+        }
+      }
+    }
 
     console.log(`✅ Cleanup done`);
 
