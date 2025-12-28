@@ -6,10 +6,27 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
+// ✅ Convert period strings to days
+const PERIOD_TO_DAYS = {
+  'epoch-2': 2,
+  '7d': 7,
+  '30d': 30
+};
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const days = parseInt(searchParams.get('days') || '7');
   const elsaPeriod = searchParams.get('elsaPeriod') || '7d';
+  
+  // ✅ Convert elsaPeriod to days for query
+  const elsaDays = PERIOD_TO_DAYS[elsaPeriod];
+  
+  if (!elsaDays) {
+    return NextResponse.json(
+      { error: `Invalid elsaPeriod: ${elsaPeriod}. Must be one of: epoch-2, 7d, 30d` },
+      { status: 400 }
+    );
+  }
 
   try {
     // Get the latest fetch timestamp for yappers
@@ -24,7 +41,7 @@ export async function GET(request) {
       console.error('Yappers cache error:', yappersCacheError);
     }
 
-    // Get the latest fetch timestamp for duelduck (days = 0)
+    // Get the latest fetch timestamp for duelduck
     const { data: duelDuckCache, error: duelDuckCacheError } = await supabase
       .from('leaderboard_cache')
       .select('last_updated')
@@ -36,7 +53,7 @@ export async function GET(request) {
       console.error('DuelDuck cache error:', duelDuckCacheError);
     }
 
-    // Get the latest fetch timestamp for adichain (days = 0)
+    // Get the latest fetch timestamp for adichain
     const { data: adichainCache, error: adichainCacheError } = await supabase
       .from('leaderboard_cache')
       .select('last_updated')
@@ -48,19 +65,12 @@ export async function GET(request) {
       console.error('Adichain cache error:', adichainCacheError);
     }
 
-    // Map elsaPeriod to days for cache lookup
-    const elsaPeriodMap = {
-      'epoch-2': 0,
-      '7d': 7,
-      '30d': 30
-    };
-
-    // ✅ Get HeyElsa cache with snapshot_id
+    // ✅ Get HeyElsa cache using days instead of period mapping
     const { data: heyelsaCache, error: heyelsaCacheError } = await supabase
       .from('leaderboard_cache')
       .select('last_updated, snapshot_id')
       .eq('cache_type', 'heyelsa')
-      .eq('days', elsaPeriodMap[elsaPeriod])
+      .eq('days', elsaDays)  // ✅ Query by days directly
       .single();
 
     if (heyelsaCacheError) {
@@ -70,7 +80,7 @@ export async function GET(request) {
     if (!yappersCache || !duelDuckCache || !adichainCache) {
       return NextResponse.json(
         { 
-          error: 'No cached data available. Please wait for the cron job to run, or trigger it manually.',
+          error: 'No cached data available. Please wait for the cron job to run.',
           yappersCache: !!yappersCache,
           duelDuckCache: !!duelDuckCache,
           adichainCache: !!adichainCache,
@@ -117,7 +127,7 @@ export async function GET(request) {
       throw adichainError;
     }
 
-    // ✅ Fetch HeyElsa data using snapshot_id (most reliable)
+    // ✅ Fetch HeyElsa data using days (like yappers)
     let heyelsaData = [];
     if (heyelsaCache) {
       // Try fetching by snapshot_id first (most reliable)
@@ -126,7 +136,7 @@ export async function GET(request) {
           .from('heyelsa_leaderboard')
           .select('*')
           .eq('snapshot_id', heyelsaCache.snapshot_id)
-          .eq('period', elsaPeriod)
+          .eq('days', elsaDays)  // ✅ Query by days
           .order('position', { ascending: true });
 
         if (heyelsaError) {
@@ -142,7 +152,7 @@ export async function GET(request) {
           .from('heyelsa_leaderboard')
           .select('*')
           .eq('fetched_at', heyelsaCache.last_updated)
-          .eq('period', elsaPeriod)
+          .eq('days', elsaDays)  // ✅ Query by days
           .order('position', { ascending: true });
 
         if (heyelsaError) {
@@ -157,6 +167,7 @@ export async function GET(request) {
       success: true,
       days,
       elsaPeriod,
+      elsaDays,  // ✅ Include converted days for transparency
       yappers: {
         data: yappersData || [],
         last_updated: yappersCache.last_updated,
@@ -176,7 +187,8 @@ export async function GET(request) {
         data: heyelsaData,
         last_updated: heyelsaCache?.last_updated || null,
         snapshot_id: heyelsaCache?.snapshot_id || null,
-        count: heyelsaData?.length || 0
+        count: heyelsaData?.length || 0,
+        days: elsaDays  // ✅ Include days for debugging
       }
     });
   } catch (error) {
@@ -186,4 +198,4 @@ export async function GET(request) {
       { status: 500 }
     );
   }
-        }
+}
