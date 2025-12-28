@@ -7,8 +7,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// ✅ Convert period strings to days (matching contract logic)
+const PERIOD_TO_DAYS = {
+  'epoch-2': 2,   // Period 0 = Epoch 2 = 2 days
+  '7d': 7,        // Period 7 = 7 days
+  '30d': 30       // Period 30 = 30 days
+};
+
 export async function POST(request) {
-  // Security: Check webhook secret
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.WEBHOOK_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -56,21 +62,21 @@ export async function POST(request) {
       console.log(`✅ Stored ${scrapedData.results.adichain.count} Adichain users`);
     }
 
-    // Store HeyElsa data with snapshots (epoch-2, 7d, 30d)
-    // ✅ CRITICAL: Each period gets its own unique snapshot_id
+    // ✅ Store HeyElsa data with days conversion
     if (scrapedData.results?.heyelsa) {
       for (const [period, heyelsaData] of Object.entries(scrapedData.results.heyelsa)) {
         if (heyelsaData.data && heyelsaData.data.length > 0) {
-          // Generate unique snapshot for THIS period
           const periodSnapshotId = crypto.randomUUID();
+          const days = PERIOD_TO_DAYS[period];
           
-          await storeHeyElsaData(heyelsaData.data, period, periodSnapshotId);
+          await storeHeyElsaData(heyelsaData.data, period, days, periodSnapshotId);
           results.heyelsa[period] = { 
             success: true, 
             count: heyelsaData.count,
+            days: days,
             snapshot_id: periodSnapshotId
           };
-          console.log(`✅ Stored ${heyelsaData.count} HeyElsa users (${period}) - Snapshot: ${periodSnapshotId}`);
+          console.log(`✅ Stored ${heyelsaData.count} HeyElsa users (${period} = ${days}d) - Snapshot: ${periodSnapshotId}`);
         }
       }
     }
@@ -171,8 +177,8 @@ async function storeAdichainData(users) {
   );
 }
 
-// ✅ HeyElsa with snapshot support - Each period gets unique snapshot
-async function storeHeyElsaData(users, period, snapshotId) {
+// ✅ HeyElsa with days conversion (matching yappers pattern)
+async function storeHeyElsaData(users, period, days, snapshotId) {
   const fetched_at = new Date().toISOString();
   
   const records = users.map(user => ({
@@ -190,25 +196,20 @@ async function storeHeyElsaData(users, period, snapshotId) {
     app_use_multiplier: user.appUseMultiplier,
     position: user.position,
     position_change: user.positionChange,
-    period: period,
+    days: days,              // ✅ Store as days (2, 7, or 30)
+    period: period,          // ✅ Keep period for reference ('epoch-2', '7d', '30d')
     fetched_at: fetched_at,
-    snapshot_id: snapshotId  // ✅ Use passed snapshot ID
+    snapshot_id: snapshotId
   }));
 
   await supabase.from('heyelsa_leaderboard').insert(records);
 
-  const periodMap = {
-    'epoch-2': 0,
-    '7d': 7,
-    '30d': 30
-  };
-
-  // ✅ Store snapshot_id in cache for this specific period
+  // ✅ Store cache using days as key (like yappers)
   await supabase.from('leaderboard_cache').upsert({
     cache_type: 'heyelsa',
-    days: periodMap[period],
+    days: days,               // ✅ Use days as the key (2, 7, 30)
     last_updated: fetched_at,
-    snapshot_id: snapshotId,  // ✅ Store this period's snapshot ID
+    snapshot_id: snapshotId,
     record_count: records.length
   }, {
     onConflict: 'cache_type,days'
