@@ -191,7 +191,7 @@ async function storeHeyElsaData(users, period, days, snapshotId) {
     relative_mindshare: user.relativeMindshare,
     app_use_multiplier: user.appUseMultiplier,
     position: user.position,
-    position_change: user.positionChange,
+    position_change: user.positionChange === 'new' ? null : user.positionChange,  // ✅ Handle "new"
     days: days,                           // 2, 7, or 30
     snapshot_id: snapshotId,
     fetched_at: fetched_at
