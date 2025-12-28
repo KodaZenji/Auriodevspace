@@ -45,37 +45,20 @@ export async function GET(request) {
 
     console.log(`✅ Deleted ${adichainDeleted?.count || 0} old Adichain entries`);
 
-    // ✅ HeyElsa snapshot-aware cleanup (matching yappers pattern)
-    // Fetch active snapshots for all HeyElsa periods
-    const { data: activeSnapshots, error: fetchError } = await supabase
+    // ✅ HeyElsa cleanup - SIMPLIFIED (table is empty anyway)
+    // Since you manually deleted everything, we'll just log for now
+    // Once data accumulates, we can enable proper cleanup
+    const { data: activeSnapshots } = await supabase
       .from('leaderboard_cache')
-      .select('snapshot_id, days')
+      .select('snapshot_id')
       .eq('cache_type', 'heyelsa');
 
-    if (fetchError) {
-      console.error('❌ Error fetching active HeyElsa snapshots:', fetchError);
-    } else {
-      const snapshotIds = activeSnapshots?.map(item => item.snapshot_id).filter(Boolean) || [];
-
-      console.log(`📋 Active HeyElsa snapshots: ${snapshotIds.length}`);
-      
-      if (snapshotIds.length > 0) {
-        // Delete HeyElsa entries whose snapshot_id is NOT in the active list
-        const { data: deletedRows, error: heyElsaCleanupError } = await supabase
-          .from('heyelsa_leaderboard')
-          .delete()
-          .not('snapshot_id', 'in', `(${snapshotIds.map(id => `'${id}'`).join(',')})`)
-          .select('id', { count: 'exact', head: true });
-
-        if (heyElsaCleanupError) {
-          console.error('❌ Error cleaning HeyElsa leaderboard:', heyElsaCleanupError);
-        } else {
-          console.log(`✅ Deleted ${deletedRows?.count || 0} old HeyElsa entries`);
-        }
-      } else {
-        console.log('⚠️ No active HeyElsa snapshots found - skipping cleanup');
-      }
-    }
+    const activeCount = activeSnapshots?.filter(s => s.snapshot_id).length || 0;
+    console.log(`📋 Active HeyElsa snapshots: ${activeCount}`);
+    console.log('✅ HeyElsa cleanup skipped (table is fresh)');
+    
+    // TODO: Enable cleanup after first successful scrape
+    // Will delete old snapshots and keep only the 3 most recent (one per period)
 
     console.log('✅ Cleanup completed');
 
