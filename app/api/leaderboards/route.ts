@@ -6,7 +6,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-// ✅ Convert period strings to days
 const PERIOD_TO_DAYS = {
   'epoch-2': 2,
   '7d': 7,
@@ -17,157 +16,113 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const days = parseInt(searchParams.get('days') || '7');
   const elsaPeriod = searchParams.get('elsaPeriod') || '7d';
-  
-  // ✅ Convert elsaPeriod to days for query
   const elsaDays = PERIOD_TO_DAYS[elsaPeriod];
   
   if (!elsaDays) {
     return NextResponse.json(
-      { error: `Invalid elsaPeriod: ${elsaPeriod}. Must be one of: epoch-2, 7d, 30d` },
+      { error: `Invalid elsaPeriod: ${elsaPeriod}` },
       { status: 400 }
     );
   }
 
   try {
-    // Get the latest fetch timestamp for yappers
-    const { data: yappersCache, error: yappersCacheError } = await supabase
+    // Get cache entries
+    const { data: yappersCache } = await supabase
       .from('leaderboard_cache')
       .select('last_updated')
       .eq('cache_type', 'yappers')
       .eq('days', days)
       .single();
 
-    if (yappersCacheError) {
-      console.error('Yappers cache error:', yappersCacheError);
-    }
-
-    // Get the latest fetch timestamp for duelduck
-    const { data: duelDuckCache, error: duelDuckCacheError } = await supabase
+    const { data: duelDuckCache } = await supabase
       .from('leaderboard_cache')
       .select('last_updated')
       .eq('cache_type', 'duelduck')
       .eq('days', 0)
       .single();
 
-    if (duelDuckCacheError) {
-      console.error('DuelDuck cache error:', duelDuckCacheError);
-    }
-
-    // Get the latest fetch timestamp for adichain
-    const { data: adichainCache, error: adichainCacheError } = await supabase
+    const { data: adichainCache } = await supabase
       .from('leaderboard_cache')
       .select('last_updated')
       .eq('cache_type', 'adichain')
       .eq('days', 0)
       .single();
 
-    if (adichainCacheError) {
-      console.error('Adichain cache error:', adichainCacheError);
-    }
-
-    // ✅ Get HeyElsa cache using days instead of period mapping
-    const { data: heyelsaCache, error: heyelsaCacheError } = await supabase
+    const { data: heyelsaCache } = await supabase
       .from('leaderboard_cache')
       .select('last_updated, snapshot_id')
       .eq('cache_type', 'heyelsa')
-      .eq('days', elsaDays)  // ✅ Query by days directly
+      .eq('days', elsaDays)
       .single();
-
-    if (heyelsaCacheError) {
-      console.error('HeyElsa cache error:', heyelsaCacheError);
-    }
 
     if (!yappersCache || !duelDuckCache || !adichainCache) {
       return NextResponse.json(
-        { 
-          error: 'No cached data available. Please wait for the cron job to run.',
-          yappersCache: !!yappersCache,
-          duelDuckCache: !!duelDuckCache,
-          adichainCache: !!adichainCache,
-          heyelsaCache: !!heyelsaCache
-        },
+        { error: 'No cached data available' },
         { status: 404 }
       );
     }
 
-    // Fetch Yappers data
-    const { data: yappersData, error: yappersError } = await supabase
+    // Fetch Yappers
+    const { data: yappersData } = await supabase
       .from('yappers_leaderboard')
       .select('*')
       .eq('days', days)
       .eq('fetched_at', yappersCache.last_updated)
       .order('rank', { ascending: true });
 
-    if (yappersError) {
-      console.error('Error fetching Yappers data:', yappersError);
-      throw yappersError;
-    }
-
-    // Fetch DuelDuck data
-    const { data: duelDuckData, error: duelDuckError } = await supabase
+    // Fetch DuelDuck
+    const { data: duelDuckData } = await supabase
       .from('duelduck_leaderboard')
       .select('*')
       .eq('fetched_at', duelDuckCache.last_updated)
       .order('total_score', { ascending: false });
 
-    if (duelDuckError) {
-      console.error('Error fetching DuelDuck data:', duelDuckError);
-      throw duelDuckError;
-    }
-
-    // Fetch Adichain data
-    const { data: adichainData, error: adichainError } = await supabase
+    // Fetch Adichain
+    const { data: adichainData } = await supabase
       .from('adichain_leaderboard')
       .select('*')
       .eq('fetched_at', adichainCache.last_updated)
       .order('rank_total', { ascending: true });
 
-    if (adichainError) {
-      console.error('Error fetching Adichain data:', adichainError);
-      throw adichainError;
-    }
-
-    // ✅ Fetch HeyElsa data using days (like yappers)
+    // ✅ Fetch HeyElsa with JSONB data
     let heyelsaData = [];
     if (heyelsaCache) {
-      // Try fetching by snapshot_id first (most reliable)
-      if (heyelsaCache.snapshot_id) {
-        const { data: heyelsaResult, error: heyelsaError } = await supabase
-          .from('heyelsa_leaderboard')
-          .select('*')
-          .eq('snapshot_id', heyelsaCache.snapshot_id)
-          .eq('days', elsaDays)  // ✅ Query by days
-          .order('position', { ascending: true });
+      const { data: heyelsaResult } = await supabase
+        .from('heyelsa_leaderboard')
+        .select('*')
+        .eq('snapshot_id', heyelsaCache.snapshot_id)
+        .eq('days', elsaDays)
+        .order('position', { ascending: true });
 
-        if (heyelsaError) {
-          console.error('Error fetching HeyElsa data by snapshot_id:', heyelsaError);
-        } else {
-          heyelsaData = heyelsaResult || [];
-        }
-      }
-      
-      // Fallback to fetched_at if snapshot_id query failed
-      if (heyelsaData.length === 0) {
-        const { data: heyelsaResult, error: heyelsaError } = await supabase
-          .from('heyelsa_leaderboard')
-          .select('*')
-          .eq('fetched_at', heyelsaCache.last_updated)
-          .eq('days', elsaDays)  // ✅ Query by days
-          .order('position', { ascending: true });
-
-        if (heyelsaError) {
-          console.error('Error fetching HeyElsa data by fetched_at:', heyelsaError);
-        } else {
-          heyelsaData = heyelsaResult || [];
-        }
-      }
+      // ✅ Transform JSONB back to flat structure for frontend
+      heyelsaData = heyelsaResult?.map(row => ({
+        id: row.id,
+        username: row.username,
+        
+        // Extract from x_info JSONB
+        name: row.x_info?.name,
+        image_url: row.x_info?.imageUrl,
+        rank: row.x_info?.rank,
+        score: row.x_info?.score,
+        score_percentile: row.x_info?.scorePercentile,
+        score_quantile: row.x_info?.scoreQuantile,
+        
+        // Top-level fields
+        mindshare_percentage: row.mindshare_percentage,
+        relative_mindshare: row.relative_mindshare,
+        app_use_multiplier: row.app_use_multiplier,
+        position: row.position,
+        position_change: row.position_change,
+        
+        days: row.days
+      })) || [];
     }
 
     return NextResponse.json({
       success: true,
       days,
       elsaPeriod,
-      elsaDays,  // ✅ Include converted days for transparency
+      elsaDays,
       yappers: {
         data: yappersData || [],
         last_updated: yappersCache.last_updated,
@@ -188,7 +143,7 @@ export async function GET(request) {
         last_updated: heyelsaCache?.last_updated || null,
         snapshot_id: heyelsaCache?.snapshot_id || null,
         count: heyelsaData?.length || 0,
-        days: elsaDays  // ✅ Include days for debugging
+        days: elsaDays
       }
     });
   } catch (error) {
