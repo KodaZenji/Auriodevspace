@@ -6,17 +6,15 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// ✅ Convert period strings to days (matching contract logic)
+// ✅ Convert period strings to days
 const PERIOD_TO_DAYS: Record<string, number> = {
-  'epoch-2': 2,   // Period 0 = Epoch 2 = 2 days
-  '7d': 7,        // Period 7 = 7 days
-  '30d': 30       // Period 30 = 30 days
+  'epoch-2': 2,
+  '7d': 7,
+  '30d': 30
 };
 
 export async function storeHeyElsaData(users: any[], period: string, snapshotId: string) {
   const fetched_at = new Date().toISOString();
-  
-  // ✅ Convert period to days for consistent storage
   const days = PERIOD_TO_DAYS[period];
   
   if (!days) {
@@ -25,36 +23,30 @@ export async function storeHeyElsaData(users: any[], period: string, snapshotId:
 
   console.log(`[HeyElsa] Storing ${users.length} users for period "${period}" (${days} days) - Snapshot: ${snapshotId}`);
 
-  // ✅ Map API response to database columns
+  // ✅ MUCH SIMPLER: Store xInfo as JSONB, extract only what we need
   const records = users.map(user => ({
-    // User identification (from xInfo)
-    x_id: user.xInfo?.id?.toString(),
-    name: user.xInfo?.name,
+    // Extract username for indexing
     username: user.xInfo?.username,
-    image_url: user.xInfo?.imageUrl,
     
-    // X/Twitter scores (from xInfo)
-    rank: user.xInfo?.rank,
-    score: user.xInfo?.score,
-    score_percentile: user.xInfo?.scorePercentile,
-    score_quantile: user.xInfo?.scoreQuantile,
+    // Store entire xInfo as JSONB
+    x_info: user.xInfo,
     
-    // HeyElsa-specific metrics
+    // HeyElsa-specific metrics (top-level)
     mindshare_percentage: user.mindsharePercentage,
     relative_mindshare: user.relativeMindshare,
     app_use_multiplier: user.appUseMultiplier,
     position: user.position,
     position_change: user.positionChange,
     
-    // Time tracking (matching yappers pattern)
-    days: days,                    // ✅ Store as days (2, 7, or 30)
+    // Time tracking
+    days: days,
     
     // Snapshot and timestamps
     snapshot_id: snapshotId,
     fetched_at: fetched_at
   }));
 
-  // Insert all records with detailed error logging
+  // Insert with detailed logging
   console.log(`[HeyElsa] Attempting to insert ${records.length} records...`);
   console.log(`[HeyElsa] Sample record:`, JSON.stringify(records[0], null, 2));
   
@@ -70,12 +62,12 @@ export async function storeHeyElsaData(users: any[], period: string, snapshotId:
   
   console.log(`[HeyElsa] ✅ Successfully inserted ${insertedData?.length || 0} records`);
 
-  // ✅ Store cache with days as key (like yappers)
+  // Update cache
   const { error: cacheError } = await supabase
     .from('leaderboard_cache')
     .upsert({
       cache_type: 'heyelsa',
-      days: days,                  // ✅ Use days as the key (2, 7, or 30)
+      days: days,
       last_updated: fetched_at,
       snapshot_id: snapshotId,
       record_count: records.length
