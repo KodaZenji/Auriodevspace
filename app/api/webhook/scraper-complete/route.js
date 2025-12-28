@@ -62,7 +62,7 @@ export async function POST(request) {
       console.log(`✅ Stored ${scrapedData.results.adichain.count} Adichain users`);
     }
 
-    // ✅ Store HeyElsa data with days conversion
+    // ✅ Store HeyElsa data with days conversion and JSONB structure
     if (scrapedData.results?.heyelsa) {
       for (const [period, heyelsaData] of Object.entries(scrapedData.results.heyelsa)) {
         if (heyelsaData.data && heyelsaData.data.length > 0) {
@@ -177,43 +177,58 @@ async function storeAdichainData(users) {
   );
 }
 
-// ✅ HeyElsa with days conversion (matching yappers pattern)
+// ✅ HeyElsa with JSONB structure (FIXED!)
 async function storeHeyElsaData(users, period, days, snapshotId) {
   const fetched_at = new Date().toISOString();
   
+  console.log(`[HeyElsa] Storing ${users.length} users for ${period} (${days}d)`);
+  
+  // ✅ NEW: Store xInfo as JSONB instead of flattening
   const records = users.map(user => ({
-    heyelsa_id: user.xInfo?.id,
-    x_id: user.xInfo?.id,
-    name: user.xInfo?.name,
-    username: user.xInfo?.username,
-    image_url: user.xInfo?.imageUrl,
-    rank: user.xInfo?.rank,
-    score: user.xInfo?.score,
-    score_percentile: user.xInfo?.scorePercentile,
-    score_quantile: user.xInfo?.scoreQuantile,
+    username: user.xInfo?.username,       // Extract for indexing
+    x_info: user.xInfo,                   // ← Store entire xInfo as JSONB
     mindshare_percentage: user.mindsharePercentage,
     relative_mindshare: user.relativeMindshare,
     app_use_multiplier: user.appUseMultiplier,
     position: user.position,
     position_change: user.positionChange,
-    days: days,              // ✅ Store as days (2, 7, or 30)
-    period: period,          // ✅ Keep period for reference ('epoch-2', '7d', '30d')
-    fetched_at: fetched_at,
-    snapshot_id: snapshotId
+    days: days,                           // 2, 7, or 30
+    snapshot_id: snapshotId,
+    fetched_at: fetched_at
   }));
 
-  await supabase.from('heyelsa_leaderboard').insert(records);
+  console.log(`[HeyElsa] Sample record:`, JSON.stringify(records[0], null, 2));
 
-  // ✅ Store cache using days as key (like yappers)
-  await supabase.from('leaderboard_cache').upsert({
-    cache_type: 'heyelsa',
-    days: days,               // ✅ Use days as the key (2, 7, 30)
-    last_updated: fetched_at,
-    snapshot_id: snapshotId,
-    record_count: records.length
-  }, {
-    onConflict: 'cache_type,days'
-  });
+  // Insert with error handling
+  const { data: insertedData, error: insertError } = await supabase
+    .from('heyelsa_leaderboard')
+    .insert(records)
+    .select();
+
+  if (insertError) {
+    console.error('[HeyElsa] ❌ Insert error:', JSON.stringify(insertError, null, 2));
+    throw insertError;
+  }
+
+  console.log(`[HeyElsa] ✅ Successfully inserted ${insertedData?.length || 0} records`);
+
+  // Update cache
+  const { error: cacheError } = await supabase
+    .from('leaderboard_cache')
+    .upsert({
+      cache_type: 'heyelsa',
+      days: days,
+      last_updated: fetched_at,
+      snapshot_id: snapshotId,
+      record_count: records.length
+    }, {
+      onConflict: 'cache_type,days'
+    });
+
+  if (cacheError) {
+    console.error('[HeyElsa] ❌ Cache error:', cacheError);
+    throw cacheError;
+  }
 
   return snapshotId;
 }
