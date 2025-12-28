@@ -54,15 +54,21 @@ export async function storeHeyElsaData(users: any[], period: string, snapshotId:
     fetched_at: fetched_at
   }));
 
-  // Insert all records
-  const { error: insertError } = await supabase
+  // Insert all records with detailed error logging
+  console.log(`[HeyElsa] Attempting to insert ${records.length} records...`);
+  console.log(`[HeyElsa] Sample record:`, JSON.stringify(records[0], null, 2));
+  
+  const { data: insertedData, error: insertError } = await supabase
     .from('heyelsa_leaderboard')
-    .insert(records);
+    .insert(records)
+    .select();
 
   if (insertError) {
-    console.error('[HeyElsa] Insert error:', insertError);
+    console.error('[HeyElsa] ❌ Insert error:', JSON.stringify(insertError, null, 2));
     throw insertError;
   }
+  
+  console.log(`[HeyElsa] ✅ Successfully inserted ${insertedData?.length || 0} records`);
 
   // ✅ Store cache with days as key (like yappers)
   const { error: cacheError } = await supabase
