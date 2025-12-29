@@ -50,9 +50,19 @@ export async function POST(request) {
 
     // Store DuelDuck data
     if (scrapedData.results?.duelduck?.data) {
-      await storeDuelDuckData(scrapedData.results.duelduck.data);
-      results.duelduck = { success: true, count: scrapedData.results.duelduck.count };
-      console.log(`✅ Stored ${scrapedData.results.duelduck.count} DuelDuck users`);
+      console.log(`[DuelDuck] Attempting to store ${scrapedData.results.duelduck.count} users...`);
+      console.log(`[DuelDuck] Sample data:`, JSON.stringify(scrapedData.results.duelduck.data[0]).substring(0, 300));
+      
+      try {
+        await storeDuelDuckData(scrapedData.results.duelduck.data);
+        results.duelduck = { success: true, count: scrapedData.results.duelduck.count };
+        console.log(`✅ Stored ${scrapedData.results.duelduck.count} DuelDuck users`);
+      } catch (error) {
+        console.error(`❌ DuelDuck storage error:`, error.message);
+        results.duelduck = { success: false, error: error.message };
+      }
+    } else {
+      console.log(`⚠️ No DuelDuck data received`);
     }
 
     // Store Adichain data
@@ -82,9 +92,20 @@ export async function POST(request) {
 
     // Store Mindoshare data
     if (scrapedData.results?.mindoshare?.data) {
-      await storeMindoshareData(scrapedData.results.mindoshare.data);
-      results.mindoshare = { success: true, count: scrapedData.results.mindoshare.count };
-      console.log(`✅ Stored ${scrapedData.results.mindoshare.count} Mindoshare users`);
+      console.log(`[Mindoshare] Attempting to store ${scrapedData.results.mindoshare.count} users...`);
+      console.log(`[Mindoshare] Sample data:`, JSON.stringify(scrapedData.results.mindoshare.data[0]).substring(0, 300));
+      
+      try {
+        await storeMindoshareData(scrapedData.results.mindoshare.data);
+        results.mindoshare = { success: true, count: scrapedData.results.mindoshare.count };
+        console.log(`✅ Stored ${scrapedData.results.mindoshare.count} Mindoshare users`);
+      } catch (error) {
+        console.error(`❌ Mindoshare storage error:`, error.message);
+        results.mindoshare = { success: false, error: error.message };
+      }
+    } else {
+      console.log(`⚠️ No Mindoshare data received`);
+      console.log(`[Mindoshare] Debug - full results object:`, JSON.stringify(scrapedData.results?.mindoshare).substring(0, 500));
     }
 
     console.log('✅ All data stored successfully in Supabase');
@@ -112,9 +133,11 @@ export async function POST(request) {
 async function storeYappersData(yappers, days) {
   const fetched_at = new Date().toISOString();
 
-  await supabase.from('yappers_leaderboard').insert(
+  const { error } = await supabase.from('yappers_leaderboard').insert(
     yappers.map(y => ({ ...y, days, fetched_at }))
   );
+
+  if (error) throw error;
 
   await supabase.from('leaderboard_cache').upsert(
     {
@@ -130,9 +153,27 @@ async function storeYappersData(yappers, days) {
 async function storeDuelDuckData(leaders) {
   const fetched_at = new Date().toISOString();
 
-  await supabase.from('duelduck_leaderboard').insert(
-    leaders.map(l => ({ ...l, fetched_at }))
-  );
+  // Store data EXACTLY as the API returns it - frontend expects these fields
+  const records = leaders.map((l, index) => ({
+    x_username: l.x_username,           // Frontend expects x_username
+    username: l.username,               // DuelDuck internal username
+    total_score: l.total_score || 0,
+    x_score: l.x_score || 0,           // Frontend expects x_score
+    dd_score: l.dd_score || 0,         // Frontend expects dd_score
+    user_share: l.user_share || 0,     // Frontend expects user_share
+    usdc_reward: l.usdc_reward || 0,   // Frontend expects usdc_reward
+    rank: index + 1,                    // Calculate rank from position
+    fetched_at
+  }));
+
+  console.log(`[DuelDuck] Mapped sample record:`, JSON.stringify(records[0]));
+
+  const { error } = await supabase.from('duelduck_leaderboard').insert(records);
+
+  if (error) {
+    console.error('[DuelDuck] Insert error:', error);
+    throw error;
+  }
 
   await supabase.from('leaderboard_cache').upsert(
     {
@@ -148,7 +189,7 @@ async function storeDuelDuckData(leaders) {
 async function storeAdichainData(users) {
   const fetched_at = new Date().toISOString();
 
-  await supabase.from('adichain_leaderboard').insert(
+  const { error } = await supabase.from('adichain_leaderboard').insert(
     users.map(u => ({
       adichain_id: u.id,
       tournament_id: u.tournamentId,
@@ -171,6 +212,8 @@ async function storeAdichainData(users) {
       fetched_at
     }))
   );
+
+  if (error) throw error;
 
   await supabase.from('leaderboard_cache').upsert(
     {
@@ -224,21 +267,27 @@ async function storeHeyElsaData(users, period, days, snapshotId) {
 async function storeMindoshareData(users) {
   const fetched_at = new Date().toISOString();
 
-  const records = users.map((user, index) => ({
-    username: user.twitterUsername,
-    rank: user.rank || index + 1,
-    mindo_metric: user.mindoMetric,
-    rank_delta: user.rankDelta === null || user.rankDelta === undefined ? 0 : user.rankDelta,
-    kol_score: user.kolScore,
+  // Frontend expects lowercase field names: mindometric, rank_delta, kol_score
+  const records = users.map((user) => ({
+    username: user.twitterUsername,        // API: twitterUsername -> DB: username
+    rank: user.rank,                       // API: rank -> DB: rank
+    mindometric: user.mindoMetric,         // API: mindoMetric -> DB: mindometric (lowercase!)
+    rankdelta: user.rankDelta || 0,        // API: rankDelta -> DB: rankdelta (lowercase!)
+    kolscore: user.kolScore || 0,          // API: kolScore -> DB: kolscore (lowercase!)
     fetched_at
   }));
 
+  console.log(`[Mindoshare] Mapped sample record:`, JSON.stringify(records[0]));
+
   const { error: insertError } = await supabase
-    .from('mindoshare_perceptronntwk')  // ✅ correct table name
+    .from('mindoshare_perceptronntwk')
     .insert(records)
     .select();
 
-  if (insertError) throw insertError;
+  if (insertError) {
+    console.error('[Mindoshare] Insert error:', insertError);
+    throw insertError;
+  }
 
   await supabase.from('leaderboard_cache').upsert(
     {
