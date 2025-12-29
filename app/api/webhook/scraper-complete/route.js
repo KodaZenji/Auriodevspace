@@ -21,7 +21,7 @@ export async function POST(request) {
 
   try {
     console.log('📥 Received scraping results from Railway');
-    
+      
     const scrapedData = await request.json();
 
     if (!scrapedData.success) {
@@ -69,11 +69,11 @@ export async function POST(request) {
           const periodSnapshotId = crypto.randomUUID();
           const days = PERIOD_TO_DAYS[period];
           await storeHeyElsaData(heyelsaData.data, period, days, periodSnapshotId);
-          results.heyelsa[period] = { 
-            success: true, 
-            count: heyelsaData.count,
-            days: days,
-            snapshot_id: periodSnapshotId
+          results.heyelsa[period] = {   
+            success: true,   
+            count: heyelsaData.count,  
+            days: days,  
+            snapshot_id: periodSnapshotId  
           };
           console.log(`✅ Stored ${heyelsaData.count} HeyElsa users (${period} = ${days}d) - Snapshot: ${periodSnapshotId}`);
         }
@@ -99,8 +99,8 @@ export async function POST(request) {
     console.error('❌ Webhook error:', error);
     return NextResponse.json(
       { 
-        error: 'Failed to store leaderboard data', 
-        details: error.message 
+        error: 'Failed to store leaderboard data',   
+        details: error.message   
       },
       { status: 500 }
     );
@@ -185,7 +185,7 @@ async function storeAdichainData(users) {
 
 async function storeHeyElsaData(users, period, days, snapshotId) {
   const fetched_at = new Date().toISOString();
-  
+    
   const records = users.map(user => ({
     username: user.xInfo?.username,
     x_info: user.xInfo,
@@ -199,7 +199,7 @@ async function storeHeyElsaData(users, period, days, snapshotId) {
     fetched_at
   }));
 
-  const { data: insertedData, error: insertError } = await supabase
+  const { error: insertError } = await supabase
     .from('heyelsa_leaderboard')
     .insert(records)
     .select();
@@ -233,8 +233,8 @@ async function storeMindoshareData(users) {
     fetched_at
   }));
 
-  const { data: insertedData, error: insertError } = await supabase
-    .from('mindoshare_leaderboard')
+  const { error: insertError } = await supabase
+    .from('mindoshare_perceptronntwk')  // ✅ correct table name
     .insert(records)
     .select();
 
