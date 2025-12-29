@@ -55,7 +55,6 @@ export async function GET(request) {
       .eq('days', elsaDays)
       .single();
 
-    // FIXED: correct table name mindoshare_perceptronntwk (lowercase)
     const { data: mindoshareCache } = await supabase
       .from('leaderboard_cache')
       .select('last_updated')
@@ -78,7 +77,7 @@ export async function GET(request) {
       .eq('fetched_at', yappersCache.last_updated)
       .order('rank', { ascending: true });
 
-    // Fetch DuelDuck - returns data with x_username, x_score, dd_score, etc.
+    // Fetch DuelDuck
     const { data: duelDuckData } = await supabase
       .from('duelduck_leaderboard')
       .select('*')
@@ -120,11 +119,11 @@ export async function GET(request) {
       })) || [];
     }
 
-    // Fetch PerceptronNTWK data - FIXED table name (lowercase)
+    // Fetch PerceptronNTWK data
     let mindoshareData = [];
     if (mindoshareCache) {
       const { data: mindoshareResult } = await supabase
-        .from('mindoshare_perceptronntwk')  // ✅ FIXED: lowercase table name
+        .from('mindoshare_perceptronntwk')
         .select('*')
         .eq('fetched_at', mindoshareCache.last_updated)
         .order('rank', { ascending: true });
