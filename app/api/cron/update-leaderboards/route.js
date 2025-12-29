@@ -38,8 +38,8 @@ async function scrapeMindoshare() {
         pageData = data;
       } else if (data.data && Array.isArray(data.data)) {
         pageData = data.data;
-      } else if (data.leaderboard && Array.isArray(data.leaderboard)) {
-        pageData = data.leaderboard;
+      } else if (data.currentLeaderboard && Array.isArray(data.currentLeaderboard)) {
+        pageData = data.currentLeaderboard;
       }
 
       if (pageData.length === 0) {
@@ -76,7 +76,6 @@ async function saveMindoshareData(data) {
 
   const fetchedAt = new Date().toISOString();
 
-  // Transform data to match table schema, convert null rank/rank_delta to 0
   const records = data.map(item => ({
     user_id: item.userId || item.id || item.twitterId,
     author_twitter_id: item.authorTwitterId,
@@ -84,16 +83,15 @@ async function saveMindoshareData(data) {
     twitter_display_name: item.twitterDisplayName,
     twitter_username: item.twitterUsername,
     twitter_avatar_url: item.twitterAvatarUrl,
-    mindo_metric: item.mindoMetric || item.mindshare || 0,
+    mindo_metric: item.mindoMetric || 0,
     rank: item.rank != null ? item.rank : 0,
     rank_delta: item.rankDelta != null ? item.rankDelta : 0,
     kol_score: item.kolScore,
     fetched_at: fetchedAt
   }));
 
-  // Insert data
   const { error: insertError } = await supabase
-    .from('mindoshare_perceptronNTWK')
+    .from('mindoshare_leaderboard')
     .insert(records);
 
   if (insertError) {
@@ -101,11 +99,10 @@ async function saveMindoshareData(data) {
     throw insertError;
   }
 
-  // Update cache with new leaderboard_cache type
   const { error: cacheError } = await supabase
     .from('leaderboard_cache')
     .upsert({
-      cache_type: 'PerceptronNTWK', // <-- updated cache type
+      cache_type: 'PerceptronNTWK',
       days: 0,
       last_updated: fetchedAt
     }, {
@@ -154,12 +151,19 @@ export async function GET(request) {
       .select('id', { count: 'exact', head: true });
     console.log(`✅ Deleted ${adichainDeleted?.count || 0} old Adichain entries`);
 
-    const mindoshareDeleted = await supabase
-      .from('mindoshare_perceptronNTWK')
-      .delete()
-      .lt('fetched_at', sevenDaysAgo.toISOString())
-      .select('id', { count: 'exact', head: true });
-    console.log(`✅ Deleted ${mindoshareDeleted?.count || 0} old Mindoshare entries`);
+    // Cleanup Mindoshare leaderboard table if it exists
+    let mindoshareDeletedCount = 0;
+    try {
+      const mindoshareDeleted = await supabase
+        .from('mindoshare_leaderboard')
+        .delete()
+        .lt('fetched_at', sevenDaysAgo.toISOString())
+        .select('id', { count: 'exact', head: true });
+      mindoshareDeletedCount = mindoshareDeleted?.count || 0;
+      console.log(`✅ Deleted ${mindoshareDeletedCount} old Mindoshare entries`);
+    } catch (err) {
+      console.log('⚠️ Mindoshare table does not exist yet, skipping cleanup');
+    }
 
     // HeyElsa cleanup (snapshot-aware)
     const { data: activeSnapshots } = await supabase
@@ -216,7 +220,7 @@ export async function GET(request) {
         yappers_deleted: yappersDeleted?.count || 0,
         duelduck_deleted: duckDeleted?.count || 0,
         adichain_deleted: adichainDeleted?.count || 0,
-        mindoshare_deleted: mindoshareDeleted?.count || 0,
+        mindoshare_deleted: mindoshareDeletedCount,
         heyelsa_deleted: 'snapshot-aware cleanup',
         active_snapshots: activeSnapshots?.length || 0
       },
