@@ -1,13 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, RefreshCw, ChevronDown, Menu, X, Users } from 'lucide-react';
+import { Search, RefreshCw, ChevronDown, Menu, X } from 'lucide-react';
 
 export default function RankNexus() {
   const [searchUser, setSearchUser] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
-  const [expandedCards, setExpandedCards] = useState({ goat: false, duck: false, adi: false, elsa: false });
+  const [expandedCards, setExpandedCards] = useState({ 
+    goat: false, 
+    duck: false, 
+    adi: false, 
+    elsa: false,
+    perceptron: false 
+  });
   const [goatDays, setGoatDays] = useState('30');
   const [elsaPeriod, setElsaPeriod] = useState('7d');
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -61,8 +67,13 @@ export default function RankNexus() {
       const elsaUser = data.heyelsa.data.find(
         user => user.username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
       );
+
+      // Find PerceptronNTWK user
+      const perceptronUser = data.mindoshare.data.find(
+        user => user.username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
+      );
       
-      if (!goatUser && !duckUser && !adiUser && !elsaUser) {
+      if (!goatUser && !duckUser && !adiUser && !elsaUser && !perceptronUser) {
         alert(`User @${searchUser} not found on any leaderboard`);
         setResults(null);
         setLoading(false);
@@ -75,7 +86,8 @@ export default function RankNexus() {
           goat: !!goatUser,
           duck: !!duckUser,
           adi: !!adiUser,
-          elsa: !!elsaUser
+          elsa: !!elsaUser,
+          perceptron: !!perceptronUser
         },
         goat: goatUser ? {
           rank: goatUser.rank,
@@ -110,6 +122,13 @@ export default function RankNexus() {
           position_change: elsaUser.position_change,
           app_use_multiplier: elsaUser.app_use_multiplier,
           score: elsaUser.score
+        } : null,
+        perceptron: perceptronUser ? {
+          rank: perceptronUser.rank,
+          username: perceptronUser.username,
+          mindometric: ((perceptronUser.mindometric / 1000) / 100).toFixed(2),
+          rankdelta: perceptronUser.rankdelta,
+          kolscore: perceptronUser.kolscore
         } : null
       });
     } catch (error) {
@@ -247,6 +266,18 @@ export default function RankNexus() {
                   {data.total_points?.toFixed(2)}
                 </div>
               </div>
+            ) : platform === 'perceptron' ? (
+              <div className="text-right">
+                <div className="text-xs text-gray-400">MindoMetric</div>
+                <div className="font-bold text-lg" style={{
+                  background: 'linear-gradient(135deg, #10b981, #34d399)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  {data.mindometric}%
+                </div>
+              </div>
             ) : (
               <div className="text-right">
                 <div className="text-xs text-gray-400">Mindshare</div>
@@ -317,6 +348,21 @@ export default function RankNexus() {
                     <div className="text-white font-bold">{formatNumber(data.noise_points)}</div>
                   </div>
                 </>
+              ) : platform === 'perceptron' ? (
+                <>
+                  <div className="text-center bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-gray-400 text-xs mb-1">RankChange</div>
+                    <div className="text-white font-bold">{data.rankdelta || 0}</div>
+                  </div>
+                  <div className="text-center bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-gray-400 text-xs mb-1"></div>
+                    <div className="text-white font-bold"></div>
+                  </div>
+                  <div className="text-center bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-gray-400 text-xs mb-1">KOLScore</div>
+                    <div className="text-white font-bold">{data.kolscore}</div>
+                  </div>
+                </>
               ) : (
                 <>
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
@@ -347,6 +393,7 @@ export default function RankNexus() {
     if (results.foundOn.duck) count++;
     if (results.foundOn.adi) count++;
     if (results.foundOn.elsa) count++;
+    if (results.foundOn.perceptron) count++;
     return count;
   };
 
@@ -382,7 +429,6 @@ export default function RankNexus() {
             
           </h2>
 
-          {/* Menu Items */}
           <nav className="space-y-2">
             <a
               href="/kaito-inner-ct"
@@ -397,11 +443,8 @@ export default function RankNexus() {
                 <div className="text-white font-medium group-hover:text-emerald-400 transition-colors">
                   Inner CT
                 </div>
-                
               </div>
             </a>
-
-            {/* Add more menu items here as needed */}
           </nav>
         </div>
       </div>
@@ -477,6 +520,17 @@ export default function RankNexus() {
                 />
                 <h2 className="text-xl font-bold text-white">{results.username}</h2>
               </div>
+            )}
+
+            {results.perceptron && (
+              <LeaderboardCard 
+                platform="perceptron" 
+                data={results.perceptron} 
+                platformName="PerceptronNTWK"
+                timeSwitch={false}
+                showAvatar={countFoundPlatforms() === 1}
+                username={results.username}
+              />
             )}
 
             {results.goat && (
