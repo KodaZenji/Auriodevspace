@@ -3,7 +3,7 @@ const express = require('express');
 const { chromium } = require('playwright');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = 8080;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
