@@ -268,14 +268,24 @@ async function storeMindoshareData(users) {
   const fetched_at = new Date().toISOString();
 
   // Frontend expects lowercase field names: mindometric, rank_delta, kol_score
-  const records = users.map((user) => ({
-    username: user.twitterUsername,                    // API: twitterUsername -> DB: username
-    rank: parseInt(user.rank) || 0,                    // API: rank -> DB: rank (ensure integer)
-    mindometric: parseFloat(user.mindoMetric) || 0,    // API: mindoMetric -> DB: mindometric (float)
-    rankdelta: parseInt(user.rankDelta) || 0,          // API: rankDelta -> DB: rankdelta (ensure integer)
-    kolscore: parseInt(user.kolScore) || 0,            // API: kolScore -> DB: kolscore (ensure integer)
-    fetched_at
-  }));
+  const records = users.map((user) => {
+    // Safely parse rankDelta - handle null, undefined, NaN, and decimals
+    const parsedRankDelta = parseInt(user.rankDelta);
+    const rankdelta = isNaN(parsedRankDelta) ? 0 : parsedRankDelta;
+    
+    // Safely parse kolScore - handle null, undefined, NaN, and decimals
+    const parsedKolScore = parseInt(user.kolScore);
+    const kolscore = isNaN(parsedKolScore) ? 0 : parsedKolScore;
+    
+    return {
+      username: user.twitterUsername,                    // API: twitterUsername -> DB: username
+      rank: parseInt(user.rank) || 0,                    // API: rank -> DB: rank (ensure integer)
+      mindometric: parseFloat(user.mindoMetric) || 0,    // API: mindoMetric -> DB: mindometric (float)
+      rankdelta,                                          // Safely converted to integer, defaults to 0
+      kolscore,                                           // Safely converted to integer, defaults to 0
+      fetched_at
+    };
+  });
 
   console.log(`[Mindoshare] Mapped sample record:`, JSON.stringify(records[0]));
 
