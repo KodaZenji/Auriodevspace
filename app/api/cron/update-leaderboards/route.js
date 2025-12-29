@@ -13,7 +13,7 @@ export async function GET(request) {
   }
 
   try {
-    console.log('🚀 Starting daily leaderboard cleanup...');
+    console.log('🚀 Starting daily leaderboard update...');
 
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -42,18 +42,18 @@ export async function GET(request) {
       .select('id', { count: 'exact', head: true });
     console.log(`✅ Deleted ${adichainDeleted?.count || 0} old Adichain entries`);
 
-    // Cleanup Mindoshare Perceptron table
+    // Cleanup Mindoshare entries
     let mindoshareDeletedCount = 0;
     try {
       const mindoshareDeleted = await supabase
-        .from('mindoshare_perceptronntwk')
+        .from('mindoshare_leaderboard')
         .delete()
         .lt('fetched_at', sevenDaysAgo.toISOString())
         .select('id', { count: 'exact', head: true });
       mindoshareDeletedCount = mindoshareDeleted?.count || 0;
       console.log(`✅ Deleted ${mindoshareDeletedCount} old Mindoshare entries`);
     } catch (err) {
-      console.log('⚠️ Mindoshare table does not exist yet, skipping cleanup');
+      console.log('⚠️ Mindoshare table cleanup skipped:', err.message);
     }
 
     // HeyElsa cleanup (snapshot-aware)
@@ -71,43 +71,40 @@ export async function GET(request) {
     const railwayUrl = process.env.RAILWAY_SCRAPER_URL;
     const webhookUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://auriodevspace.vercel.app'}/api/webhook/scraper-complete`;
     
-    if (!railwayUrl) throw new Error('RAILWAY_SCRAPER_URL not configured');
+    if (!railwayUrl) {
+      throw new Error('RAILWAY_SCRAPER_URL not configured');
+    }
 
     console.log('🚂 Triggering Railway scraper...');
-    console.log('🔗 URL:', `${railwayUrl}/scrape`);
+    console.log(`📥 Webhook callback: ${webhookUrl}`);
 
-    const triggerResponse = await fetch(
-      `${railwayUrl}/scrape`,
-      { 
-        method: 'POST',
-        signal: AbortSignal.timeout(30000),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'User-Agent': 'Vercel-Cron/1.0'
-        },
-        body: JSON.stringify({
-          webhook: webhookUrl
-        })
+    // Use GET endpoint for backward compatibility
+    const triggerUrl = `${railwayUrl}/scrape-all-async?webhook=${encodeURIComponent(webhookUrl)}`;
+    console.log(`🔗 Trigger URL: ${triggerUrl}`);
+
+    const triggerResponse = await fetch(triggerUrl, {
+      method: 'GET',
+      signal: AbortSignal.timeout(10000),
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Vercel-Cron/1.0'
       }
-    );
+    });
 
     console.log('📡 Response status:', triggerResponse.status);
     
-    // Get response text for better debugging
     const responseText = await triggerResponse.text();
-    console.log('📡 Response body:', responseText);
+    console.log('📡 Response preview:', responseText.substring(0, 200));
 
     if (!triggerResponse.ok) {
       throw new Error(`Railway trigger failed: ${triggerResponse.status} - ${responseText}`);
     }
 
-    // Parse the response
     let triggerResult;
     try {
       triggerResult = JSON.parse(responseText);
     } catch (e) {
-      console.warn('Could not parse JSON response, using text');
+      console.warn('Could not parse JSON response');
       triggerResult = { raw: responseText };
     }
 
@@ -124,13 +121,17 @@ export async function GET(request) {
         heyelsa_deleted: 'snapshot-aware cleanup',
         active_snapshots: activeSnapshots?.length || 0
       },
-      scraping: triggerResult
+      scraping: triggerResult,
+      note: 'Data will be stored via webhook when scraping completes (~10-15 minutes)'
     });
 
   } catch (error) {
     console.error('❌ Cron error:', error);
     return NextResponse.json(
-      { error: 'Failed to trigger leaderboard update', details: error.message },
+      { 
+        error: 'Failed to trigger leaderboard update', 
+        details: error.message 
+      },
       { status: 500 }
     );
   }
