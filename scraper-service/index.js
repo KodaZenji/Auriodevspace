@@ -165,7 +165,7 @@ async function scrapeMindoshare(maxPages = 6, limit = 50) {
 }
 
 // ============= MINDOSHARE (PLAYWRIGHT FALLBACK) =============
-async function scrapeMindosharePlaywright(maxPages = 6, limit = 50) {
+async function scrapeMindosharePlaywright(maxPages = 12, limit = 50) {
   let browser;
   try {
     browser = await chromium.launch({ headless: true });
