@@ -55,6 +55,14 @@ export async function GET(request) {
       .eq('days', elsaDays)
       .single();
 
+    // UPDATED: fetch PerceptronNTWK cache instead of mindoshare
+    const { data: mindoshareCache } = await supabase
+      .from('leaderboard_cache')
+      .select('last_updated')
+      .eq('cache_type', 'PerceptronNTWK')
+      .eq('days', 0)
+      .single();
+
     if (!yappersCache || !duelDuckCache || !adichainCache) {
       return NextResponse.json(
         { error: 'No cached data available' },
@@ -84,7 +92,7 @@ export async function GET(request) {
       .eq('fetched_at', adichainCache.last_updated)
       .order('rank_total', { ascending: true });
 
-    // ✅ Fetch HeyElsa with JSONB data
+    // Fetch HeyElsa with JSONB data
     let heyelsaData = [];
     if (heyelsaCache) {
       const { data: heyelsaResult } = await supabase
@@ -94,28 +102,34 @@ export async function GET(request) {
         .eq('days', elsaDays)
         .order('position', { ascending: true });
 
-      // ✅ Transform JSONB back to flat structure for frontend
       heyelsaData = heyelsaResult?.map(row => ({
         id: row.id,
         username: row.username,
-        
-        // Extract from x_info JSONB
         name: row.x_info?.name,
         image_url: row.x_info?.imageUrl,
         rank: row.x_info?.rank,
         score: row.x_info?.score,
         score_percentile: row.x_info?.scorePercentile,
         score_quantile: row.x_info?.scoreQuantile,
-        
-        // Top-level fields
         mindshare_percentage: row.mindshare_percentage,
         relative_mindshare: row.relative_mindshare,
         app_use_multiplier: row.app_use_multiplier,
         position: row.position,
         position_change: row.position_change,
-        
         days: row.days
       })) || [];
+    }
+
+    // Fetch PerceptronNTWK data (previously Mindoshare)
+    let mindoshareData = [];
+    if (mindoshareCache) {
+      const { data: mindoshareResult } = await supabase
+        .from('mindoshare_perceptronNTWK')
+        .select('*')
+        .eq('fetched_at', mindoshareCache.last_updated)
+        .order('rank', { ascending: true });
+
+      mindoshareData = mindoshareResult || [];
     }
 
     return NextResponse.json({
@@ -144,6 +158,11 @@ export async function GET(request) {
         snapshot_id: heyelsaCache?.snapshot_id || null,
         count: heyelsaData?.length || 0,
         days: elsaDays
+      },
+      mindoshare: {
+        data: mindoshareData,
+        last_updated: mindoshareCache?.last_updated || null,
+        count: mindoshareData?.length || 0
       }
     });
   } catch (error) {
