@@ -46,7 +46,7 @@ export async function GET(request) {
     let mindoshareDeletedCount = 0;
     try {
       const mindoshareDeleted = await supabase
-        .from('mindoshare_leaderboard')
+        .from('mindoshare_perceptronntwk')
         .delete()
         .lt('fetched_at', sevenDaysAgo.toISOString())
         .select('id', { count: 'exact', head: true });
@@ -117,7 +117,7 @@ export async function GET(request) {
         yappers_deleted: yappersDeleted?.count || 0,
         duelduck_deleted: duckDeleted?.count || 0,
         adichain_deleted: adichainDeleted?.count || 0,
-        mindoshare_deleted: mindoshareDeletedCount,
+        mindoshare_perceptronntwk_deleted: mindoshareDeletedCount,
         heyelsa_deleted: 'snapshot-aware cleanup',
         active_snapshots: activeSnapshots?.length || 0
       },
@@ -136,3 +136,4 @@ export async function GET(request) {
     );
   }
 }
+
