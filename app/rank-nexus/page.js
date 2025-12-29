@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search, RefreshCw, ChevronDown, Menu, X } from 'lucide-react';
 
 export default function RankNexus() {
@@ -35,13 +35,16 @@ export default function RankNexus() {
     }
   }, [lastUpdated]);
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async (customGoatDays, customElsaPeriod) => {
+    const daysToUse = customGoatDays || goatDays;
+    const periodToUse = customElsaPeriod || elsaPeriod;
+
     if (!searchUser.trim()) return;
     
     setLoading(true);
     
     try {
-      const response = await fetch(`/api/leaderboards?days=${goatDays}&elsaPeriod=${elsaPeriod}`);
+      const response = await fetch(`/api/leaderboards?days=${daysToUse}&elsaPeriod=${periodToUse}`);
       const data = await response.json();
       
       if (data.error) {
@@ -68,7 +71,6 @@ export default function RankNexus() {
         user => user.username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
       );
 
-      // Find PerceptronNTWK user
       const perceptronUser = data.mindoshare.data.find(
         user => user.username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
       );
@@ -127,7 +129,7 @@ export default function RankNexus() {
           rank: perceptronUser.rank,
           username: perceptronUser.username,
           mindometric: ((perceptronUser.mindometric / 1000) / 100).toFixed(2),
-          rankdelta: perceptronUser.rankdelta,
+          rankdelta: perceptronUser.rankdelta || 0,
           kolscore: perceptronUser.kolscore
         } : null
       });
@@ -137,7 +139,7 @@ export default function RankNexus() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchUser, goatDays, elsaPeriod]);
 
   const formatNumber = (num) => {
     if (!num) return '0';
@@ -178,7 +180,11 @@ export default function RankNexus() {
                   onClick={() => {
                     onValueChange(option.value);
                     if (searchUser.trim()) {
-                      handleSearch();
+                      if (platform === 'goat') {
+                        handleSearch(option.value, elsaPeriod);
+                      } else if (platform === 'elsa') {
+                        handleSearch(goatDays, option.value);
+                      }
                     }
                   }}
                   className="px-2 py-0.5 rounded text-xs font-medium transition-all"
@@ -352,7 +358,7 @@ export default function RankNexus() {
                 <>
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
                     <div className="text-gray-400 text-xs mb-1">RankChange</div>
-                    <div className="text-white font-bold">{data.rankdelta || 0}</div>
+                    <div className="text-white font-bold">{data.rank_delta}</div>
                   </div>
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
                     <div className="text-gray-400 text-xs mb-1"></div>
@@ -360,7 +366,7 @@ export default function RankNexus() {
                   </div>
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
                     <div className="text-gray-400 text-xs mb-1">KOLScore</div>
-                    <div className="text-white font-bold">{data.kolscore}</div>
+                    <div className="text-white font-bold">{data.kol_score}</div>
                   </div>
                 </>
               ) : (
@@ -399,7 +405,6 @@ export default function RankNexus() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
-      {/* Hamburger Menu Button */}
       <div className="fixed top-4 right-4 z-50">
         <button
           onClick={() => setMenuOpen(!menuOpen)}
@@ -413,7 +418,6 @@ export default function RankNexus() {
         </button>
       </div>
 
-      {/* Slide-in Menu Panel */}
       <div
         className={`fixed top-0 right-0 h-full w-80 bg-slate-900 border-l border-slate-700 z-40 transform transition-transform duration-300 ease-in-out ${
           menuOpen ? 'translate-x-0' : 'translate-x-full'
@@ -449,7 +453,6 @@ export default function RankNexus() {
         </div>
       </div>
 
-      {/* Overlay */}
       {menuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30"
@@ -488,7 +491,7 @@ export default function RankNexus() {
               />
             </div>
             <button
-              onClick={handleSearch}
+              onClick={() => handleSearch()}
               disabled={loading}
               className="px-6 py-3 font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               style={{
