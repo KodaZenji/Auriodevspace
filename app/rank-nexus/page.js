@@ -130,7 +130,7 @@ export default function RankNexus() {
           username: perceptronUser.username,
           mindometric: ((perceptronUser.mindometric / 1000) / 100).toFixed(2),
           rankdelta: perceptronUser.rankdelta || 0,
-          kolscore: perceptronUser.kolscore
+          kolscore: perceptronUser.kolscore || 0
         } : null
       });
     } catch (error) {
@@ -357,16 +357,16 @@ export default function RankNexus() {
               ) : platform === 'perceptron' ? (
                 <>
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
-                    <div className="text-gray-400 text-xs mb-1">RankChange</div>
-                    <div className="text-white font-bold">{data.rank_delta}</div>
+                    <div className="text-gray-400 text-xs mb-1">Rank Change</div>
+                    <div className="text-white font-bold">{data.rankdelta}</div>
                   </div>
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
                     <div className="text-gray-400 text-xs mb-1"></div>
                     <div className="text-white font-bold"></div>
                   </div>
                   <div className="text-center bg-slate-800/50 rounded-lg p-2">
-                    <div className="text-gray-400 text-xs mb-1">KOLScore</div>
-                    <div className="text-white font-bold">{data.kol_score}</div>
+                    <div className="text-gray-400 text-xs mb-1">KOL Score</div>
+                    <div className="text-white font-bold">{data.kolscore}</div>
                   </div>
                 </>
               ) : (
