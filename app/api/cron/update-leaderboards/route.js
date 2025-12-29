@@ -6,7 +6,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export async function GET(request: Request) {
+export async function GET(request) {
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -49,7 +49,10 @@ export async function GET(request: Request) {
     if (!railwayUrl) throw new Error('RAILWAY_SCRAPER_URL not configured');
 
     console.log('🚂 Triggering Railway scraper...');
-    const triggerResponse = await fetch(`${railwayUrl}/scrape-all-async`, { method: 'GET', signal: AbortSignal.timeout(10000) });
+    const triggerResponse = await fetch(`${railwayUrl}/scrape-all-async`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(10000)
+    });
     if (!triggerResponse.ok) throw new Error(`Railway trigger failed: ${triggerResponse.status}`);
 
     const triggerResult = await triggerResponse.json();
@@ -68,6 +71,9 @@ export async function GET(request: Request) {
 
   } catch (error) {
     console.error('❌ Cron error:', error);
-    return NextResponse.json({ error: 'Failed to trigger leaderboard update', details: error.message }, { status: 500 });
+    return NextResponse.json({
+      error: 'Failed to trigger leaderboard update',
+      details: error.message
+    }, { status: 500 });
   }
 }
