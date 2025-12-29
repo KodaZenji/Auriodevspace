@@ -28,19 +28,96 @@ async function scrapeYappers(days) {
   }
 }
 
-// ============= DUELDUCK =============
-async function scrapeDuelDuck() {
+// ============= DUELDUCK (Playwright with Pagination + Proxy) =============
+async function scrapeDuelDuck(maxPages = 10) {
+  let browser;
+  
   try {
-    console.log('[DuelDuck] Starting...');
-    const res = await fetch(
-      'https://api.duelduck.com/mention-challenge/leaderboard?opts.pagination.page_size=1000&opts.pagination.page_num=1&opts.order.order_by=total_score&opts.order.order_type=desc&challenge_id=131938ae-0b07-4ac5-8b67-4c1d3cbbee5e',
-      { cache: 'no-store' }
-    );
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    console.log(`[DuelDuck] ✅ ${json.leaders?.length || 0} users`);
-    return json.leaders || [];
+    console.log('[DuelDuck] Starting with proxy + pagination...');
+    
+    browser = await chromium.launch({
+      headless: true,
+      proxy: process.env.SCRAPER_API_KEY ? {
+        server: process.env.PROXY_SERVER || 'http://proxy.scraperapi.com:8001',
+        username: process.env.PROXY_USERNAME || 'scraperapi.country_code=us',
+        password: process.env.SCRAPER_API_KEY
+      } : undefined,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--single-process',
+        '--disable-blink-features=AutomationControlled',
+      ],
+    });
+
+    const context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+      locale: 'en-US',
+      timezoneId: 'America/New_York'
+    });
+
+    const page = await context.newPage();
+    const allLeaders = [];
+    const pageSize = 100;
+
+    for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+      console.log(`[DuelDuck] Page ${pageNum}/${maxPages}...`);
+
+      const url = `https://api.duelduck.com/mention-challenge/leaderboard?opts.pagination.page_size=${pageSize}&opts.pagination.page_num=${pageNum}&opts.order.order_by=total_score&opts.order.order_type=desc&challenge_id=131938ae-0b07-4ac5-8b67-4c1d3cbbee5e`;
+
+      try {
+        const response = await page.goto(url, {
+          waitUntil: 'networkidle',
+          timeout: 30000
+        });
+
+        // Handle rate limiting
+        if (response.status() === 429) {
+          console.warn(`[DuelDuck] ⚠️ Rate limit hit on page ${pageNum}, waiting 30s...`);
+          await sleep(30000);
+          pageNum--; // Retry same page
+          continue;
+        }
+
+        if (!response.ok()) {
+          console.error(`[DuelDuck] Failed: ${response.status()}`);
+          break;
+        }
+
+        const bodyText = await page.evaluate(() => document.body.textContent);
+        const json = JSON.parse(bodyText);
+
+        if (!json.leaders || json.leaders.length === 0) {
+          console.log(`[DuelDuck] No more data at page ${pageNum}`);
+          break;
+        }
+
+        allLeaders.push(...json.leaders);
+        console.log(`[DuelDuck] ✅ Page ${pageNum}: ${json.leaders.length} leaders (total: ${allLeaders.length})`);
+
+        // Less than full page = last page
+        if (json.leaders.length < pageSize) {
+          console.log(`[DuelDuck] Reached end of data`);
+          break;
+        }
+
+        // Delay between pages (3-5 seconds)
+        await sleep(3000 + Math.random() * 2000);
+        
+      } catch (err) {
+        console.error(`[DuelDuck] Error on page ${pageNum}:`, err.message);
+        break;
+      }
+    }
+
+    await browser.close();
+    console.log(`[DuelDuck] ✅ Complete: ${allLeaders.length} total leaders`);
+    return allLeaders;
+
   } catch (e) {
+    if (browser) await browser.close();
     console.error('[DuelDuck] ❌', e.message);
     return null;
   }
@@ -192,29 +269,20 @@ async function scrapeHeyElsa(period, maxPages = 20) {
         const bodyText = await page.evaluate(() => document.body.textContent);
         const data = JSON.parse(bodyText);
 
-        // Handle HeyElsa API response structure based on the API format you provided
+        // Handle HeyElsa API response structure
         let usersOnPage = [];
 
-        // The HeyElsa API might return data in different structures
-        // Based on your example, it could be a single object or an array
         if (data.data && Array.isArray(data.data)) {
-          // If the API returns data in a 'data' array
           usersOnPage = data.data;
         } else if (data.entries && Array.isArray(data.entries)) {
-          // If the API returns data in an 'entries' array
           usersOnPage = data.entries;
         } else if (data.leaderboard && Array.isArray(data.leaderboard)) {
-          // If the API returns data in a 'leaderboard' array
           usersOnPage = data.leaderboard;
         } else if (data.items && Array.isArray(data.items)) {
-          // If the API returns data in an 'items' array
           usersOnPage = data.items;
         } else if (Array.isArray(data)) {
-          // If the API returns a direct array
           usersOnPage = data;
         } else {
-          // If it's a single user object (not an array), wrap it in an array
-          // This handles the case where the API returns a single object with xInfo
           if (data.xInfo && typeof data.xInfo === 'object') {
             usersOnPage = [data];
             console.log(`[HeyElsa ${period}] Single user object detected, wrapping in array`);
@@ -233,8 +301,6 @@ async function scrapeHeyElsa(period, maxPages = 20) {
         allUsers.push(...usersOnPage);
         console.log(`[HeyElsa ${period}] ✅ Page ${currentPage}: ${usersOnPage.length} users (total: ${allUsers.length})`);
 
-        // Check if we've reached the end of available data
-        // If we got fewer results than the page size, we've reached the end
         if (usersOnPage.length < pageSize) {
           console.log(`[HeyElsa ${period}] Reached end of data at page ${currentPage}`);
           break;
@@ -312,8 +378,8 @@ app.get('/scrape-all-async', async (req, res) => {
         await sleep(2000);
       }
 
-      // DuelDuck
-      results.duelduck = await scrapeDuelDuck();
+      // DuelDuck (now with pagination)
+      results.duelduck = await scrapeDuelDuck(10);
       await sleep(3000);
 
       // Adichain
@@ -403,8 +469,8 @@ app.get('/scrape-all', async (req, res) => {
       await sleep(2000);
     }
 
-    // DuelDuck
-    results.duelduck = await scrapeDuelDuck();
+    // DuelDuck (now with pagination)
+    results.duelduck = await scrapeDuelDuck(10);
     await sleep(3000);
 
     // Adichain
@@ -460,8 +526,9 @@ app.get('/scrape/yappers', async (req, res) => {
 });
 
 app.get('/scrape/duelduck', async (req, res) => {
+  const maxPages = parseInt(req.query.maxPages || '10');
   try {
-    const data = await scrapeDuelDuck();
+    const data = await scrapeDuelDuck(maxPages);
     res.json({ success: true, count: data?.length || 0, data });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
