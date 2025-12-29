@@ -269,11 +269,11 @@ async function storeMindoshareData(users) {
 
   // Frontend expects lowercase field names: mindometric, rank_delta, kol_score
   const records = users.map((user) => ({
-    username: user.twitterUsername,        // API: twitterUsername -> DB: username
-    rank: user.rank,                       // API: rank -> DB: rank
-    mindometric: user.mindoMetric,         // API: mindoMetric -> DB: mindometric (lowercase!)
-    rankdelta: user.rankDelta || 0,        // API: rankDelta -> DB: rankdelta (lowercase!)
-    kolscore: user.kolScore || 0,          // API: kolScore -> DB: kolscore (lowercase!)
+    username: user.twitterUsername,                    // API: twitterUsername -> DB: username
+    rank: parseInt(user.rank) || 0,                    // API: rank -> DB: rank (ensure integer)
+    mindometric: parseFloat(user.mindoMetric) || 0,    // API: mindoMetric -> DB: mindometric (float)
+    rankdelta: parseInt(user.rankDelta) || 0,          // API: rankDelta -> DB: rankdelta (ensure integer)
+    kolscore: parseInt(user.kolScore) || 0,            // API: kolScore -> DB: kolscore (ensure integer)
     fetched_at
   }));
 
