@@ -7,11 +7,10 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// ✅ Convert period strings to days (matching contract logic)
 const PERIOD_TO_DAYS = {
-  'epoch-2': 2,   // Period 0 = Epoch 2 = 2 days
-  '7d': 7,        // Period 7 = 7 days
-  '30d': 30       // Period 30 = 30 days
+  'epoch-2': 2,
+  '7d': 7,
+  '30d': 30
 };
 
 export async function POST(request) {
@@ -34,10 +33,11 @@ export async function POST(request) {
       duelduck: null,
       adichain: null,
       heyelsa: {},
+      mindoshare: null,
       timestamp: new Date().toISOString()
     };
 
-    // Store Yappers data (7d and 30d)
+    // Store Yappers data
     if (scrapedData.results?.yappers) {
       for (const [days, yappersData] of Object.entries(scrapedData.results.yappers)) {
         if (yappersData.data && yappersData.data.length > 0) {
@@ -62,13 +62,12 @@ export async function POST(request) {
       console.log(`✅ Stored ${scrapedData.results.adichain.count} Adichain users`);
     }
 
-    // ✅ Store HeyElsa data with days conversion and JSONB structure
+    // Store HeyElsa data
     if (scrapedData.results?.heyelsa) {
       for (const [period, heyelsaData] of Object.entries(scrapedData.results.heyelsa)) {
         if (heyelsaData.data && heyelsaData.data.length > 0) {
           const periodSnapshotId = crypto.randomUUID();
           const days = PERIOD_TO_DAYS[period];
-          
           await storeHeyElsaData(heyelsaData.data, period, days, periodSnapshotId);
           results.heyelsa[period] = { 
             success: true, 
@@ -79,6 +78,13 @@ export async function POST(request) {
           console.log(`✅ Stored ${heyelsaData.count} HeyElsa users (${period} = ${days}d) - Snapshot: ${periodSnapshotId}`);
         }
       }
+    }
+
+    // Store Mindoshare data
+    if (scrapedData.results?.mindoshare?.data) {
+      await storeMindoshareData(scrapedData.results.mindoshare.data);
+      results.mindoshare = { success: true, count: scrapedData.results.mindoshare.count };
+      console.log(`✅ Stored ${scrapedData.results.mindoshare.count} Mindoshare users`);
     }
 
     console.log('✅ All data stored successfully in Supabase');
@@ -177,58 +183,70 @@ async function storeAdichainData(users) {
   );
 }
 
-// ✅ HeyElsa with JSONB structure (FIXED!)
 async function storeHeyElsaData(users, period, days, snapshotId) {
   const fetched_at = new Date().toISOString();
   
-  console.log(`[HeyElsa] Storing ${users.length} users for ${period} (${days}d)`);
-  
-  // ✅ NEW: Store xInfo as JSONB instead of flattening
   const records = users.map(user => ({
-    username: user.xInfo?.username,       // Extract for indexing
-    x_info: user.xInfo,                   // ← Store entire xInfo as JSONB
+    username: user.xInfo?.username,
+    x_info: user.xInfo,
     mindshare_percentage: user.mindsharePercentage,
     relative_mindshare: user.relativeMindshare,
     app_use_multiplier: user.appUseMultiplier,
     position: user.position,
-    position_change: user.positionChange === 'new' ? null : user.positionChange,  // ✅ Handle "new"
-    days: days,                           // 2, 7, or 30
+    position_change: user.positionChange === 'new' ? null : user.positionChange,
+    days,
     snapshot_id: snapshotId,
-    fetched_at: fetched_at
+    fetched_at
   }));
 
-  console.log(`[HeyElsa] Sample record:`, JSON.stringify(records[0], null, 2));
-
-  // Insert with error handling
   const { data: insertedData, error: insertError } = await supabase
     .from('heyelsa_leaderboard')
     .insert(records)
     .select();
 
-  if (insertError) {
-    console.error('[HeyElsa] ❌ Insert error:', JSON.stringify(insertError, null, 2));
-    throw insertError;
-  }
+  if (insertError) throw insertError;
 
-  console.log(`[HeyElsa] ✅ Successfully inserted ${insertedData?.length || 0} records`);
-
-  // Update cache
-  const { error: cacheError } = await supabase
-    .from('leaderboard_cache')
-    .upsert({
+  await supabase.from('leaderboard_cache').upsert(
+    {
       cache_type: 'heyelsa',
-      days: days,
+      days,
       last_updated: fetched_at,
       snapshot_id: snapshotId,
       record_count: records.length
-    }, {
-      onConflict: 'cache_type,days'
-    });
-
-  if (cacheError) {
-    console.error('[HeyElsa] ❌ Cache error:', cacheError);
-    throw cacheError;
-  }
+    },
+    { onConflict: 'cache_type,days' }
+  );
 
   return snapshotId;
+}
+
+// Store Mindoshare/PerceptronNTWK data
+async function storeMindoshareData(users) {
+  const fetched_at = new Date().toISOString();
+
+  const records = users.map((user, index) => ({
+    username: user.twitterUsername,
+    rank: user.rank || index + 1,
+    mindo_metric: user.mindoMetric,
+    rank_delta: user.rankDelta === null || user.rankDelta === undefined ? 0 : user.rankDelta,
+    kol_score: user.kolScore,
+    fetched_at
+  }));
+
+  const { data: insertedData, error: insertError } = await supabase
+    .from('mindoshare_leaderboard')
+    .insert(records)
+    .select();
+
+  if (insertError) throw insertError;
+
+  await supabase.from('leaderboard_cache').upsert(
+    {
+      cache_type: 'PerceptronNTWK',
+      days: 0,
+      last_updated: fetched_at,
+      record_count: records.length
+    },
+    { onConflict: 'cache_type,days' }
+  );
 }
