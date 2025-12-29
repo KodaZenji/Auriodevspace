@@ -69,22 +69,26 @@ export async function GET(request) {
 
     // Trigger Railway scraper
     const railwayUrl = process.env.RAILWAY_SCRAPER_URL;
-    const webhookUrl = 'https://auriodevspace.vercel.app/api/webhook/scraper-complete';
+    const webhookUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://auriodevspace.vercel.app'}/api/webhook/scraper-complete`;
     
     if (!railwayUrl) throw new Error('RAILWAY_SCRAPER_URL not configured');
 
     console.log('🚂 Triggering Railway scraper...');
-    console.log('🔗 URL:', `${railwayUrl}/scrape-all-async?webhook=${encodeURIComponent(webhookUrl)}`);
+    console.log('🔗 URL:', `${railwayUrl}/scrape`);
 
     const triggerResponse = await fetch(
-      `${railwayUrl}/scrape-all-async?webhook=${encodeURIComponent(webhookUrl)}`,
+      `${railwayUrl}/scrape`,
       { 
-        method: 'GET', 
-        signal: AbortSignal.timeout(30000),  // Increased to 30 seconds
+        method: 'POST',
+        signal: AbortSignal.timeout(30000),
         headers: {
           'Accept': 'application/json',
+          'Content-Type': 'application/json',
           'User-Agent': 'Vercel-Cron/1.0'
-        }
+        },
+        body: JSON.stringify({
+          webhook: webhookUrl
+        })
       }
     );
 
