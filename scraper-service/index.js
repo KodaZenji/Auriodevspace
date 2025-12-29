@@ -352,14 +352,21 @@ async function scrapeMindoshare(maxPages = 12) {
         
         const json = await response.json();
         
-        // Handle different possible response structures
+        // Handle MindoShare API response structure
         let usersOnPage = [];
-        if (json.data && Array.isArray(json.data)) {
+        if (json.currentLeaderboard && Array.isArray(json.currentLeaderboard)) {
+          usersOnPage = json.currentLeaderboard;
+        } else if (json.data && Array.isArray(json.data)) {
           usersOnPage = json.data;
         } else if (json.entries && Array.isArray(json.entries)) {
           usersOnPage = json.entries;
         } else if (Array.isArray(json)) {
           usersOnPage = json;
+        }
+        
+        // Log sample data structure for debugging
+        if (pageNum === 1 && usersOnPage.length > 0) {
+          console.log('[Mindoshare] Sample data structure:', JSON.stringify(usersOnPage[0]).substring(0, 200));
         }
         
         if (usersOnPage.length === 0) {
@@ -459,13 +466,21 @@ async function scrapeMindosharePlaywright(maxPages = 12) {
         const bodyText = await page.evaluate(() => document.body.textContent);
         const json = JSON.parse(bodyText);
 
+        // Handle MindoShare API response structure
         let usersOnPage = [];
-        if (json.data && Array.isArray(json.data)) {
+        if (json.currentLeaderboard && Array.isArray(json.currentLeaderboard)) {
+          usersOnPage = json.currentLeaderboard;
+        } else if (json.data && Array.isArray(json.data)) {
           usersOnPage = json.data;
         } else if (json.entries && Array.isArray(json.entries)) {
           usersOnPage = json.entries;
         } else if (Array.isArray(json)) {
           usersOnPage = json;
+        }
+
+        // Log sample data structure for debugging
+        if (pageNum === 1 && usersOnPage.length > 0) {
+          console.log('[Mindoshare/Playwright] Sample data structure:', JSON.stringify(usersOnPage[0]).substring(0, 200));
         }
 
         if (usersOnPage.length === 0) {
