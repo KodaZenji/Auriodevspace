@@ -78,14 +78,35 @@ export async function GET(request) {
 
     const triggerResponse = await fetch(
       `${railwayUrl}/scrape-all-async?webhook=${encodeURIComponent(webhookUrl)}`,
-      { method: 'GET', signal: AbortSignal.timeout(10000) }
+      { 
+        method: 'GET', 
+        signal: AbortSignal.timeout(30000),  // Increased to 30 seconds
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'Vercel-Cron/1.0'
+        }
+      }
     );
 
+    console.log('📡 Response status:', triggerResponse.status);
+    
+    // Get response text for better debugging
+    const responseText = await triggerResponse.text();
+    console.log('📡 Response body:', responseText);
+
     if (!triggerResponse.ok) {
-      throw new Error(`Railway trigger failed: ${triggerResponse.status}`);
+      throw new Error(`Railway trigger failed: ${triggerResponse.status} - ${responseText}`);
     }
 
-    const triggerResult = await triggerResponse.json();
+    // Parse the response
+    let triggerResult;
+    try {
+      triggerResult = JSON.parse(responseText);
+    } catch (e) {
+      console.warn('Could not parse JSON response, using text');
+      triggerResult = { raw: responseText };
+    }
+
     console.log('✅ Railway scraper triggered successfully');
 
     return NextResponse.json({
