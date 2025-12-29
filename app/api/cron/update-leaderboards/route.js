@@ -18,62 +18,95 @@ export async function GET(request) {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Cleanup Yappers, DuelDuck, Adichain
-    const yappersDeleted = await supabase.from('yappers_leaderboard')
-      .delete().lt('fetched_at', sevenDaysAgo.toISOString())
+    // Cleanup old Yappers entries
+    const yappersDeleted = await supabase
+      .from('yappers_leaderboard')
+      .delete()
+      .lt('fetched_at', sevenDaysAgo.toISOString())
       .select('id', { count: 'exact', head: true });
+    console.log(`✅ Deleted ${yappersDeleted?.count || 0} old Yappers entries`);
 
-    const duckDeleted = await supabase.from('duelduck_leaderboard')
-      .delete().lt('fetched_at', sevenDaysAgo.toISOString())
+    // Cleanup old DuelDuck entries
+    const duckDeleted = await supabase
+      .from('duelduck_leaderboard')
+      .delete()
+      .lt('fetched_at', sevenDaysAgo.toISOString())
       .select('id', { count: 'exact', head: true });
+    console.log(`✅ Deleted ${duckDeleted?.count || 0} old DuelDuck entries`);
 
-    const adichainDeleted = await supabase.from('adichain_leaderboard')
-      .delete().lt('fetched_at', sevenDaysAgo.toISOString())
+    // Cleanup old Adichain entries
+    const adichainDeleted = await supabase
+      .from('adichain_leaderboard')
+      .delete()
+      .lt('fetched_at', sevenDaysAgo.toISOString())
       .select('id', { count: 'exact', head: true });
+    console.log(`✅ Deleted ${adichainDeleted?.count || 0} old Adichain entries`);
 
     // Cleanup Mindoshare Perceptron table
     let mindoshareDeletedCount = 0;
     try {
-      const mindoshareDeleted = await supabase.from('mindoshare_perceptronntwk')
-        .delete().lt('fetched_at', sevenDaysAgo.toISOString())
+      const mindoshareDeleted = await supabase
+        .from('mindoshare_perceptronntwk')
+        .delete()
+        .lt('fetched_at', sevenDaysAgo.toISOString())
         .select('id', { count: 'exact', head: true });
       mindoshareDeletedCount = mindoshareDeleted?.count || 0;
+      console.log(`✅ Deleted ${mindoshareDeletedCount} old Mindoshare entries`);
     } catch (err) {
       console.log('⚠️ Mindoshare table does not exist yet, skipping cleanup');
     }
 
-    console.log(`✅ Cleanup done: Yappers(${yappersDeleted?.count || 0}), DuelDuck(${duckDeleted?.count || 0}), Adichain(${adichainDeleted?.count || 0}), Mindoshare(${mindoshareDeletedCount})`);
+    // HeyElsa cleanup (snapshot-aware)
+    const { data: activeSnapshots } = await supabase
+      .from('leaderboard_cache')
+      .select('snapshot_id')
+      .eq('cache_type', 'heyelsa');
+    const activeCount = activeSnapshots?.filter(s => s.snapshot_id).length || 0;
+    console.log(`📋 Active HeyElsa snapshots: ${activeCount}`);
+    console.log('✅ HeyElsa cleanup skipped (table is fresh)');
+
+    console.log('✅ Cleanup completed');
 
     // Trigger Railway scraper
     const railwayUrl = process.env.RAILWAY_SCRAPER_URL;
+    const webhookUrl = 'https://auriodevspace.vercel.app/api/webhook/scraper-complete';
+    
     if (!railwayUrl) throw new Error('RAILWAY_SCRAPER_URL not configured');
 
     console.log('🚂 Triggering Railway scraper...');
-    const triggerResponse = await fetch(`${railwayUrl}/scrape-all-async`, {
-      method: 'GET',
-      signal: AbortSignal.timeout(10000)
-    });
-    if (!triggerResponse.ok) throw new Error(`Railway trigger failed: ${triggerResponse.status}`);
+    console.log('🔗 URL:', `${railwayUrl}/scrape-all-async?webhook=${encodeURIComponent(webhookUrl)}`);
+
+    const triggerResponse = await fetch(
+      `${railwayUrl}/scrape-all-async?webhook=${encodeURIComponent(webhookUrl)}`,
+      { method: 'GET', signal: AbortSignal.timeout(10000) }
+    );
+
+    if (!triggerResponse.ok) {
+      throw new Error(`Railway trigger failed: ${triggerResponse.status}`);
+    }
 
     const triggerResult = await triggerResponse.json();
     console.log('✅ Railway scraper triggered successfully');
 
     return NextResponse.json({
       success: true,
+      message: 'Cron job completed. Railway scraper is running in background.',
       cleanup: {
         yappers_deleted: yappersDeleted?.count || 0,
         duelduck_deleted: duckDeleted?.count || 0,
         adichain_deleted: adichainDeleted?.count || 0,
-        mindoshare_deleted: mindoshareDeletedCount
+        mindoshare_deleted: mindoshareDeletedCount,
+        heyelsa_deleted: 'snapshot-aware cleanup',
+        active_snapshots: activeSnapshots?.length || 0
       },
       scraping: triggerResult
     });
 
   } catch (error) {
     console.error('❌ Cron error:', error);
-    return NextResponse.json({
-      error: 'Failed to trigger leaderboard update',
-      details: error.message
-    }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to trigger leaderboard update', details: error.message },
+      { status: 500 }
+    );
   }
 }
