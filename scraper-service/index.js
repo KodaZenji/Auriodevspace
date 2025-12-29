@@ -315,27 +315,27 @@ async function scrapeHeyElsa(period, maxPages = 20) {
   }
 }
 
-// ============= MINDOSHARE (PERCEPTRON) =============
-async function scrapeMindoshare(maxPages = 6) {
+// ============= MINDOSHARE (PERCEPTRON) - UPDATED =============
+async function scrapeMindoshare(maxPages = 12) {
   let browser;
   
   try {
-    console.log('[Mindoshare] Starting direct fetch...');
+    console.log('[Mindoshare] Starting direct fetch from MindoShare API...');
     
-    // Try direct fetch first
     const allUsers = [];
+    const pageSize = 50;
     
     for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
       console.log(`[Mindoshare] Fetching page ${pageNum}/${maxPages}...`);
       
-      const url = `https://perceptron.top/api/mindoshare/twitter?page=${pageNum}`;
+      const url = `https://mindoshare.ai/api/leaderboards/92e433f6-9bc6-4e53-800c-15b23b88c05b/all?page=${pageNum}&pageSize=${pageSize}`;
       
       try {
         const response = await fetch(url, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'application/json',
-            'Referer': 'https://perceptron.top/'
+            'Referer': 'https://mindoshare.ai/'
           }
         });
         
@@ -352,15 +352,25 @@ async function scrapeMindoshare(maxPages = 6) {
         
         const json = await response.json();
         
-        if (!json.data || json.data.length === 0) {
+        // Handle different possible response structures
+        let usersOnPage = [];
+        if (json.data && Array.isArray(json.data)) {
+          usersOnPage = json.data;
+        } else if (json.entries && Array.isArray(json.entries)) {
+          usersOnPage = json.entries;
+        } else if (Array.isArray(json)) {
+          usersOnPage = json;
+        }
+        
+        if (usersOnPage.length === 0) {
           console.log(`[Mindoshare] No more data at page ${pageNum}`);
           break;
         }
         
-        allUsers.push(...json.data);
-        console.log(`[Mindoshare] ✅ Page ${pageNum}: ${json.data.length} users (total: ${allUsers.length})`);
+        allUsers.push(...usersOnPage);
+        console.log(`[Mindoshare] ✅ Page ${pageNum}: ${usersOnPage.length} users (total: ${allUsers.length})`);
         
-        if (json.data.length < 20) {
+        if (usersOnPage.length < pageSize) {
           console.log('[Mindoshare] Reached end of data');
           break;
         }
@@ -388,7 +398,7 @@ async function scrapeMindoshare(maxPages = 6) {
 }
 
 // Playwright fallback for Mindoshare
-async function scrapeMindosharePlaywright(maxPages = 6) {
+async function scrapeMindosharePlaywright(maxPages = 12) {
   let browser;
   
   try {
@@ -421,11 +431,12 @@ async function scrapeMindosharePlaywright(maxPages = 6) {
 
     const page = await context.newPage();
     const allUsers = [];
+    const pageSize = 50;
 
     for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
       console.log(`[Mindoshare/Playwright] Page ${pageNum}/${maxPages}...`);
 
-      const url = `https://perceptron.top/api/mindoshare/twitter?page=${pageNum}`;
+      const url = `https://mindoshare.ai/api/leaderboards/92e433f6-9bc6-4e53-800c-15b23b88c05b/all?page=${pageNum}&pageSize=${pageSize}`;
 
       try {
         const response = await page.goto(url, {
@@ -448,15 +459,24 @@ async function scrapeMindosharePlaywright(maxPages = 6) {
         const bodyText = await page.evaluate(() => document.body.textContent);
         const json = JSON.parse(bodyText);
 
-        if (!json.data || json.data.length === 0) {
+        let usersOnPage = [];
+        if (json.data && Array.isArray(json.data)) {
+          usersOnPage = json.data;
+        } else if (json.entries && Array.isArray(json.entries)) {
+          usersOnPage = json.entries;
+        } else if (Array.isArray(json)) {
+          usersOnPage = json;
+        }
+
+        if (usersOnPage.length === 0) {
           console.log(`[Mindoshare/Playwright] No more data at page ${pageNum}`);
           break;
         }
 
-        allUsers.push(...json.data);
-        console.log(`[Mindoshare/Playwright] ✅ Page ${pageNum}: ${json.data.length} users (total: ${allUsers.length})`);
+        allUsers.push(...usersOnPage);
+        console.log(`[Mindoshare/Playwright] ✅ Page ${pageNum}: ${usersOnPage.length} users (total: ${allUsers.length})`);
 
-        if (json.data.length < 20) {
+        if (usersOnPage.length < pageSize) {
           console.log(`[Mindoshare/Playwright] Reached end of data`);
           break;
         }
@@ -515,9 +535,9 @@ async function performScraping() {
     }
   }
 
-  // Mindoshare
+  // Mindoshare - Updated to use 12 pages with pageSize 50
   console.log('\n--- Starting Mindoshare ---');
-  results.mindoshare = await scrapeMindoshare(6);
+  results.mindoshare = await scrapeMindoshare(12);
   await sleep(3000);
 
   return {
@@ -704,7 +724,7 @@ app.get('/scrape/heyelsa', async (req, res) => {
 });
 
 app.get('/scrape/mindoshare', async (req, res) => {
-  const maxPages = parseInt(req.query.maxPages || '6');
+  const maxPages = parseInt(req.query.maxPages || '12');
   try {
     const data = await scrapeMindoshare(maxPages);
     res.json({ success: true, count: data?.length || 0, data });
