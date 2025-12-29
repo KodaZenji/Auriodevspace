@@ -5,6 +5,8 @@ const { chromium } = require('playwright');
 const app = express();
 const PORT = 8080;
 
+app.use(express.json());
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -197,11 +199,114 @@ async function scrapeMindosharePlaywright(maxPages = 12, limit = 50) {
   }
 }
 
+// ============= SCRAPE ALL PROJECTS =============
+async function scrapeAllProjects(webhook) {
+  console.log('🔄 Starting to scrape all projects...');
+  const results = {};
+
+  try {
+    // Scrape Yappers
+    console.log('📊 Scraping Yappers...');
+    results.yappers = await scrapeYappers(7);
+    console.log(`✅ Yappers: ${results.yappers?.length || 0} entries`);
+
+    // Scrape DuelDuck
+    console.log('🦆 Scraping DuelDuck...');
+    results.duelduck = await scrapeDuelDuck(10);
+    console.log(`✅ DuelDuck: ${results.duelduck?.length || 0} entries`);
+
+    // Scrape Adichain
+    console.log('⛓️  Scraping Adichain...');
+    results.adichain = await scrapeAdichain(15);
+    console.log(`✅ Adichain: ${results.adichain?.length || 0} entries`);
+
+    // Scrape HeyElsa
+    console.log('❄️  Scraping HeyElsa...');
+    results.heyelsa = await scrapeHeyElsa('7d', 20);
+    console.log(`✅ HeyElsa: ${results.heyelsa?.length || 0} entries`);
+
+    // Scrape Mindoshare
+    console.log('🧠 Scraping Mindoshare...');
+    results.mindoshare = await scrapeMindoshare(6, 50);
+    console.log(`✅ Mindoshare: ${results.mindoshare?.length || 0} entries`);
+
+    // Send results to webhook
+    if (webhook) {
+      console.log('📤 Sending results to webhook:', webhook);
+      const webhookResponse = await fetch(webhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(results)
+      });
+
+      if (webhookResponse.ok) {
+        console.log('✅ Webhook notification sent successfully');
+      } else {
+        console.error('❌ Webhook failed:', webhookResponse.status);
+      }
+    }
+
+    console.log('🎉 All scraping completed!');
+    return results;
+  } catch (error) {
+    console.error('❌ Error during scraping:', error);
+    
+    // Still try to send partial results to webhook
+    if (webhook) {
+      try {
+        await fetch(webhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ error: error.message, partial_results: results })
+        });
+      } catch (webhookError) {
+        console.error('❌ Failed to send error to webhook:', webhookError);
+      }
+    }
+    
+    throw error;
+  }
+}
+
 // ============= API ENDPOINTS =============
 app.get('/health', (_, res) => {
   res.json({ status: 'ok' });
 });
 
+// NEW: Main scrape endpoint with webhook support
+app.post('/scrape', async (req, res) => {
+  try {
+    const { webhook } = req.body;
+    
+    if (!webhook) {
+      return res.status(400).json({ 
+        error: 'Webhook URL is required',
+        message: 'Please provide a webhook URL in the request body'
+      });
+    }
+
+    // Respond immediately
+    res.json({ 
+      status: 'started',
+      message: 'Scraping all projects in background',
+      webhook
+    });
+
+    // Run scraping in background
+    scrapeAllProjects(webhook).catch(err => {
+      console.error('Background scraping error:', err);
+    });
+
+  } catch (error) {
+    console.error('Error starting scrape:', error);
+    res.status(500).json({ 
+      error: 'Failed to start scraping',
+      details: error.message 
+    });
+  }
+});
+
+// Individual project endpoints (kept for backward compatibility)
 app.get('/scrape/yappers', async (req, res) => {
   const days = parseInt(req.query.days || '7');
   const data = await scrapeYappers(days);
