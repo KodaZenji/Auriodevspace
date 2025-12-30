@@ -25,5 +25,9 @@ module.exports = {
   mindoshare: {
     maxPages: 12,
     delay: 3000
+  },
+  helios: {
+    maxPages: 12,
+    delay: 3000
   }
 };
