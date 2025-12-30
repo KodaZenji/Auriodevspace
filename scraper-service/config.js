@@ -1,0 +1,24 @@
+module.exports = {
+  yappers: {
+    periods: [7, 30],
+    delay: 2000
+  },
+  duelduck: {
+    maxPages: 10,
+    useProxy: true,
+    delay: 3000
+  },
+  adichain: {
+    maxPages: 15,
+    delay: 5000
+  },
+  heyelsa: {
+    periods: ['epoch-2', '7d', '30d'],
+    maxPages: 20,
+    periodDelay: 10000
+  },
+  mindoshare: {
+    maxPages: 12,
+    delay: 3000
+  }
+};
