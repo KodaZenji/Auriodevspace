@@ -17,6 +17,11 @@ module.exports = {
     maxPages: 20,
     periodDelay: 10000
   },
+  beyond: {                          // ← ADD THIS
+    periods: ['epoch-2', '7d', '30d'],
+    maxPages: 20,
+    periodDelay: 10000
+  },
   mindoshare: {
     maxPages: 12,
     delay: 3000
