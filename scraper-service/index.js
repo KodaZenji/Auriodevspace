@@ -8,6 +8,7 @@ const { scrapeDuelDuck } = require('./scrapers/duelduck');
 const { scrapeAdichain } = require('./scrapers/adichain');
 const { scrapeHeyElsa } = require('./scrapers/heyelsa');
 const { scrapeMindoshare } = require('./scrapers/mindoshare');
+const { scrapeBeyond } = require('./scrapers/beyond');
 
 const app = express();
 app.use(express.json());
@@ -22,6 +23,7 @@ async function performScraping() {
     duelduck: null,
     adichain: null,
     heyelsa: {},
+    beyond: {},
     mindoshare: null
   };
 
@@ -49,6 +51,16 @@ async function performScraping() {
     }
   }
 
+  // Beyond
+  for (const period of config.beyond.periods) {
+    console.log(`\n--- Starting Beyond ${period} ---`);
+    results.beyond[period] = await scrapeBeyond(period, config.beyond.maxPages);
+    
+    if (period !== '30d') {
+      await sleep(config.beyond.periodDelay);
+    }
+  }
+
   // Mindoshare
   console.log('\n--- Starting Mindoshare ---');
   results.mindoshare = await scrapeMindoshare(config.mindoshare.maxPages);
@@ -66,6 +78,11 @@ async function performScraping() {
         'epoch-2': { count: results.heyelsa['epoch-2']?.length || 0, data: results.heyelsa['epoch-2'] },
         '7d': { count: results.heyelsa['7d']?.length || 0, data: results.heyelsa['7d'] },
         '30d': { count: results.heyelsa['30d']?.length || 0, data: results.heyelsa['30d'] }
+      },
+      beyond: {   
+        'epoch-2': { count: results.beyond['epoch-2']?.length || 0, data: results.beyond['epoch-2'] },
+        '7d': { count: results.beyond['7d']?.length || 0, data: results.beyond['7d'] },
+        '30d': { count: results.beyond['30d']?.length || 0, data: results.beyond['30d'] }
       },
       mindoshare: { count: results.mindoshare?.length || 0, data: results.mindoshare }
     }
@@ -154,7 +171,11 @@ app.get('/scrape/heyelsa', async (req, res) => {
   const data = await scrapeHeyElsa(period, config.heyelsa.maxPages);
   res.json({ success: true, period, count: data?.length || 0, data });
 });
-
+app.get('/scrape/beyond', async (req, res) => {
+  const period = req.query.period || '7d';
+  const data = await scrapeBeyond(period, config.beyond.maxPages);
+  res.json({ success: true, period, count: data?.length || 0, data });
+});
 app.get('/scrape/mindoshare', async (req, res) => {
   const data = await scrapeMindoshare(config.mindoshare.maxPages);
   res.json({ success: true, count: data?.length || 0, data });
