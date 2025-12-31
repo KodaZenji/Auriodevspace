@@ -56,6 +56,71 @@ export async function GET(request) {
       console.log('⚠️ Mindoshare table cleanup skipped:', err.message);
     }
 
+    // Cleanup Space entries
+    let spaceDeletedCount = 0;
+    try {
+      const spaceDeleted = await supabase
+        .from('space_leaderboard')
+        .delete()
+        .lt('fetched_at', sevenDaysAgo.toISOString())
+        .select('id', { count: 'exact', head: true });
+      spaceDeletedCount = spaceDeleted?.count || 0;
+      console.log(`✅ Deleted ${spaceDeletedCount} old Space entries`);
+    } catch (err) {
+      console.log('⚠️ Space table cleanup skipped:', err.message);
+    }
+
+    // Cleanup Helios entries
+    let heliosDeletedCount = 0;
+    try {
+      const heliosDeleted = await supabase
+        .from('helios_leaderboard')
+        .delete()
+        .lt('fetched_at', sevenDaysAgo.toISOString())
+        .select('id', { count: 'exact', head: true });
+      heliosDeletedCount = heliosDeleted?.count || 0;
+      console.log(`✅ Deleted ${heliosDeletedCount} old Helios entries`);
+    } catch (err) {
+      console.log('⚠️ Helios table cleanup skipped:', err.message);
+    }
+
+    // Cleanup C8ntinuum entries
+    let c8ntinuumDeletedCount = 0;
+    try {
+      const c8ntinuumDeleted = await supabase
+        .from('c8ntinuum_leaderboard')
+        .delete()
+        .lt('fetched_at', sevenDaysAgo.toISOString())
+        .select('id', { count: 'exact', head: true });
+      c8ntinuumDeletedCount = c8ntinuumDeleted?.count || 0;
+      console.log(`✅ Deleted ${c8ntinuumDeletedCount} old C8ntinuum entries`);
+    } catch (err) {
+      console.log('⚠️ C8ntinuum table cleanup skipped:', err.message);
+    }
+
+    // Cleanup DeepnodeAI entries
+    let deepnodeaiDeletedCount = 0;
+    try {
+      const deepnodeaiDeleted = await supabase
+        .from('deepnodeai_leaderboard')
+        .delete()
+        .lt('fetched_at', sevenDaysAgo.toISOString())
+        .select('id', { count: 'exact', head: true });
+      deepnodeaiDeletedCount = deepnodeaiDeleted?.count || 0;
+      console.log(`✅ Deleted ${deepnodeaiDeletedCount} old DeepnodeAI entries`);
+    } catch (err) {
+      console.log('⚠️ DeepnodeAI table cleanup skipped:', err.message);
+    }
+
+    // Beyond cleanup (snapshot-aware)
+    const { data: activeBeyondSnapshots } = await supabase
+      .from('leaderboard_cache')
+      .select('snapshot_id')
+      .eq('cache_type', 'beyond');
+    const activeBeyondCount = activeBeyondSnapshots?.filter(s => s.snapshot_id).length || 0;
+    console.log(`📋 Active Beyond snapshots: ${activeBeyondCount}`);
+    console.log('✅ Beyond cleanup skipped (snapshot-aware)');
+
     // HeyElsa cleanup (snapshot-aware)
     const { data: activeSnapshots } = await supabase
       .from('leaderboard_cache')
@@ -118,8 +183,14 @@ export async function GET(request) {
         duelduck_deleted: duckDeleted?.count || 0,
         adichain_deleted: adichainDeleted?.count || 0,
         mindoshare_perceptronntwk_deleted: mindoshareDeletedCount,
+        space_deleted: spaceDeletedCount,
+        helios_deleted: heliosDeletedCount,
+        c8ntinuum_deleted: c8ntinuumDeletedCount,
+        deepnodeai_deleted: deepnodeaiDeletedCount,
+        beyond_deleted: 'snapshot-aware cleanup',
         heyelsa_deleted: 'snapshot-aware cleanup',
-        active_snapshots: activeSnapshots?.length || 0
+        active_beyond_snapshots: activeBeyondSnapshots?.length || 0,
+        active_heyelsa_snapshots: activeSnapshots?.length || 0
       },
       scraping: triggerResult,
       note: 'Data will be stored via webhook when scraping completes (~10-15 minutes)'
@@ -136,4 +207,3 @@ export async function GET(request) {
     );
   }
 }
-
