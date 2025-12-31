@@ -1,10 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
+// ========================================
+// FILE: app/api/leaderboards/route.ts
+// Refactored to use reusable helper functions
+// ========================================
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { NextResponse } from 'next/server';
+import { fetchLeaderboard } from './helpers';
 
 const PERIOD_TO_DAYS = {
   'epoch-2': 2,
@@ -26,109 +26,37 @@ export async function GET(request) {
   }
 
   try {
-    // Get cache entries
-    const { data: yappersCache } = await supabase
-      .from('leaderboard_cache')
-      .select('last_updated')
-      .eq('cache_type', 'yappers')
-      .eq('days', days)
-      .single();
+    // Fetch all leaderboards in parallel
+    const [
+      yappers,
+      duelduck,
+      adichain,
+      heyelsa,
+      mindoshare,
+      space,
+      helios,
+      c8ntinuum,
+      deepnodeai,
+      beyond
+    ] = await Promise.all([
+      fetchLeaderboard('yappers', days),
+      fetchLeaderboard('duelduck'),
+      fetchLeaderboard('adichain'),
+      fetchLeaderboard('heyelsa', elsaDays),
+      fetchLeaderboard('mindoshare'),
+      fetchLeaderboard('space'),
+      fetchLeaderboard('helios'),
+      fetchLeaderboard('c8ntinuum'),
+      fetchLeaderboard('deepnodeai'),
+      fetchLeaderboard('beyond', elsaDays)
+    ]);
 
-    const { data: duelDuckCache } = await supabase
-      .from('leaderboard_cache')
-      .select('last_updated')
-      .eq('cache_type', 'duelduck')
-      .eq('days', 0)
-      .single();
-
-    const { data: adichainCache } = await supabase
-      .from('leaderboard_cache')
-      .select('last_updated')
-      .eq('cache_type', 'adichain')
-      .eq('days', 0)
-      .single();
-
-    const { data: heyelsaCache } = await supabase
-      .from('leaderboard_cache')
-      .select('last_updated, snapshot_id')
-      .eq('cache_type', 'heyelsa')
-      .eq('days', elsaDays)
-      .single();
-
-    const { data: mindoshareCache } = await supabase
-      .from('leaderboard_cache')
-      .select('last_updated')
-      .eq('cache_type', 'PerceptronNTWK')
-      .eq('days', 0)
-      .single();
-
-    if (!yappersCache || !duelDuckCache || !adichainCache) {
+    // Check if core leaderboards are available
+    if (!yappers || !duelduck || !adichain) {
       return NextResponse.json(
-        { error: 'No cached data available' },
+        { error: 'No cached data available for core leaderboards' },
         { status: 404 }
       );
-    }
-
-    // Fetch Yappers
-    const { data: yappersData } = await supabase
-      .from('yappers_leaderboard')
-      .select('*')
-      .eq('days', days)
-      .eq('fetched_at', yappersCache.last_updated)
-      .order('rank', { ascending: true });
-
-    // Fetch DuelDuck
-    const { data: duelDuckData } = await supabase
-      .from('duelduck_leaderboard')
-      .select('*')
-      .eq('fetched_at', duelDuckCache.last_updated)
-      .order('total_score', { ascending: false });
-
-    // Fetch Adichain
-    const { data: adichainData } = await supabase
-      .from('adichain_leaderboard')
-      .select('*')
-      .eq('fetched_at', adichainCache.last_updated)
-      .order('rank_total', { ascending: true });
-
-    // Fetch HeyElsa with JSONB data
-    let heyelsaData = [];
-    if (heyelsaCache) {
-      const { data: heyelsaResult } = await supabase
-        .from('heyelsa_leaderboard')
-        .select('*')
-        .eq('snapshot_id', heyelsaCache.snapshot_id)
-        .eq('days', elsaDays)
-        .order('position', { ascending: true });
-
-      heyelsaData = heyelsaResult?.map(row => ({
-        id: row.id,
-        username: row.username,
-        name: row.x_info?.name,
-        image_url: row.x_info?.imageUrl,
-        rank: row.x_info?.rank,
-        score: row.x_info?.score,
-        score_percentile: row.x_info?.scorePercentile,
-        score_quantile: row.x_info?.scoreQuantile,
-        mindshare_percentage: row.mindshare_percentage,
-        relative_mindshare: row.relative_mindshare,
-        app_use_multiplier: row.app_use_multiplier,
-        position: row.position,
-        position_change: row.position_change,
-        days: row.days
-      })) || [];
-    }
-
-    // Fetch PerceptronNTWK data
-    let mindoshareData = [];
-    if (mindoshareCache) {
-      const { data: mindoshareResult } = await supabase
-        .from('mindoshare_perceptronntwk')
-        .select('*')
-        .eq('fetched_at', mindoshareCache.last_updated)
-        .order('rank', { ascending: true });
-
-      mindoshareData = mindoshareResult || [];
     }
 
     return NextResponse.json({
@@ -136,33 +64,16 @@ export async function GET(request) {
       days,
       elsaPeriod,
       elsaDays,
-      yappers: {
-        data: yappersData || [],
-        last_updated: yappersCache.last_updated,
-        count: yappersData?.length || 0
-      },
-      duelduck: {
-        data: duelDuckData || [],
-        last_updated: duelDuckCache.last_updated,
-        count: duelDuckData?.length || 0
-      },
-      adichain: {
-        data: adichainData || [],
-        last_updated: adichainCache.last_updated,
-        count: adichainData?.length || 0
-      },
-      heyelsa: {
-        data: heyelsaData,
-        last_updated: heyelsaCache?.last_updated || null,
-        snapshot_id: heyelsaCache?.snapshot_id || null,
-        count: heyelsaData?.length || 0,
-        days: elsaDays
-      },
-      mindoshare: {
-        data: mindoshareData,
-        last_updated: mindoshareCache?.last_updated || null,
-        count: mindoshareData?.length || 0
-      }
+      yappers,
+      duelduck,
+      adichain,
+      heyelsa: heyelsa || { data: [], last_updated: null, snapshot_id: null, count: 0, days: elsaDays },
+      mindoshare: mindoshare || { data: [], last_updated: null, count: 0 },
+      space: space || { data: [], last_updated: null, count: 0 },
+      helios: helios || { data: [], last_updated: null, count: 0 },
+      c8ntinuum: c8ntinuum || { data: [], last_updated: null, count: 0 },
+      deepnodeai: deepnodeai || { data: [], last_updated: null, count: 0 },
+      beyond: beyond || { data: [], last_updated: null, snapshot_id: null, count: 0, days: elsaDays }
     });
   } catch (error) {
     console.error('Error fetching leaderboards:', error);
