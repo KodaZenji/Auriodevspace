@@ -28,27 +28,52 @@ export function useLeaderboard() {
       
       setLastUpdated(data.yappers.last_updated);
       
+      const normalizedSearch = searchUser.toLowerCase().replace('@', '');
+      
+      // Search each leaderboard
       const goatUser = data.yappers.data.find(
-        user => user.username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
+        user => user.username.toLowerCase() === normalizedSearch
       );
       
       const duckUser = data.duelduck.data.find(
-        user => user.x_username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
+        user => user.x_username.toLowerCase() === normalizedSearch
       );
       
       const adiUser = data.adichain.data.find(
-        user => user.handle.toLowerCase() === searchUser.toLowerCase().replace('@', '')
+        user => user.handle.toLowerCase() === normalizedSearch
       );
       
       const elsaUser = data.heyelsa.data.find(
-        user => user.username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
+        user => user.username.toLowerCase() === normalizedSearch
       );
 
       const perceptronUser = data.mindoshare.data.find(
-        user => user.username.toLowerCase() === searchUser.toLowerCase().replace('@', '')
+        user => user.username.toLowerCase() === normalizedSearch
+      );
+
+      const spaceUser = data.space.data.find(
+        user => user.username.toLowerCase() === normalizedSearch
+      );
+
+      const heliosUser = data.helios.data.find(
+        user => user.username.toLowerCase() === normalizedSearch
+      );
+
+      const c8ntinuumUser = data.c8ntinuum.data.find(
+        user => user.username.toLowerCase() === normalizedSearch
+      );
+
+      const deepnodeaiUser = data.deepnodeai.data.find(
+        user => user.username.toLowerCase() === normalizedSearch
+      );
+
+      const beyondUser = data.beyond.data.find(
+        user => user.username.toLowerCase() === normalizedSearch
       );
       
-      if (!goatUser && !duckUser && !adiUser && !elsaUser && !perceptronUser) {
+      // Check if user found on any platform
+      if (!goatUser && !duckUser && !adiUser && !elsaUser && !perceptronUser && 
+          !spaceUser && !heliosUser && !c8ntinuumUser && !deepnodeaiUser && !beyondUser) {
         alert(`User @${searchUser} not found on any leaderboard`);
         setResults(null);
         setLoading(false);
@@ -62,7 +87,12 @@ export function useLeaderboard() {
           duck: !!duckUser,
           adi: !!adiUser,
           elsa: !!elsaUser,
-          perceptron: !!perceptronUser
+          perceptron: !!perceptronUser,
+          space: !!spaceUser,
+          helios: !!heliosUser,
+          c8ntinuum: !!c8ntinuumUser,
+          deepnodeai: !!deepnodeaiUser,
+          beyond: !!beyondUser
         },
         goat: goatUser ? {
           rank: goatUser.rank,
@@ -104,6 +134,42 @@ export function useLeaderboard() {
           mindometric: ((perceptronUser.mindometric / 1000) / 100).toFixed(2),
           rankdelta: perceptronUser.rankdelta || 0,
           kolscore: perceptronUser.kolscore || 0
+        } : null,
+        space: spaceUser ? {
+          rank: spaceUser.rank,
+          username: spaceUser.username,
+          mindometric: ((spaceUser.mindometric / 1000) / 100).toFixed(2),
+          rankdelta: spaceUser.rankdelta || 0,
+          kolscore: spaceUser.kolscore || 0
+        } : null,
+        helios: heliosUser ? {
+          rank: heliosUser.rank,
+          username: heliosUser.username,
+          mindometric: ((heliosUser.mindometric / 1000) / 100).toFixed(2),
+          rankdelta: heliosUser.rankdelta || 0,
+          kolscore: heliosUser.kolscore || 0
+        } : null,
+        c8ntinuum: c8ntinuumUser ? {
+          rank: c8ntinuumUser.rank,
+          username: c8ntinuumUser.username,
+          mindometric: ((c8ntinuumUser.mindometric / 1000) / 100).toFixed(2),
+          rankdelta: c8ntinuumUser.rankdelta || 0,
+          kolscore: c8ntinuumUser.kolscore || 0
+        } : null,
+        deepnodeai: deepnodeaiUser ? {
+          rank: deepnodeaiUser.rank,
+          username: deepnodeaiUser.username,
+          mindometric: ((deepnodeaiUser.mindometric / 1000) / 100).toFixed(2),
+          rankdelta: deepnodeaiUser.rankdelta || 0,
+          kolscore: deepnodeaiUser.kolscore || 0
+        } : null,
+        beyond: beyondUser ? {
+          rank: beyondUser.position,
+          username: beyondUser.username,
+          mindshare_percentage: beyondUser.mindshare_percentage,
+          position_change: beyondUser.position_change,
+          app_use_multiplier: beyondUser.app_use_multiplier,
+          score: beyondUser.score
         } : null
       });
     } catch (error) {
