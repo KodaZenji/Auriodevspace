@@ -29,5 +29,9 @@ module.exports = {
   helios: {
     maxPages: 12,
     delay: 3000
+  },
+  space: {
+    maxPages: 12,
+    delay: 3000
   }
 };
