@@ -35,15 +35,18 @@ async function performScraping() {
 
   // Yappers
   for (const days of config.yappers.periods) {
+    console.log(`\n--- Starting Yappers ${days}d ---`);
     results.yappers[days] = await scrapeYappers(days);
     await sleep(config.yappers.delay);
   }
 
   // DuelDuck
+  console.log('\n--- Starting DuelDuck ---');
   results.duelduck = await scrapeDuelDuck(config.duelduck.maxPages);
   await sleep(config.duelduck.delay);
 
   // Adichain
+  console.log('\n--- Starting Adichain ---');
   results.adichain = await scrapeAdichain(config.adichain.maxPages);
   await sleep(config.adichain.delay);
 
@@ -80,21 +83,21 @@ async function performScraping() {
   );
   await sleep(config.mindoshare.delay || 5000);
 
-  // Helios (reference)
+  // Helios
   console.log('\n--- Starting Helios ---');
   results.helios = await scrapeHelios(
     config.helios.maxPages
   );
   await sleep(config.helios.delay || 5000);
 
-  // C8ntinuum (mirrors Helios)
+  // C8ntinuum
   console.log('\n--- Starting C8ntinuum ---');
   results.c8ntinuum = await scrapeC8ntinuum(
     config.c8ntinuum.maxPages
   );
   await sleep(config.c8ntinuum.delay || 5000);
 
-  // DeepNodeAI (mirrors Helios)
+  // DeepNodeAI
   console.log('\n--- Starting DeepNodeAI ---');
   results.deepnodeai = await scrapeDeepnodeai(
     config.deepnodeai.maxPages
@@ -170,15 +173,108 @@ async function performScraping() {
 }
 
 // ===================================
+// Background job runner with webhook
+// ===================================
+async function runScrapingJob(webhookUrl) {
+  console.log('\n=== 🚀 BACKGROUND SCRAPING STARTED ===');
+  console.log(`📞 Webhook: ${webhookUrl}`);
+  console.log(`⏰ Started: ${new Date().toISOString()}`);
+  
+  try {
+    const results = await performScraping();
+    
+    console.log('\n=== ✅ SCRAPING COMPLETE, CALLING WEBHOOK ===\n');
+
+    const webhookResponse = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.WEBHOOK_SECRET || 'default-secret'}`
+      },
+      body: JSON.stringify(results)
+    });
+
+    if (!webhookResponse.ok) {
+      const errorText = await webhookResponse.text();
+      throw new Error(`Webhook failed: ${webhookResponse.status} - ${errorText}`);
+    }
+
+    console.log('✅ Webhook called successfully');
+    console.log(`⏰ Completed: ${new Date().toISOString()}`);
+    
+  } catch (error) {
+    console.error('❌ Job failed:', error.message);
+
+    // Try to notify webhook about failure
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.WEBHOOK_SECRET || 'default-secret'}`
+        },
+        body: JSON.stringify({
+          success: false,
+          error: error.message,
+          timestamp: new Date().toISOString()
+        })
+      });
+      console.log('📨 Error notification sent to webhook');
+    } catch (webhookError) {
+      console.error('❌ Failed to notify webhook:', webhookError.message);
+    }
+  }
+}
+
+// ===================================
 // API Routes
 // ===================================
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'leaderboard-scraper' });
+  res.json({ 
+    status: 'ok', 
+    service: 'leaderboard-scraper',
+    timestamp: new Date().toISOString()
+  });
 });
 
-app.post('/scrape', async (req, res) => {
+// GET endpoint for cron job - responds immediately, runs in background
+app.get('/scrape-all-async', (req, res) => {
+  const webhookUrl = req.query.webhook || process.env.WEBHOOK_URL;
+
+  console.log('\n🔔 Received async scrape request');
+  console.log(`📞 Webhook: ${webhookUrl}`);
+
+  if (!webhookUrl) {
+    return res.status(400).json({
+      success: false,
+      error: 'webhook parameter required',
+      usage: '/scrape-all-async?webhook=YOUR_WEBHOOK_URL'
+    });
+  }
+
+  // Respond IMMEDIATELY (before Vercel 30s timeout)
+  res.status(202).json({
+    success: true,
+    status: 'accepted',
+    message: 'Scraping job started in background',
+    estimatedTime: '10-15 minutes',
+    webhook: webhookUrl,
+    timestamp: new Date().toISOString()
+  });
+
+  // Start the job in background - Railway keeps it running
+  setImmediate(() => {
+    runScrapingJob(webhookUrl);
+  });
+});
+
+// POST endpoint (backward compatibility)
+app.post('/scrape', (req, res) => {
   const webhookUrl = req.body?.webhook || process.env.WEBHOOK_URL;
+
+  console.log('\n🔔 Received scrape request (POST)');
+  console.log(`📞 Webhook: ${webhookUrl}`);
 
   if (!webhookUrl) {
     return res.status(400).json({
@@ -187,54 +283,17 @@ app.post('/scrape', async (req, res) => {
     });
   }
 
-  res.json({
+  res.status(202).json({
     success: true,
+    status: 'accepted',
     message: 'Scraping started',
-    estimatedTime: '10-15 minutes'
+    estimatedTime: '10-15 minutes',
+    timestamp: new Date().toISOString()
   });
 
-  (async () => {
-    console.log('\n=== 🚀 SCRAPING STARTED ===\n');
-
-    try {
-      const results = await performScraping();
-
-      console.log('\n=== ✅ SCRAPING COMPLETE, CALLING WEBHOOK ===\n');
-
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${
-            process.env.WEBHOOK_SECRET || 'default-secret'
-          }`
-        },
-        body: JSON.stringify(results)
-      });
-
-      console.log('✅ Webhook called successfully');
-    } catch (error) {
-      console.error('❌ Scraping error:', error);
-
-      try {
-        await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${
-              process.env.WEBHOOK_SECRET || 'default-secret'
-            }`
-          },
-          body: JSON.stringify({
-            success: false,
-            error: error.message
-          })
-        });
-      } catch (webhookError) {
-        console.error('❌ Webhook call failed:', webhookError);
-      }
-    }
-  })();
+  setImmediate(() => {
+    runScrapingJob(webhookUrl);
+  });
 });
 
 // ===================================
@@ -242,25 +301,43 @@ app.post('/scrape', async (req, res) => {
 // ===================================
 
 app.get('/scrape/mindoshare', async (req, res) => {
-  const data = await scrapeMindoshare(config.mindoshare.maxPages);
-  res.json({ success: true, count: data?.length || 0, data });
+  try {
+    const data = await scrapeMindoshare(config.mindoshare.maxPages);
+    res.json({ success: true, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 app.get('/scrape/helios', async (req, res) => {
-  const data = await scrapeHelios(config.helios.maxPages);
-  res.json({ success: true, count: data?.length || 0, data });
+  try {
+    const data = await scrapeHelios(config.helios.maxPages);
+    res.json({ success: true, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 app.get('/scrape/c8ntinuum', async (req, res) => {
-  const data = await scrapeC8ntinuum(config.c8ntinuum.maxPages);
-  res.json({ success: true, count: data?.length || 0, data });
+  try {
+    const data = await scrapeC8ntinuum(config.c8ntinuum.maxPages);
+    res.json({ success: true, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 app.get('/scrape/deepnodeai', async (req, res) => {
-  const data = await scrapeDeepnodeai(config.deepnodeai.maxPages);
-  res.json({ success: true, count: data?.length || 0, data });
+  try {
+    const data = await scrapeDeepnodeai(config.deepnodeai.maxPages);
+    res.json({ success: true, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 Leaderboard Scraper running on port ${PORT}`);
+  console.log(`📍 Health: http://localhost:${PORT}/health`);
+  console.log(`🔗 Async Scrape: GET /scrape-all-async?webhook=URL`);
 });
