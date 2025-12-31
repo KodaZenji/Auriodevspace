@@ -75,11 +75,15 @@ export default function LeaderboardCard({
           </>
         );
       case 'perceptron':
+      case 'space':
+      case 'helios':
+      case 'c8ntinuum':
+      case 'deepnodeai':
         return (
           <>
             <div className="text-center bg-slate-800/50 rounded-lg p-2">
               <div className="text-gray-400 text-xs mb-1">Rank Change</div>
-              <div className="text-white font-bold">{data.rankdelta}</div>
+              <div className="text-white font-bold">{data.rankdelta || 0}</div>
             </div>
             <div className="text-center bg-slate-800/50 rounded-lg p-2">
               <div className="text-gray-400 text-xs mb-1"></div>
@@ -92,6 +96,7 @@ export default function LeaderboardCard({
           </>
         );
       case 'elsa':
+      case 'beyond':
         return (
           <>
             <div className="text-center bg-slate-800/50 rounded-lg p-2">
@@ -159,6 +164,10 @@ export default function LeaderboardCard({
           </div>
         );
       case 'perceptron':
+      case 'space':
+      case 'helios':
+      case 'c8ntinuum':
+      case 'deepnodeai':
         return (
           <div className="text-right">
             <div className="text-xs text-gray-400">MindoMetric</div>
@@ -173,6 +182,20 @@ export default function LeaderboardCard({
           </div>
         );
       case 'elsa':
+        return (
+          <div className="text-right">
+            <div className="text-xs text-gray-400">Mindshare</div>
+            <div className="font-bold text-lg" style={{
+              background: 'linear-gradient(135deg, #10b981, #34d399)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>
+              {data.mindshare_percentage?.toFixed(2)}%
+            </div>
+          </div>
+        );
+      case 'beyond':
         return (
           <div className="text-right">
             <div className="text-xs text-gray-400">Mindshare</div>
