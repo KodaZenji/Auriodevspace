@@ -27,3 +27,4 @@ export async function storeBeyond(users, period, days, snapshotId) {
   
   console.log(`[Beyond] ✅ Stored ${records.length} users for ${days}d - Snapshot: ${snapshotId}`);
   return snapshotId;
+}
