@@ -33,5 +33,13 @@ module.exports = {
   space: {
     maxPages: 12,
     delay: 3000
+  },
+  c8ntinuum: {
+    maxPages: 12,
+    delay: 3000
+  },
+  deepnodeai: {
+    maxPages: 12,
+    delay: 3000
   }
 };
