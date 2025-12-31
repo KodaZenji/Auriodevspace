@@ -103,77 +103,230 @@ async function performScraping() {
     config.deepnodeai.maxPages
   );
 
-  return {
-    success: true,
-    results: {
-      yappers: {
-        '7': {
-          count: results.yappers[7]?.length || 0,
-          data: results.yappers[7]
-        },
-        '30': {
-          count: results.yappers[30]?.length || 0,
-          data: results.yappers[30]
-        }
-      },
-      duelduck: {
-        count: results.duelduck?.length || 0,
-        data: results.duelduck
-      },
-      adichain: {
-        count: results.adichain?.length || 0,
-        data: results.adichain
-      },
-      heyelsa: {
-        'epoch-2': {
-          count: results.heyelsa['epoch-2']?.length || 0,
-          data: results.heyelsa['epoch-2']
-        },
-        '7d': {
-          count: results.heyelsa['7d']?.length || 0,
-          data: results.heyelsa['7d']
-        },
-        '30d': {
-          count: results.heyelsa['30d']?.length || 0,
-          data: results.heyelsa['30d']
-        }
-      },
-      beyond: {
-        'epoch-2': {
-          count: results.beyond['epoch-2']?.length || 0,
-          data: results.beyond['epoch-2']
-        },
-        '7d': {
-          count: results.beyond['7d']?.length || 0,
-          data: results.beyond['7d']
-        },
-        '30d': {
-          count: results.beyond['30d']?.length || 0,
-          data: results.beyond['30d']
-        }
-      },
-      mindoshare: {
-        count: results.mindoshare?.length || 0,
-        data: results.mindoshare
-      },
-      helios: {
-        count: results.helios?.length || 0,
-        data: results.helios
-      },
-      c8ntinuum: {
-        count: results.c8ntinuum?.length || 0,
-        data: results.c8ntinuum
-      },
-      deepnodeai: {
-        count: results.deepnodeai?.length || 0,
-        data: results.deepnodeai
-      }
-    }
-  };
+  return results;
 }
 
 // ===================================
-// Background job runner with webhook
+// Send results in chunks to avoid payload limit
+// ===================================
+async function sendResultsInChunks(webhookUrl, results) {
+  console.log('\n=== 📦 SENDING RESULTS IN CHUNKS ===\n');
+  
+  const chunks = [];
+  const authHeader = `Bearer ${process.env.WEBHOOK_SECRET || 'default-secret'}`;
+
+  // Chunk 1: Yappers
+  if (results.yappers) {
+    chunks.push({
+      chunkType: 'yappers',
+      data: {
+        success: true,
+        results: {
+          yappers: {
+            '7': {
+              count: results.yappers[7]?.length || 0,
+              data: results.yappers[7]
+            },
+            '30': {
+              count: results.yappers[30]?.length || 0,
+              data: results.yappers[30]
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Chunk 2: DuelDuck
+  if (results.duelduck) {
+    chunks.push({
+      chunkType: 'duelduck',
+      data: {
+        success: true,
+        results: {
+          duelduck: {
+            count: results.duelduck?.length || 0,
+            data: results.duelduck
+          }
+        }
+      }
+    });
+  }
+
+  // Chunk 3: Adichain
+  if (results.adichain) {
+    chunks.push({
+      chunkType: 'adichain',
+      data: {
+        success: true,
+        results: {
+          adichain: {
+            count: results.adichain?.length || 0,
+            data: results.adichain
+          }
+        }
+      }
+    });
+  }
+
+  // Chunk 4: HeyElsa (all periods)
+  if (results.heyelsa) {
+    chunks.push({
+      chunkType: 'heyelsa',
+      data: {
+        success: true,
+        results: {
+          heyelsa: {
+            'epoch-2': {
+              count: results.heyelsa['epoch-2']?.length || 0,
+              data: results.heyelsa['epoch-2']
+            },
+            '7d': {
+              count: results.heyelsa['7d']?.length || 0,
+              data: results.heyelsa['7d']
+            },
+            '30d': {
+              count: results.heyelsa['30d']?.length || 0,
+              data: results.heyelsa['30d']
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Chunk 5: Beyond (all periods)
+  if (results.beyond) {
+    chunks.push({
+      chunkType: 'beyond',
+      data: {
+        success: true,
+        results: {
+          beyond: {
+            'epoch-2': {
+              count: results.beyond['epoch-2']?.length || 0,
+              data: results.beyond['epoch-2']
+            },
+            '7d': {
+              count: results.beyond['7d']?.length || 0,
+              data: results.beyond['7d']
+            },
+            '30d': {
+              count: results.beyond['30d']?.length || 0,
+              data: results.beyond['30d']
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Chunk 6: Mindoshare
+  if (results.mindoshare) {
+    chunks.push({
+      chunkType: 'mindoshare',
+      data: {
+        success: true,
+        results: {
+          mindoshare: {
+            count: results.mindoshare?.length || 0,
+            data: results.mindoshare
+          }
+        }
+      }
+    });
+  }
+
+  // Chunk 7: Helios
+  if (results.helios) {
+    chunks.push({
+      chunkType: 'helios',
+      data: {
+        success: true,
+        results: {
+          helios: {
+            count: results.helios?.length || 0,
+            data: results.helios
+          }
+        }
+      }
+    });
+  }
+
+  // Chunk 8: C8ntinuum
+  if (results.c8ntinuum) {
+    chunks.push({
+      chunkType: 'c8ntinuum',
+      data: {
+        success: true,
+        results: {
+          c8ntinuum: {
+            count: results.c8ntinuum?.length || 0,
+            data: results.c8ntinuum
+          }
+        }
+      }
+    });
+  }
+
+  // Chunk 9: DeepnodeAI
+  if (results.deepnodeai) {
+    chunks.push({
+      chunkType: 'deepnodeai',
+      data: {
+        success: true,
+        results: {
+          deepnodeai: {
+            count: results.deepnodeai?.length || 0,
+            data: results.deepnodeai
+          }
+        }
+      }
+    });
+  }
+
+  // Send each chunk
+  const chunkResults = [];
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    console.log(`📤 Sending chunk ${i + 1}/${chunks.length}: ${chunk.chunkType}`);
+
+    try {
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader,
+          'X-Chunk-Type': chunk.chunkType,
+          'X-Chunk-Index': `${i + 1}`,
+          'X-Chunk-Total': `${chunks.length}`
+        },
+        body: JSON.stringify(chunk.data)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Webhook chunk failed: ${response.status} - ${errorText}`);
+      }
+
+      console.log(`✅ Chunk ${i + 1}/${chunks.length} sent: ${chunk.chunkType}`);
+      chunkResults.push({ chunk: chunk.chunkType, success: true });
+      
+      // Small delay between chunks
+      if (i < chunks.length - 1) {
+        await sleep(500);
+      }
+    } catch (error) {
+      console.error(`❌ Chunk ${i + 1} failed: ${chunk.chunkType}`, error.message);
+      chunkResults.push({ chunk: chunk.chunkType, success: false, error: error.message });
+    }
+  }
+
+  return chunkResults;
+}
+
+// ===================================
+// Background job runner with chunked webhook
 // ===================================
 async function runScrapingJob(webhookUrl) {
   console.log('\n=== 🚀 BACKGROUND SCRAPING STARTED ===');
@@ -183,23 +336,17 @@ async function runScrapingJob(webhookUrl) {
   try {
     const results = await performScraping();
     
-    console.log('\n=== ✅ SCRAPING COMPLETE, CALLING WEBHOOK ===\n');
+    console.log('\n=== ✅ SCRAPING COMPLETE, SENDING TO WEBHOOK ===\n');
 
-    const webhookResponse = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.WEBHOOK_SECRET || 'default-secret'}`
-      },
-      body: JSON.stringify(results)
-    });
+    const chunkResults = await sendResultsInChunks(webhookUrl, results);
+    
+    const successCount = chunkResults.filter(r => r.success).length;
+    const failCount = chunkResults.filter(r => !r.success).length;
 
-    if (!webhookResponse.ok) {
-      const errorText = await webhookResponse.text();
-      throw new Error(`Webhook failed: ${webhookResponse.status} - ${errorText}`);
+    console.log(`\n✅ Webhook complete: ${successCount}/${chunkResults.length} chunks successful`);
+    if (failCount > 0) {
+      console.log(`⚠️  ${failCount} chunks failed`);
     }
-
-    console.log('✅ Webhook called successfully');
     console.log(`⏰ Completed: ${new Date().toISOString()}`);
     
   } catch (error) {
@@ -211,7 +358,8 @@ async function runScrapingJob(webhookUrl) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.WEBHOOK_SECRET || 'default-secret'}`
+          'Authorization': `Bearer ${process.env.WEBHOOK_SECRET || 'default-secret'}`,
+          'X-Chunk-Type': 'error'
         },
         body: JSON.stringify({
           success: false,
@@ -260,6 +408,7 @@ app.get('/scrape-all-async', (req, res) => {
     message: 'Scraping job started in background',
     estimatedTime: '10-15 minutes',
     webhook: webhookUrl,
+    chunkingEnabled: true,
     timestamp: new Date().toISOString()
   });
 
@@ -288,6 +437,7 @@ app.post('/scrape', (req, res) => {
     status: 'accepted',
     message: 'Scraping started',
     estimatedTime: '10-15 minutes',
+    chunkingEnabled: true,
     timestamp: new Date().toISOString()
   });
 
@@ -340,4 +490,5 @@ app.listen(PORT, () => {
   console.log(`🚀 Leaderboard Scraper running on port ${PORT}`);
   console.log(`📍 Health: http://localhost:${PORT}/health`);
   console.log(`🔗 Async Scrape: GET /scrape-all-async?webhook=URL`);
+  console.log(`📦 Chunking: Enabled (9 separate webhook calls)`);
 });
