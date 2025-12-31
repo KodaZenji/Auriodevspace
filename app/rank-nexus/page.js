@@ -18,7 +18,12 @@ export default function RankNexus() {
     duck: false, 
     adi: false, 
     elsa: false,
-    perceptron: false 
+    perceptron: false,
+    space: false,
+    helios: false,
+    c8ntinuum: false,
+    deepnodeai: false,
+    beyond: false
   });
 
   const {
@@ -48,7 +53,7 @@ export default function RankNexus() {
     if (searchUser.trim()) {
       if (platform === 'goat') {
         handleSearch(value, elsaPeriod);
-      } else if (platform === 'elsa') {
+      } else if (platform === 'elsa' || platform === 'beyond') {
         handleSearch(goatDays, value);
       }
     }
@@ -77,6 +82,7 @@ export default function RankNexus() {
               <UserProfileCard username={results.username} />
             )}
 
+            {/* PerceptronNTWK (Mindoshare) */}
             {results.perceptron && (
               <LeaderboardCard 
                 platform="perceptron" 
@@ -91,6 +97,67 @@ export default function RankNexus() {
               />
             )}
 
+            {/* Space */}
+            {results.space && (
+              <LeaderboardCard 
+                platform="space" 
+                data={results.space} 
+                platformName="Space"
+                timeSwitch={false}
+                showAvatar={countFoundPlatforms() === 1}
+                username={results.username}
+                isExpanded={expandedCards.space}
+                onToggle={() => toggleCard('space')}
+                onTimeChange={handleTimeChange}
+              />
+            )}
+
+            {/* Helios */}
+            {results.helios && (
+              <LeaderboardCard 
+                platform="helios" 
+                data={results.helios} 
+                platformName="Helios"
+                timeSwitch={false}
+                showAvatar={countFoundPlatforms() === 1}
+                username={results.username}
+                isExpanded={expandedCards.helios}
+                onToggle={() => toggleCard('helios')}
+                onTimeChange={handleTimeChange}
+              />
+            )}
+
+            {/* C8ntinuum */}
+            {results.c8ntinuum && (
+              <LeaderboardCard 
+                platform="c8ntinuum" 
+                data={results.c8ntinuum} 
+                platformName="C8ntinuum"
+                timeSwitch={false}
+                showAvatar={countFoundPlatforms() === 1}
+                username={results.username}
+                isExpanded={expandedCards.c8ntinuum}
+                onToggle={() => toggleCard('c8ntinuum')}
+                onTimeChange={handleTimeChange}
+              />
+            )}
+
+            {/* DeepnodeAI */}
+            {results.deepnodeai && (
+              <LeaderboardCard 
+                platform="deepnodeai" 
+                data={results.deepnodeai} 
+                platformName="DeepnodeAI"
+                timeSwitch={false}
+                showAvatar={countFoundPlatforms() === 1}
+                username={results.username}
+                isExpanded={expandedCards.deepnodeai}
+                onToggle={() => toggleCard('deepnodeai')}
+                onTimeChange={handleTimeChange}
+              />
+            )}
+
+            {/* Goat Network (Yappers) */}
             {results.goat && (
               <LeaderboardCard 
                 platform="goat" 
@@ -111,6 +178,7 @@ export default function RankNexus() {
               />
             )}
             
+            {/* DuelDuck */}
             {results.duck && (
               <LeaderboardCard 
                 platform="duck" 
@@ -125,6 +193,7 @@ export default function RankNexus() {
               />
             )}
 
+            {/* Adichain */}
             {results.adi && (
               <LeaderboardCard 
                 platform="adi" 
@@ -139,6 +208,7 @@ export default function RankNexus() {
               />
             )}
 
+            {/* HeyElsa */}
             {results.elsa && (
               <LeaderboardCard 
                 platform="elsa" 
@@ -156,6 +226,28 @@ export default function RankNexus() {
                 username={results.username}
                 isExpanded={expandedCards.elsa}
                 onToggle={() => toggleCard('elsa')}
+                onTimeChange={handleTimeChange}
+              />
+            )}
+
+            {/* Beyond */}
+            {results.beyond && (
+              <LeaderboardCard 
+                platform="beyond" 
+                data={results.beyond} 
+                platformName="Beyond"
+                timeSwitch={true}
+                currentValue={elsaPeriod}
+                onValueChange={setElsaPeriod}
+                options={[
+                  { value: 'epoch-2', label: 'E2' },
+                  { value: '7d', label: '7d' },
+                  { value: '30d', label: '30d' }
+                ]}
+                showAvatar={countFoundPlatforms() === 1}
+                username={results.username}
+                isExpanded={expandedCards.beyond}
+                onToggle={() => toggleCard('beyond')}
                 onTimeChange={handleTimeChange}
               />
             )}
