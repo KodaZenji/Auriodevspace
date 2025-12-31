@@ -9,6 +9,7 @@ const { scrapeAdichain } = require('./scrapers/adichain');
 const { scrapeHeyElsa } = require('./scrapers/heyelsa');
 const { scrapeMindoshare } = require('./scrapers/mindoshare');
 const { scrapeHelios } = require('./scrapers/helios');
+const { scrapeSpace } = require('./scrapers/space');
 const { scrapeBeyond } = require('./scrapers/beyond');
 
 const app = express();
@@ -26,7 +27,8 @@ async function performScraping() {
     heyelsa: {},
     beyond: {},
     mindoshare: null,
-    helios: null
+    helios: null,
+    space: null
   };
 
   // Yappers
@@ -76,69 +78,41 @@ async function performScraping() {
   );
   await sleep(config.mindoshare.delay || 5000);
 
-  // Helios (mirrors Mindoshare)
+  // Helios
   console.log('\n--- Starting Helios ---');
   results.helios = await scrapeHelios(
     config.helios.maxPages
+  );
+  await sleep(config.helios.delay || 5000);
+
+  // Space (mirrors Helios)
+  console.log('\n--- Starting Space ---');
+  results.space = await scrapeSpace(
+    config.space.maxPages
   );
 
   return {
     success: true,
     results: {
       yappers: {
-        '7': {
-          count: results.yappers[7]?.length || 0,
-          data: results.yappers[7]
-        },
-        '30': {
-          count: results.yappers[30]?.length || 0,
-          data: results.yappers[30]
-        }
+        '7': { count: results.yappers[7]?.length || 0, data: results.yappers[7] },
+        '30': { count: results.yappers[30]?.length || 0, data: results.yappers[30] }
       },
-      duelduck: {
-        count: results.duelduck?.length || 0,
-        data: results.duelduck
-      },
-      adichain: {
-        count: results.adichain?.length || 0,
-        data: results.adichain
-      },
+      duelduck: { count: results.duelduck?.length || 0, data: results.duelduck },
+      adichain: { count: results.adichain?.length || 0, data: results.adichain },
       heyelsa: {
-        'epoch-2': {
-          count: results.heyelsa['epoch-2']?.length || 0,
-          data: results.heyelsa['epoch-2']
-        },
-        '7d': {
-          count: results.heyelsa['7d']?.length || 0,
-          data: results.heyelsa['7d']
-        },
-        '30d': {
-          count: results.heyelsa['30d']?.length || 0,
-          data: results.heyelsa['30d']
-        }
+        'epoch-2': { count: results.heyelsa['epoch-2']?.length || 0, data: results.heyelsa['epoch-2'] },
+        '7d': { count: results.heyelsa['7d']?.length || 0, data: results.heyelsa['7d'] },
+        '30d': { count: results.heyelsa['30d']?.length || 0, data: results.heyelsa['30d'] }
       },
       beyond: {
-        'epoch-2': {
-          count: results.beyond['epoch-2']?.length || 0,
-          data: results.beyond['epoch-2']
-        },
-        '7d': {
-          count: results.beyond['7d']?.length || 0,
-          data: results.beyond['7d']
-        },
-        '30d': {
-          count: results.beyond['30d']?.length || 0,
-          data: results.beyond['30d']
-        }
+        'epoch-2': { count: results.beyond['epoch-2']?.length || 0, data: results.beyond['epoch-2'] },
+        '7d': { count: results.beyond['7d']?.length || 0, data: results.beyond['7d'] },
+        '30d': { count: results.beyond['30d']?.length || 0, data: results.beyond['30d'] }
       },
-      mindoshare: {
-        count: results.mindoshare?.length || 0,
-        data: results.mindoshare
-      },
-      helios: {
-        count: results.helios?.length || 0,
-        data: results.helios
-      }
+      mindoshare: { count: results.mindoshare?.length || 0, data: results.mindoshare },
+      helios: { count: results.helios?.length || 0, data: results.helios },
+      space: { count: results.space?.length || 0, data: results.space }
     }
   };
 }
@@ -151,15 +125,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'leaderboard-scraper' });
 });
 
-// Main endpoint - triggers all scrapers
+// Main endpoint
 app.post('/scrape', async (req, res) => {
   const webhookUrl = req.body?.webhook || process.env.WEBHOOK_URL;
 
   if (!webhookUrl) {
-    return res.status(400).json({
-      success: false,
-      error: 'webhook required'
-    });
+    return res.status(400).json({ success: false, error: 'webhook required' });
   }
 
   res.json({
@@ -168,7 +139,6 @@ app.post('/scrape', async (req, res) => {
     estimatedTime: '10-15 minutes'
   });
 
-  // Fire-and-forget background execution
   (async () => {
     console.log('\n=== 🚀 SCRAPING STARTED ===\n');
 
@@ -181,9 +151,7 @@ app.post('/scrape', async (req, res) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${
-            process.env.WEBHOOK_SECRET || 'default-secret'
-          }`
+          'Authorization': `Bearer ${process.env.WEBHOOK_SECRET || 'default-secret'}`
         },
         body: JSON.stringify(results)
       });
@@ -191,109 +159,55 @@ app.post('/scrape', async (req, res) => {
       console.log('✅ Webhook called successfully');
     } catch (error) {
       console.error('❌ Scraping error:', error);
-
-      try {
-        await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${
-              process.env.WEBHOOK_SECRET || 'default-secret'
-            }`
-          },
-          body: JSON.stringify({
-            success: false,
-            error: error.message
-          })
-        });
-      } catch (webhookError) {
-        console.error('❌ Webhook call failed:', webhookError);
-      }
     }
   })();
 });
 
 // ===================================
-// Individual scraper endpoints (testing)
+// Individual scraper endpoints
 // ===================================
 
 app.get('/scrape/yappers', async (req, res) => {
   const days = parseInt(req.query.days || '7', 10);
   const data = await scrapeYappers(days);
-  res.json({
-    success: true,
-    days,
-    count: data?.length || 0,
-    data
-  });
+  res.json({ success: true, days, count: data?.length || 0, data });
 });
 
 app.get('/scrape/duelduck', async (req, res) => {
   const data = await scrapeDuelDuck(config.duelduck.maxPages);
-  res.json({
-    success: true,
-    count: data?.length || 0,
-    data
-  });
+  res.json({ success: true, count: data?.length || 0, data });
 });
 
 app.get('/scrape/adichain', async (req, res) => {
   const data = await scrapeAdichain(config.adichain.maxPages);
-  res.json({
-    success: true,
-    count: data?.length || 0,
-    data
-  });
+  res.json({ success: true, count: data?.length || 0, data });
 });
 
 app.get('/scrape/heyelsa', async (req, res) => {
   const period = req.query.period || '7d';
-  const data = await scrapeHeyElsa(
-    period,
-    config.heyelsa.maxPages
-  );
-  res.json({
-    success: true,
-    period,
-    count: data?.length || 0,
-    data
-  });
+  const data = await scrapeHeyElsa(period, config.heyelsa.maxPages);
+  res.json({ success: true, period, count: data?.length || 0, data });
 });
 
 app.get('/scrape/beyond', async (req, res) => {
   const period = req.query.period || '7d';
-  const data = await scrapeBeyond(
-    period,
-    config.beyond.maxPages
-  );
-  res.json({
-    success: true,
-    period,
-    count: data?.length || 0,
-    data
-  });
+  const data = await scrapeBeyond(period, config.beyond.maxPages);
+  res.json({ success: true, period, count: data?.length || 0, data });
 });
 
 app.get('/scrape/mindoshare', async (req, res) => {
-  const data = await scrapeMindoshare(
-    config.mindoshare.maxPages
-  );
-  res.json({
-    success: true,
-    count: data?.length || 0,
-    data
-  });
+  const data = await scrapeMindoshare(config.mindoshare.maxPages);
+  res.json({ success: true, count: data?.length || 0, data });
 });
 
 app.get('/scrape/helios', async (req, res) => {
-  const data = await scrapeHelios(
-    config.helios.maxPages
-  );
-  res.json({
-    success: true,
-    count: data?.length || 0,
-    data
-  });
+  const data = await scrapeHelios(config.helios.maxPages);
+  res.json({ success: true, count: data?.length || 0, data });
+});
+
+app.get('/scrape/space', async (req, res) => {
+  const data = await scrapeSpace(config.space.maxPages);
+  res.json({ success: true, count: data?.length || 0, data });
 });
 
 app.listen(PORT, () => {
