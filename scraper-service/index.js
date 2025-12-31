@@ -12,6 +12,7 @@ const { scrapeHelios } = require('./scrapers/helios');
 const { scrapeBeyond } = require('./scrapers/beyond');
 const { scrapeC8ntinuum } = require('./scrapers/c8ntinuum');
 const { scrapeDeepnodeai } = require('./scrapers/deepnodeai');
+const { scrapeSpace } = require('./scrapers/space'); // ADDED
 
 const app = express();
 app.use(express.json());
@@ -28,6 +29,7 @@ async function performScraping() {
     heyelsa: {},
     beyond: {},
     mindoshare: null,
+    space: null, // ADDED
     helios: null,
     c8ntinuum: null,
     deepnodeai: null
@@ -82,6 +84,13 @@ async function performScraping() {
     config.mindoshare.maxPages
   );
   await sleep(config.mindoshare.delay || 5000);
+
+  // Space - ADDED
+  console.log('\n--- Starting Space ---');
+  results.space = await scrapeSpace(
+    config.space?.maxPages || 12
+  );
+  await sleep(config.space?.delay || 5000);
 
   // Helios
   console.log('\n--- Starting Helios ---');
@@ -237,7 +246,23 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 7: Helios
+  // Chunk 7: Space - ADDED
+  if (results.space) {
+    chunks.push({
+      chunkType: 'space',
+      data: {
+        success: true,
+        results: {
+          space: {
+            count: results.space?.length || 0,
+            data: results.space
+          }
+        }
+      }
+    });
+  }
+
+  // Chunk 8: Helios
   if (results.helios) {
     chunks.push({
       chunkType: 'helios',
@@ -253,7 +278,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 8: C8ntinuum
+  // Chunk 9: C8ntinuum
   if (results.c8ntinuum) {
     chunks.push({
       chunkType: 'c8ntinuum',
@@ -269,7 +294,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 9: DeepnodeAI
+  // Chunk 10: DeepnodeAI
   if (results.deepnodeai) {
     chunks.push({
       chunkType: 'deepnodeai',
@@ -409,6 +434,7 @@ app.get('/scrape-all-async', (req, res) => {
     estimatedTime: '10-15 minutes',
     webhook: webhookUrl,
     chunkingEnabled: true,
+    totalChunks: 10,
     timestamp: new Date().toISOString()
   });
 
@@ -438,6 +464,7 @@ app.post('/scrape', (req, res) => {
     message: 'Scraping started',
     estimatedTime: '10-15 minutes',
     chunkingEnabled: true,
+    totalChunks: 10,
     timestamp: new Date().toISOString()
   });
 
@@ -450,9 +477,28 @@ app.post('/scrape', (req, res) => {
 // Individual scraper endpoints (testing)
 // ===================================
 
+app.get('/scrape/yappers/:days', async (req, res) => {
+  const days = parseInt(req.params.days);
+  try {
+    const data = await scrapeYappers(days);
+    res.json({ success: true, period: `${days}d`, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.get('/scrape/mindoshare', async (req, res) => {
   try {
     const data = await scrapeMindoshare(config.mindoshare.maxPages);
+    res.json({ success: true, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/scrape/space', async (req, res) => {
+  try {
+    const data = await scrapeSpace(config.space?.maxPages || 12);
     res.json({ success: true, count: data?.length || 0, data });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -490,5 +536,5 @@ app.listen(PORT, () => {
   console.log(`🚀 Leaderboard Scraper running on port ${PORT}`);
   console.log(`📍 Health: http://localhost:${PORT}/health`);
   console.log(`🔗 Async Scrape: GET /scrape-all-async?webhook=URL`);
-  console.log(`📦 Chunking: Enabled (9 separate webhook calls)`);
+  console.log(`📦 Chunking: Enabled (10 separate webhook calls)`);
 });
