@@ -1,19 +1,21 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { PERIOD_TO_DAYS } from './config';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-const PERIOD_TO_DAYS = {
-  'epoch-2': 2,
-  '7d': 7,
-  '30d': 30
-};
+// Import all storage handlers
+import { storeYappers } from './storage/storeYappers';
+import { storeDuelDuck } from './storage/storeDuelDuck';
+import { storeAdichain } from './storage/storeAdichain';
+import { storeHeyElsa } from './storage/storeHeyElsa';
+import { storeBeyond } from './storage/storeBeyond';
+import { storeMindoshare } from './storage/storeMindoshare';
+import { storeHelios } from './storage/storeHelios';
+import { storeSpace } from './storage/storeSpace';
+import { storeDeepnodeai } from './storage/storeDeepnodeai';
+import { storeC8ntinuum } from './storage/storeC8ntinuum';
 
 export async function POST(request) {
+  // Auth check
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.WEBHOOK_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -21,7 +23,7 @@ export async function POST(request) {
 
   try {
     console.log('📥 Received scraping results from Railway');
-      
+    
     const scrapedData = await request.json();
 
     if (!scrapedData.success) {
@@ -33,82 +35,29 @@ export async function POST(request) {
       duelduck: null,
       adichain: null,
       heyelsa: {},
+      beyond: {},
       mindoshare: null,
+      helios: null,
+      space: null,
+      deepnodeai: null,
+      c8ntinuum: null,
+
       timestamp: new Date().toISOString()
     };
 
-    // Store Yappers data
-    if (scrapedData.results?.yappers) {
-      for (const [days, yappersData] of Object.entries(scrapedData.results.yappers)) {
-        if (yappersData.data && yappersData.data.length > 0) {
-          await storeYappersData(yappersData.data, parseInt(days));
-          results.yappers[days] = { success: true, count: yappersData.count };
-          console.log(`✅ Stored ${yappersData.count} Yappers (${days}d)`);
-        }
-      }
-    }
+    // Process all leaderboards
+    await processYappers(scrapedData, results);
+    await processDuelDuck(scrapedData, results);
+    await processAdichain(scrapedData, results);
+    await processHeyElsa(scrapedData, results);
+    await processBeyond(scrapedData, results);
+    await processMindoshare(scrapedData, results);
+    await processHelios(scrapedData, results);
+    await processSpace(scrapedData, results);
+    await processDeepnodeai(scrapedData, results);
+    await processC8ntinuum(scrapedData, results);
 
-    // Store DuelDuck data
-    if (scrapedData.results?.duelduck?.data) {
-      console.log(`[DuelDuck] Attempting to store ${scrapedData.results.duelduck.count} users...`);
-      console.log(`[DuelDuck] Sample data:`, JSON.stringify(scrapedData.results.duelduck.data[0]).substring(0, 300));
-      
-      try {
-        await storeDuelDuckData(scrapedData.results.duelduck.data);
-        results.duelduck = { success: true, count: scrapedData.results.duelduck.count };
-        console.log(`✅ Stored ${scrapedData.results.duelduck.count} DuelDuck users`);
-      } catch (error) {
-        console.error(`❌ DuelDuck storage error:`, error.message);
-        results.duelduck = { success: false, error: error.message };
-      }
-    } else {
-      console.log(`⚠️ No DuelDuck data received`);
-    }
-
-    // Store Adichain data
-    if (scrapedData.results?.adichain?.data) {
-      await storeAdichainData(scrapedData.results.adichain.data);
-      results.adichain = { success: true, count: scrapedData.results.adichain.count };
-      console.log(`✅ Stored ${scrapedData.results.adichain.count} Adichain users`);
-    }
-
-    // Store HeyElsa data
-    if (scrapedData.results?.heyelsa) {
-      for (const [period, heyelsaData] of Object.entries(scrapedData.results.heyelsa)) {
-        if (heyelsaData.data && heyelsaData.data.length > 0) {
-          const periodSnapshotId = crypto.randomUUID();
-          const days = PERIOD_TO_DAYS[period];
-          await storeHeyElsaData(heyelsaData.data, period, days, periodSnapshotId);
-          results.heyelsa[period] = {   
-            success: true,   
-            count: heyelsaData.count,  
-            days: days,  
-            snapshot_id: periodSnapshotId  
-          };
-          console.log(`✅ Stored ${heyelsaData.count} HeyElsa users (${period} = ${days}d) - Snapshot: ${periodSnapshotId}`);
-        }
-      }
-    }
-
-    // Store Mindoshare data
-    if (scrapedData.results?.mindoshare?.data) {
-      console.log(`[Mindoshare] Attempting to store ${scrapedData.results.mindoshare.count} users...`);
-      console.log(`[Mindoshare] Sample data:`, JSON.stringify(scrapedData.results.mindoshare.data[0]).substring(0, 300));
-      
-      try {
-        await storeMindoshareData(scrapedData.results.mindoshare.data);
-        results.mindoshare = { success: true, count: scrapedData.results.mindoshare.count };
-        console.log(`✅ Stored ${scrapedData.results.mindoshare.count} Mindoshare users`);
-      } catch (error) {
-        console.error(`❌ Mindoshare storage error:`, error.message);
-        results.mindoshare = { success: false, error: error.message };
-      }
-    } else {
-      console.log(`⚠️ No Mindoshare data received`);
-      console.log(`[Mindoshare] Debug - full results object:`, JSON.stringify(scrapedData.results?.mindoshare).substring(0, 500));
-    }
-
-    console.log('✅ All data stored successfully in Supabase');
+    console.log('✅ All data stored successfully');
 
     return NextResponse.json({
       success: true,
@@ -120,192 +69,136 @@ export async function POST(request) {
     console.error('❌ Webhook error:', error);
     return NextResponse.json(
       { 
-        error: 'Failed to store leaderboard data',   
-        details: error.message   
+        error: 'Failed to store leaderboard data',
+        details: error.message
       },
       { status: 500 }
     );
   }
 }
 
-/* ================= STORE FUNCTIONS ================= */
+// ===================================
+// Processing Functions
+// ===================================
 
-async function storeYappersData(yappers, days) {
-  const fetched_at = new Date().toISOString();
+async function processYappers(scrapedData, results) {
+  if (!scrapedData.results?.yappers) return;
 
-  const { error } = await supabase.from('yappers_leaderboard').insert(
-    yappers.map(y => ({ ...y, days, fetched_at }))
-  );
-
-  if (error) throw error;
-
-  await supabase.from('leaderboard_cache').upsert(
-    {
-      cache_type: 'yappers',
-      days,
-      last_updated: fetched_at,
-      record_count: yappers.length
-    },
-    { onConflict: 'cache_type,days' }
-  );
-}
-
-async function storeDuelDuckData(leaders) {
-  const fetched_at = new Date().toISOString();
-
-  // Store data EXACTLY as the API returns it - frontend expects these fields
-  const records = leaders.map((l, index) => ({
-    x_username: l.x_username,           // Frontend expects x_username
-    username: l.username,               // DuelDuck internal username
-    total_score: l.total_score || 0,
-    x_score: l.x_score || 0,           // Frontend expects x_score
-    dd_score: l.dd_score || 0,         // Frontend expects dd_score
-    user_share: l.user_share || 0,     // Frontend expects user_share
-    usdc_reward: l.usdc_reward || 0,   // Frontend expects usdc_reward
-    rank: index + 1,                    // Calculate rank from position
-    fetched_at
-  }));
-
-  console.log(`[DuelDuck] Mapped sample record:`, JSON.stringify(records[0]));
-
-  const { error } = await supabase.from('duelduck_leaderboard').insert(records);
-
-  if (error) {
-    console.error('[DuelDuck] Insert error:', error);
-    throw error;
+  for (const [days, yappersData] of Object.entries(scrapedData.results.yappers)) {
+    if (yappersData.data && yappersData.data.length > 0) {
+      try {
+        await storeYappers(yappersData.data, parseInt(days));
+        results.yappers[days] = { success: true, count: yappersData.count };
+        console.log(`✅ Stored ${yappersData.count} Yappers (${days}d)`);
+      } catch (error) {
+        console.error(`❌ Yappers ${days}d error:`, error.message);
+        results.yappers[days] = { success: false, error: error.message };
+      }
+    }
   }
-
-  await supabase.from('leaderboard_cache').upsert(
-    {
-      cache_type: 'duelduck',
-      days: 0,
-      last_updated: fetched_at,
-      record_count: leaders.length
-    },
-    { onConflict: 'cache_type,days' }
-  );
 }
 
-async function storeAdichainData(users) {
-  const fetched_at = new Date().toISOString();
+async function processDuelDuck(scrapedData, results) {
+  if (!scrapedData.results?.duelduck?.data) return;
 
-  const { error } = await supabase.from('adichain_leaderboard').insert(
-    users.map(u => ({
-      adichain_id: u.id,
-      tournament_id: u.tournamentId,
-      user_id: u.userId,
-      twitter_id: u.twitterId,
-      handle: u.handle,
-      name: u.name,
-      avatar_url: u.avatarUrl,
-      signal_points: u.signalPoints,
-      noise_points: u.noisePoints,
-      bonus_points: u.bonusPoints,
-      pending_points: u.pendingPoints,
-      total_points: u.totalPoints,
-      multiplier: u.multiplier,
-      mindshare_pct: u.mindsharePct,
-      rank_signal: u.rankSignal,
-      rank_noise: u.rankNoise,
-      rank_total: u.rankTotal,
-      rank_change: u.rankChange,
-      fetched_at
-    }))
-  );
-
-  if (error) throw error;
-
-  await supabase.from('leaderboard_cache').upsert(
-    {
-      cache_type: 'adichain',
-      days: 0,
-      last_updated: fetched_at,
-      record_count: users.length
-    },
-    { onConflict: 'cache_type,days' }
-  );
-}
-
-async function storeHeyElsaData(users, period, days, snapshotId) {
-  const fetched_at = new Date().toISOString();
-    
-  const records = users.map(user => ({
-    username: user.xInfo?.username,
-    x_info: user.xInfo,
-    mindshare_percentage: user.mindsharePercentage,
-    relative_mindshare: user.relativeMindshare,
-    app_use_multiplier: user.appUseMultiplier,
-    position: user.position,
-    position_change: user.positionChange === 'new' ? null : user.positionChange,
-    days,
-    snapshot_id: snapshotId,
-    fetched_at
-  }));
-
-  const { error: insertError } = await supabase
-    .from('heyelsa_leaderboard')
-    .insert(records)
-    .select();
-
-  if (insertError) throw insertError;
-
-  await supabase.from('leaderboard_cache').upsert(
-    {
-      cache_type: 'heyelsa',
-      days,
-      last_updated: fetched_at,
-      snapshot_id: snapshotId,
-      record_count: records.length
-    },
-    { onConflict: 'cache_type,days' }
-  );
-
-  return snapshotId;
-}
-
-// Store Mindoshare/PerceptronNTWK data
-async function storeMindoshareData(users) {
-  const fetched_at = new Date().toISOString();
-
-  // Frontend expects lowercase field names: mindometric, rank_delta, kol_score
-  const records = users.map((user) => {
-    // Safely parse rankDelta - handle null, undefined, NaN, and decimals
-    const parsedRankDelta = parseInt(user.rankDelta);
-    const rankdelta = isNaN(parsedRankDelta) ? 0 : parsedRankDelta;
-    
-    // Safely parse kolScore - handle null, undefined, NaN, and decimals
-    const parsedKolScore = parseInt(user.kolScore);
-    const kolscore = isNaN(parsedKolScore) ? 0 : parsedKolScore;
-    
-    return {
-      username: user.twitterUsername,                    // API: twitterUsername -> DB: username
-      rank: parseInt(user.rank) || 0,                    // API: rank -> DB: rank (ensure integer)
-      mindometric: parseFloat(user.mindoMetric) || 0,    // API: mindoMetric -> DB: mindometric (float)
-      rankdelta,                                          // Safely converted to integer, defaults to 0
-      kolscore,                                           // Safely converted to integer, defaults to 0
-      fetched_at
-    };
-  });
-
-  console.log(`[Mindoshare] Mapped sample record:`, JSON.stringify(records[0]));
-
-  const { error: insertError } = await supabase
-    .from('mindoshare_perceptronntwk')
-    .insert(records)
-    .select();
-
-  if (insertError) {
-    console.error('[Mindoshare] Insert error:', insertError);
-    throw insertError;
+  try {
+    await storeDuelDuck(scrapedData.results.duelduck.data);
+    results.duelduck = { success: true, count: scrapedData.results.duelduck.count };
+  } catch (error) {
+    results.duelduck = { success: false, error: error.message };
   }
+}
 
-  await supabase.from('leaderboard_cache').upsert(
-    {
-      cache_type: 'PerceptronNTWK',
-      days: 0,
-      last_updated: fetched_at,
-      record_count: records.length
-    },
-    { onConflict: 'cache_type,days' }
-  );
+async function processAdichain(scrapedData, results) {
+  if (!scrapedData.results?.adichain?.data) return;
+
+  try {
+    await storeAdichain(scrapedData.results.adichain.data);
+    results.adichain = { success: true, count: scrapedData.results.adichain.count };
+  } catch (error) {
+    results.adichain = { success: false, error: error.message };
+  }
+}
+
+async function processHeyElsa(scrapedData, results) {
+  if (!scrapedData.results?.heyelsa) return;
+
+  for (const [period, heyelsaData] of Object.entries(scrapedData.results.heyelsa)) {
+    if (heyelsaData.data?.length) {
+      const snapshotId = crypto.randomUUID();
+      const days = PERIOD_TO_DAYS[period];
+
+      await storeHeyElsa(heyelsaData.data, period, days, snapshotId);
+      results.heyelsa[period] = { success: true, count: heyelsaData.count };
+    }
+  }
+}
+
+async function processBeyond(scrapedData, results) {
+  if (!scrapedData.results?.beyond) return;
+
+  for (const [period, beyondData] of Object.entries(scrapedData.results.beyond)) {
+    if (beyondData.data?.length) {
+      const snapshotId = crypto.randomUUID();
+      const days = PERIOD_TO_DAYS[period];
+
+      await storeBeyond(beyondData.data, period, days, snapshotId);
+      results.beyond[period] = { success: true, count: beyondData.count };
+    }
+  }
+}
+
+async function processMindoshare(scrapedData, results) {
+  if (!scrapedData.results?.mindoshare?.data) return;
+
+  try {
+    await storeMindoshare(scrapedData.results.mindoshare.data);
+    results.mindoshare = { success: true, count: scrapedData.results.mindoshare.count };
+  } catch (error) {
+    results.mindoshare = { success: false, error: error.message };
+  }
+}
+
+async function processHelios(scrapedData, results) {
+  if (!scrapedData.results?.helios?.data) return;
+
+  try {
+    await storeHelios(scrapedData.results.helios.data);
+    results.helios = { success: true, count: scrapedData.results.helios.count };
+  } catch (error) {
+    results.helios = { success: false, error: error.message };
+  }
+}
+
+async function processSpace(scrapedData, results) {
+  if (!scrapedData.results?.space?.data) return;
+
+  try {
+    await storeSpace(scrapedData.results.space.data);
+    results.space = { success: true, count: scrapedData.results.space.count };
+  } catch (error) {
+    results.space = { success: false, error: error.message };
+  }
+}
+
+async function processDeepnodeai(scrapedData, results) {
+  if (!scrapedData.results?.deepnodeai?.data) return;
+
+  try {
+    await storeDeepnodeai(scrapedData.results.deepnodeai.data);
+    results.deepnodeai = { success: true, count: scrapedData.results.deepnodeai.count };
+  } catch (error) {
+    results.deepnodeai = { success: false, error: error.message };
+  }
+}
+
+async function processC8ntinuum(scrapedData, results) {
+  if (!scrapedData.results?.c8ntinuum?.data) return;
+
+  try {
+    await storeC8ntinuum(scrapedData.results.c8ntinuum.data);
+    results.c8ntinuum = { success: true, count: scrapedData.results.c8ntinuum.count };
+  } catch (error) {
+    results.c8ntinuum = { success: false, error: error.message };
+  }
 }
