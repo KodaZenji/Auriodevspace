@@ -22,9 +22,27 @@ export async function POST(request) {
   }
 
   try {
-    console.log('📥 Received scraping results from Railway');
+    // Check if this is a chunked request
+    const chunkType = request.headers.get('x-chunk-type');
+    const chunkIndex = request.headers.get('x-chunk-index');
+    const chunkTotal = request.headers.get('x-chunk-total');
+
+    if (chunkType) {
+      console.log(`📥 Received chunk ${chunkIndex}/${chunkTotal}: ${chunkType}`);
+    } else {
+      console.log('📥 Received scraping results from Railway');
+    }
     
     const scrapedData = await request.json();
+
+    // Handle error notifications
+    if (!scrapedData.success && chunkType === 'error') {
+      console.error('❌ Railway scraping failed:', scrapedData.error);
+      return NextResponse.json({
+        success: true,
+        message: 'Error notification received'
+      });
+    }
 
     if (!scrapedData.success) {
       throw new Error(scrapedData.error || 'Scraping failed');
@@ -41,27 +59,60 @@ export async function POST(request) {
       space: null,
       deepnodeai: null,
       c8ntinuum: null,
-
       timestamp: new Date().toISOString()
     };
 
-    // Process all leaderboards
-    await processYappers(scrapedData, results);
-    await processDuelDuck(scrapedData, results);
-    await processAdichain(scrapedData, results);
-    await processHeyElsa(scrapedData, results);
-    await processBeyond(scrapedData, results);
-    await processMindoshare(scrapedData, results);
-    await processHelios(scrapedData, results);
-    await processSpace(scrapedData, results);
-    await processDeepnodeai(scrapedData, results);
-    await processC8ntinuum(scrapedData, results);
+    // Process based on chunk type or process all if not chunked
+    if (chunkType === 'yappers' || !chunkType) {
+      await processYappers(scrapedData, results);
+    }
+    
+    if (chunkType === 'duelduck' || !chunkType) {
+      await processDuelDuck(scrapedData, results);
+    }
+    
+    if (chunkType === 'adichain' || !chunkType) {
+      await processAdichain(scrapedData, results);
+    }
+    
+    if (chunkType === 'heyelsa' || !chunkType) {
+      await processHeyElsa(scrapedData, results);
+    }
+    
+    if (chunkType === 'beyond' || !chunkType) {
+      await processBeyond(scrapedData, results);
+    }
+    
+    if (chunkType === 'mindoshare' || !chunkType) {
+      await processMindoshare(scrapedData, results);
+    }
+    
+    if (chunkType === 'helios' || !chunkType) {
+      await processHelios(scrapedData, results);
+    }
+    
+    if (chunkType === 'space' || !chunkType) {
+      await processSpace(scrapedData, results);
+    }
+    
+    if (chunkType === 'deepnodeai' || !chunkType) {
+      await processDeepnodeai(scrapedData, results);
+    }
+    
+    if (chunkType === 'c8ntinuum' || !chunkType) {
+      await processC8ntinuum(scrapedData, results);
+    }
 
-    console.log('✅ All data stored successfully');
+    if (chunkType) {
+      console.log(`✅ Chunk ${chunkIndex}/${chunkTotal} stored: ${chunkType}`);
+    } else {
+      console.log('✅ All data stored successfully');
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Data stored successfully',
+      message: chunkType ? `Chunk ${chunkType} stored successfully` : 'Data stored successfully',
+      chunkType,
       results
     });
 
@@ -104,7 +155,9 @@ async function processDuelDuck(scrapedData, results) {
   try {
     await storeDuelDuck(scrapedData.results.duelduck.data);
     results.duelduck = { success: true, count: scrapedData.results.duelduck.count };
+    console.log(`✅ Stored ${scrapedData.results.duelduck.count} DuelDuck entries`);
   } catch (error) {
+    console.error('❌ DuelDuck error:', error.message);
     results.duelduck = { success: false, error: error.message };
   }
 }
@@ -115,7 +168,9 @@ async function processAdichain(scrapedData, results) {
   try {
     await storeAdichain(scrapedData.results.adichain.data);
     results.adichain = { success: true, count: scrapedData.results.adichain.count };
+    console.log(`✅ Stored ${scrapedData.results.adichain.count} Adichain entries`);
   } catch (error) {
+    console.error('❌ Adichain error:', error.message);
     results.adichain = { success: false, error: error.message };
   }
 }
@@ -125,11 +180,17 @@ async function processHeyElsa(scrapedData, results) {
 
   for (const [period, heyelsaData] of Object.entries(scrapedData.results.heyelsa)) {
     if (heyelsaData.data?.length) {
-      const snapshotId = crypto.randomUUID();
-      const days = PERIOD_TO_DAYS[period];
+      try {
+        const snapshotId = crypto.randomUUID();
+        const days = PERIOD_TO_DAYS[period];
 
-      await storeHeyElsa(heyelsaData.data, period, days, snapshotId);
-      results.heyelsa[period] = { success: true, count: heyelsaData.count };
+        await storeHeyElsa(heyelsaData.data, period, days, snapshotId);
+        results.heyelsa[period] = { success: true, count: heyelsaData.count };
+        console.log(`✅ Stored ${heyelsaData.count} HeyElsa (${period})`);
+      } catch (error) {
+        console.error(`❌ HeyElsa ${period} error:`, error.message);
+        results.heyelsa[period] = { success: false, error: error.message };
+      }
     }
   }
 }
@@ -139,11 +200,17 @@ async function processBeyond(scrapedData, results) {
 
   for (const [period, beyondData] of Object.entries(scrapedData.results.beyond)) {
     if (beyondData.data?.length) {
-      const snapshotId = crypto.randomUUID();
-      const days = PERIOD_TO_DAYS[period];
+      try {
+        const snapshotId = crypto.randomUUID();
+        const days = PERIOD_TO_DAYS[period];
 
-      await storeBeyond(beyondData.data, period, days, snapshotId);
-      results.beyond[period] = { success: true, count: beyondData.count };
+        await storeBeyond(beyondData.data, period, days, snapshotId);
+        results.beyond[period] = { success: true, count: beyondData.count };
+        console.log(`✅ Stored ${beyondData.count} Beyond (${period})`);
+      } catch (error) {
+        console.error(`❌ Beyond ${period} error:`, error.message);
+        results.beyond[period] = { success: false, error: error.message };
+      }
     }
   }
 }
@@ -154,7 +221,9 @@ async function processMindoshare(scrapedData, results) {
   try {
     await storeMindoshare(scrapedData.results.mindoshare.data);
     results.mindoshare = { success: true, count: scrapedData.results.mindoshare.count };
+    console.log(`✅ Stored ${scrapedData.results.mindoshare.count} Mindoshare entries`);
   } catch (error) {
+    console.error('❌ Mindoshare error:', error.message);
     results.mindoshare = { success: false, error: error.message };
   }
 }
@@ -165,7 +234,9 @@ async function processHelios(scrapedData, results) {
   try {
     await storeHelios(scrapedData.results.helios.data);
     results.helios = { success: true, count: scrapedData.results.helios.count };
+    console.log(`✅ Stored ${scrapedData.results.helios.count} Helios entries`);
   } catch (error) {
+    console.error('❌ Helios error:', error.message);
     results.helios = { success: false, error: error.message };
   }
 }
@@ -176,7 +247,9 @@ async function processSpace(scrapedData, results) {
   try {
     await storeSpace(scrapedData.results.space.data);
     results.space = { success: true, count: scrapedData.results.space.count };
+    console.log(`✅ Stored ${scrapedData.results.space.count} Space entries`);
   } catch (error) {
+    console.error('❌ Space error:', error.message);
     results.space = { success: false, error: error.message };
   }
 }
@@ -187,7 +260,9 @@ async function processDeepnodeai(scrapedData, results) {
   try {
     await storeDeepnodeai(scrapedData.results.deepnodeai.data);
     results.deepnodeai = { success: true, count: scrapedData.results.deepnodeai.count };
+    console.log(`✅ Stored ${scrapedData.results.deepnodeai.count} DeepnodeAI entries`);
   } catch (error) {
+    console.error('❌ DeepnodeAI error:', error.message);
     results.deepnodeai = { success: false, error: error.message };
   }
 }
@@ -198,7 +273,9 @@ async function processC8ntinuum(scrapedData, results) {
   try {
     await storeC8ntinuum(scrapedData.results.c8ntinuum.data);
     results.c8ntinuum = { success: true, count: scrapedData.results.c8ntinuum.count };
+    console.log(`✅ Stored ${scrapedData.results.c8ntinuum.count} C8ntinuum entries`);
   } catch (error) {
+    console.error('❌ C8ntinuum error:', error.message);
     results.c8ntinuum = { success: false, error: error.message };
   }
 }
