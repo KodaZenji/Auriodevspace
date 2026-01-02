@@ -96,7 +96,8 @@ export function useLeaderboard() {
           helios: !!heliosUser,
           c8ntinuum: !!c8ntinuumUser,
           deepnodeai: !!deepnodeaiUser,
-          beyond: !!beyondUser
+          beyond: !!beyondUser,
+          codexero: !!codexeroUser 
         },
         goat: goatUser ? {
           rank: goatUser.rank,
