@@ -22,6 +22,11 @@ module.exports = {
     maxPages: 20,
     periodDelay: 10000
   },
+  codexero: {                          
+    periods: ['epoch-1', '7d', '30d'],
+    maxPages: 20,
+    periodDelay: 10000
+  },
   mindoshare: {
     maxPages: 12,
     delay: 3000
