@@ -1,6 +1,6 @@
 // ========================================
 // FILE: app/api/leaderboards/route.ts
-// Refactored to use reusable helper functions
+// Handles separate periods for Elsa/Beyond vs CodeXero
 // ========================================
 
 import { NextResponse } from 'next/server';
@@ -17,11 +17,14 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const days = parseInt(searchParams.get('days') || '7');
   const elsaPeriod = searchParams.get('elsaPeriod') || '7d';
-  const elsaDays = PERIOD_TO_DAYS[elsaPeriod];
+  const codexeroPeriod = searchParams.get('codexeroPeriod') || 'epoch-1';
   
-  if (!elsaDays) {
+  const elsaDays = PERIOD_TO_DAYS[elsaPeriod];
+  const codexeroDays = PERIOD_TO_DAYS[codexeroPeriod];
+  
+  if (!elsaDays || !codexeroDays) {
     return NextResponse.json(
-      { error: `Invalid elsaPeriod: ${elsaPeriod}` },
+      { error: `Invalid period parameter` },
       { status: 400 }
     );
   }
@@ -51,7 +54,7 @@ export async function GET(request) {
       fetchLeaderboard('c8ntinuum'),
       fetchLeaderboard('deepnodeai'),
       fetchLeaderboard('beyond', elsaDays),
-      fetchLeaderboard('codexero', elsaDays)
+      fetchLeaderboard('codexero', codexeroDays) // Separate period for CodeXero
     ]);
 
     // Check if core leaderboards are available
@@ -67,6 +70,8 @@ export async function GET(request) {
       days,
       elsaPeriod,
       elsaDays,
+      codexeroPeriod,
+      codexeroDays,
       yappers,
       duelduck,
       adichain,
@@ -77,7 +82,7 @@ export async function GET(request) {
       c8ntinuum: c8ntinuum || { data: [], last_updated: null, count: 0 },
       deepnodeai: deepnodeai || { data: [], last_updated: null, count: 0 },
       beyond: beyond || { data: [], last_updated: null, snapshot_id: null, count: 0, days: elsaDays },
-      codexero: codexero || { data: [], last_updated: null, snapshot_id: null, count: 0, days: elsaDays } // ADDED
+      codexero: codexero || { data: [], last_updated: null, snapshot_id: null, count: 0, days: codexeroDays }
     });
   } catch (error) {
     console.error('Error fetching leaderboards:', error);
