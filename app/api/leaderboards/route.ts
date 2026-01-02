@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { fetchLeaderboard } from './helpers';
 
 const PERIOD_TO_DAYS = {
+  'epoch-1': 1,
   'epoch-2': 2,
   '7d': 7,
   '30d': 30
@@ -37,7 +38,8 @@ export async function GET(request) {
       helios,
       c8ntinuum,
       deepnodeai,
-      beyond
+      beyond,
+      codexero
     ] = await Promise.all([
       fetchLeaderboard('yappers', days),
       fetchLeaderboard('duelduck'),
@@ -48,7 +50,8 @@ export async function GET(request) {
       fetchLeaderboard('helios'),
       fetchLeaderboard('c8ntinuum'),
       fetchLeaderboard('deepnodeai'),
-      fetchLeaderboard('beyond', elsaDays)
+      fetchLeaderboard('beyond', elsaDays),
+      fetchLeaderboard('codexero', elsaDays)
     ]);
 
     // Check if core leaderboards are available
@@ -73,7 +76,8 @@ export async function GET(request) {
       helios: helios || { data: [], last_updated: null, count: 0 },
       c8ntinuum: c8ntinuum || { data: [], last_updated: null, count: 0 },
       deepnodeai: deepnodeai || { data: [], last_updated: null, count: 0 },
-      beyond: beyond || { data: [], last_updated: null, snapshot_id: null, count: 0, days: elsaDays }
+      beyond: beyond || { data: [], last_updated: null, snapshot_id: null, count: 0, days: elsaDays },
+      codexero: codexero || { data: [], last_updated: null, snapshot_id: null, count: 0, days: elsaDays } // ADDED
     });
   } catch (error) {
     console.error('Error fetching leaderboards:', error);
