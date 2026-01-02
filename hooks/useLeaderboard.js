@@ -6,7 +6,7 @@ export function useLeaderboard() {
   const [results, setResults] = useState(null);
   const [goatDays, setGoatDays] = useState('30');
   const [elsaPeriod, setElsaPeriod] = useState('7d');
-  const [codexeroPeriod, setCodexeroPeriod] = useState('epoch-1'); 
+  const [codexeroPeriod, setCodexeroPeriod] = useState('epoch-1');
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const handleSearch = useCallback(async (customGoatDays, customElsaPeriod, customCodexeroPeriod) => {
@@ -78,16 +78,23 @@ export function useLeaderboard() {
         user => user.username.toLowerCase() === normalizedSearch
       );
       
-      // Check if user found on any platform
-      if (!goatUser && !duckUser && !adiUser && !elsaUser && !perceptronUser && 
-          !spaceUser && !heliosUser && !c8ntinuumUser && !deepnodeaiUser && !beyondUser && !codexeroUser) {
+      // Check if user found on any platform (across all periods)
+      // For platforms without time switches, just check once
+      // For platforms with time switches, we'll keep the card visible even if not found in current period
+      const foundAnywhere = goatUser || duckUser || adiUser || elsaUser || 
+                           perceptronUser || spaceUser || heliosUser || 
+                           c8ntinuumUser || deepnodeaiUser || beyondUser || codexeroUser;
+      
+      if (!foundAnywhere) {
         alert(`User @${searchUser} not found on any leaderboard`);
         setResults(null);
         setLoading(false);
         return;
       }
 
-      setResults({
+      // Store the results, but keep track of whether user was found in the CURRENT period
+      // This allows us to show the card with an error state for that period
+      const newResults = {
         username: searchUser.replace('@', ''),
         foundOn: {
           goat: !!goatUser,
@@ -101,6 +108,20 @@ export function useLeaderboard() {
           deepnodeai: !!deepnodeaiUser,
           beyond: !!beyondUser,
           codexero: !!codexeroUser
+        },
+        // Track which platforms ever had this user (to keep card visible)
+        everFoundOn: {
+          goat: !!goatUser || (results?.everFoundOn?.goat),
+          duck: !!duckUser || (results?.everFoundOn?.duck),
+          adi: !!adiUser || (results?.everFoundOn?.adi),
+          elsa: !!elsaUser || (results?.everFoundOn?.elsa),
+          perceptron: !!perceptronUser || (results?.everFoundOn?.perceptron),
+          space: !!spaceUser || (results?.everFoundOn?.space),
+          helios: !!heliosUser || (results?.everFoundOn?.helios),
+          c8ntinuum: !!c8ntinuumUser || (results?.everFoundOn?.c8ntinuum),
+          deepnodeai: !!deepnodeaiUser || (results?.everFoundOn?.deepnodeai),
+          beyond: !!beyondUser || (results?.everFoundOn?.beyond),
+          codexero: !!codexeroUser || (results?.everFoundOn?.codexero)
         },
         goat: goatUser ? {
           rank: goatUser.rank,
@@ -187,14 +208,16 @@ export function useLeaderboard() {
           app_use_multiplier: codexeroUser.app_use_multiplier,
           score: codexeroUser.score
         } : null
-      });
+      };
+
+      setResults(newResults);
     } catch (error) {
       console.error('Error searching:', error);
       alert('Failed to search. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, [searchUser, goatDays, elsaPeriod, codexeroPeriod]);
+  }, [searchUser, goatDays, elsaPeriod, codexeroPeriod, results]);
 
   const countFoundPlatforms = () => {
     if (!results) return 0;
@@ -210,8 +233,8 @@ export function useLeaderboard() {
     setGoatDays,
     elsaPeriod,
     setElsaPeriod,
-    codexeroPeriod, 
-    setCodexeroPeriod, 
+    codexeroPeriod,
+    setCodexeroPeriod,
     lastUpdated,
     handleSearch,
     countFoundPlatforms
