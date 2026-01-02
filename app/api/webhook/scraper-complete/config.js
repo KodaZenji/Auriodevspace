@@ -1,6 +1,5 @@
-
-
 export const PERIOD_TO_DAYS = {
+  'epoch-1': 1,
   'epoch-2': 2,
   '7d': 7,
   '30d': 30
