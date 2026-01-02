@@ -97,6 +97,7 @@ export default function LeaderboardCard({
         );
       case 'elsa':
       case 'beyond':
+      case 'codexero'
         return (
           <>
             <div className="text-center bg-slate-800/50 rounded-lg p-2">
