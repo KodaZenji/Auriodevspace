@@ -163,10 +163,10 @@ export default function RankNexus() {
             )}
 
             {/* Goat Network (Yappers) */}
-            {results.goat && (
+            {(results.goat || results.everFoundOn?.goat) && (
               <LeaderboardCard 
                 platform="goat" 
-                data={results.goat} 
+                data={results.goat || {}} 
                 platformName="Goat Network"
                 timeSwitch={true}
                 currentValue={goatDays}
@@ -180,6 +180,7 @@ export default function RankNexus() {
                 isExpanded={expandedCards.goat}
                 onToggle={() => toggleCard('goat')}
                 onTimeChange={handleTimeChange}
+                notFoundInPeriod={!results.goat && results.everFoundOn?.goat}
               />
             )}
             
@@ -214,10 +215,10 @@ export default function RankNexus() {
             )}
 
             {/* HeyElsa */}
-            {results.elsa && (
+            {(results.elsa || results.everFoundOn?.elsa) && (
               <LeaderboardCard 
                 platform="elsa" 
-                data={results.elsa} 
+                data={results.elsa || {}} 
                 platformName="HeyElsa"
                 timeSwitch={true}
                 currentValue={elsaPeriod}
@@ -232,14 +233,15 @@ export default function RankNexus() {
                 isExpanded={expandedCards.elsa}
                 onToggle={() => toggleCard('elsa')}
                 onTimeChange={handleTimeChange}
+                notFoundInPeriod={!results.elsa && results.everFoundOn?.elsa}
               />
             )}
 
             {/* Beyond */}
-            {results.beyond && (
+            {(results.beyond || results.everFoundOn?.beyond) && (
               <LeaderboardCard 
                 platform="beyond" 
-                data={results.beyond} 
+                data={results.beyond || {}} 
                 platformName="Beyond"
                 timeSwitch={true}
                 currentValue={elsaPeriod}
@@ -254,14 +256,15 @@ export default function RankNexus() {
                 isExpanded={expandedCards.beyond}
                 onToggle={() => toggleCard('beyond')}
                 onTimeChange={handleTimeChange}
+                notFoundInPeriod={!results.beyond && results.everFoundOn?.beyond}
               />
             )}
 
             {/* CodeXero - FIXED: Now uses codexeroPeriod */}
-            {results.codexero && (
+            {(results.codexero || results.everFoundOn?.codexero) && (
               <LeaderboardCard 
                 platform="codexero" 
-                data={results.codexero} 
+                data={results.codexero || {}} 
                 platformName="CodeXero-Cluster Protocol"
                 timeSwitch={true}
                 currentValue={codexeroPeriod}
@@ -276,6 +279,7 @@ export default function RankNexus() {
                 isExpanded={expandedCards.codexero}
                 onToggle={() => toggleCard('codexero')}
                 onTimeChange={handleTimeChange}
+                notFoundInPeriod={!results.codexero && results.everFoundOn?.codexero}
               />
             )}
           </div>
