@@ -235,7 +235,7 @@ export const LEADERBOARD_CONFIGS = {
   codexero: {
     type: 'snapshot-based',
     tableName: 'codexero_leaderboard',
-    cacheType: 'beyond',
+    cacheType: 'codexero',
     usesDays: true,
     transformer: transformSnapshotRow
   }
