@@ -70,10 +70,14 @@ export function useLeaderboard() {
       const beyondUser = data.beyond.data.find(
         user => user.username.toLowerCase() === normalizedSearch
       );
+
+      const codexeroUser = data.codexero.data.find(
+        user => user.username.toLowerCase() === normalizedSearch
+      );
       
       // Check if user found on any platform
       if (!goatUser && !duckUser && !adiUser && !elsaUser && !perceptronUser && 
-          !spaceUser && !heliosUser && !c8ntinuumUser && !deepnodeaiUser && !beyondUser) {
+          !spaceUser && !heliosUser && !c8ntinuumUser && !deepnodeaiUser && !beyondUser && !codexeroUser) {
         alert(`User @${searchUser} not found on any leaderboard`);
         setResults(null);
         setLoading(false);
@@ -170,6 +174,14 @@ export function useLeaderboard() {
           position_change: beyondUser.position_change,
           app_use_multiplier: beyondUser.app_use_multiplier,
           score: beyondUser.score
+        } : null,
+codexero: codexeroUser ? {
+          rank: codexeroUser.position,
+          username: codexeroUser.username,
+          mindshare_percentage: codexeroUser.mindshare_percentage,
+          position_change: codexeroUser.position_change,
+          app_use_multiplier: codexeroUser.app_use_multiplier,
+          score: codexeroUser.score
         } : null
       });
     } catch (error) {
