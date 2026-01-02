@@ -8,6 +8,7 @@ import { storeDuelDuck } from './storage/storeDuelDuck';
 import { storeAdichain } from './storage/storeAdichain';
 import { storeHeyElsa } from './storage/storeHeyElsa';
 import { storeBeyond } from './storage/storeBeyond';
+import { storeCodeXero } from './storage/storeCodeXero'; // ← ADDED
 import { storeMindoshare } from './storage/storeMindoshare';
 import { storeHelios } from './storage/storeHelios';
 import { storeSpace } from './storage/storeSpace';
@@ -54,6 +55,7 @@ export async function POST(request) {
       adichain: null,
       heyelsa: {},
       beyond: {},
+      codexero: {},  // ← ADDED
       mindoshare: null,
       helios: null,
       space: null,
@@ -81,6 +83,10 @@ export async function POST(request) {
     
     if (chunkType === 'beyond' || !chunkType) {
       await processBeyond(scrapedData, results);
+    }
+    
+    if (chunkType === 'codexero' || !chunkType) {  
+      await processCodeXero(scrapedData, results);
     }
     
     if (chunkType === 'mindoshare' || !chunkType) {
@@ -210,6 +216,27 @@ async function processBeyond(scrapedData, results) {
       } catch (error) {
         console.error(`❌ Beyond ${period} error:`, error.message);
         results.beyond[period] = { success: false, error: error.message };
+      }
+    }
+  }
+}
+
+// ← ADDED CODEXERO PROCESSING
+async function processCodeXero(scrapedData, results) {
+  if (!scrapedData.results?.codexero) return;
+
+  for (const [period, codexeroData] of Object.entries(scrapedData.results.codexero)) {
+    if (codexeroData.data?.length) {
+      try {
+        const snapshotId = crypto.randomUUID();
+        const days = PERIOD_TO_DAYS[period];
+
+        await storeCodeXero(codexeroData.data, period, days, snapshotId);
+        results.codexero[period] = { success: true, count: codexeroData.count };
+        console.log(`✅ Stored ${codexeroData.count} CodeXero (${period})`);
+      } catch (error) {
+        console.error(`❌ CodeXero ${period} error:`, error.message);
+        results.codexero[period] = { success: false, error: error.message };
       }
     }
   }
