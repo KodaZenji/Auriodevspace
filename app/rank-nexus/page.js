@@ -23,7 +23,8 @@ export default function RankNexus() {
     helios: false,
     c8ntinuum: false,
     deepnodeai: false,
-    beyond: false
+    beyond: false,
+    codexero: false
   });
 
   const {
@@ -248,6 +249,27 @@ export default function RankNexus() {
                 username={results.username}
                 isExpanded={expandedCards.beyond}
                 onToggle={() => toggleCard('beyond')}
+                onTimeChange={handleTimeChange}
+              />
+            )}
+             {/* CodeXero */}
+            {results.codexero && (
+              <LeaderboardCard 
+                platform="codexero" 
+                data={results.codexero} 
+                platformName="CodeXero-Cluster Protocol"
+                timeSwitch={true}
+                currentValue={elsaPeriod}
+                onValueChange={setElsaPeriod}
+                options={[
+                  { value: 'epoch-1', label: 'E1' },
+                  { value: '7d', label: '7d' },
+                  { value: '30d', label: '30d' }
+                ]}
+                showAvatar={countFoundPlatforms() === 1}
+                username={results.username}
+                isExpanded={expandedCards.codexero}
+                onToggle={() => toggleCard('codexero')}
                 onTimeChange={handleTimeChange}
               />
             )}
