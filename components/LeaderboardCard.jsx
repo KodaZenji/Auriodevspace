@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, AlertCircle } from 'lucide-react';
 
 export default function LeaderboardCard({ 
   platform, 
@@ -12,7 +12,8 @@ export default function LeaderboardCard({
   username,
   isExpanded,
   onToggle,
-  onTimeChange
+  onTimeChange,
+  notFoundInPeriod = false // NEW PROP
 }) {
   const formatNumber = (num) => {
     if (!num) return '0';
@@ -98,7 +99,6 @@ export default function LeaderboardCard({
       case 'elsa':
       case 'beyond':
       case 'codexero': 
-        
         return (
           <>
             <div className="text-center bg-slate-800/50 rounded-lg p-2">
@@ -184,6 +184,8 @@ export default function LeaderboardCard({
           </div>
         );
       case 'elsa':
+      case 'beyond':
+      case 'codexero':
         return (
           <div className="text-right">
             <div className="text-xs text-gray-400">Mindshare</div>
@@ -197,38 +199,73 @@ export default function LeaderboardCard({
             </div>
           </div>
         );
-      case 'beyond':
-        return (
-          <div className="text-right">
-            <div className="text-xs text-gray-400">Mindshare</div>
-            <div className="font-bold text-lg" style={{
-              background: 'linear-gradient(135deg, #10b981, #34d399)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
-              {data.mindshare_percentage?.toFixed(2)}%
-            </div>
-          </div>
-        ); 
-        case 'codexero':
-  return (
-    <div className="text-right">
-      <div className="text-xs text-gray-400">Mindshare</div>
-      <div className="font-bold text-lg" style={{
-        background: 'linear-gradient(135deg, #10b981, #34d399)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text'
-      }}>
-        {data.mindshare_percentage?.toFixed(2)}%
-      </div>
-    </div>
-  );
       default:
         return null;
     }
   };
+
+  // If user not found in this period, show error state
+  if (notFoundInPeriod) {
+    return (
+      <div 
+        className="bg-slate-800 rounded-lg mb-3 overflow-hidden transition-all"
+        style={{ border: '1px solid rgba(239, 68, 68, 0.3)' }}
+      >
+        <div className="px-3 pt-2 pb-1 border-b border-slate-700/50 flex items-center justify-between">
+          <h3 className="font-semibold text-xs" style={{
+            background: 'linear-gradient(135deg, #10b981, #34d399, #6ee7b7)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>
+            {platformName}
+          </h3>
+          {timeSwitch && (
+            <div className="flex gap-1">
+              {options.map(option => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    onValueChange(option.value);
+                    onTimeChange(platform, option.value);
+                  }}
+                  className="px-2 py-0.5 rounded text-xs font-medium transition-all"
+                  style={{
+                    background: currentValue === option.value 
+                      ? 'linear-gradient(135deg, #10b981, #34d399)' 
+                      : 'transparent',
+                    color: currentValue === option.value ? '#000000' : '#6b7280',
+                    border: currentValue === option.value ? 'none' : '1px solid #374151'
+                  }}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="p-4 flex flex-col items-center justify-center text-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
+            <AlertCircle className="w-6 h-6 text-red-400" />
+          </div>
+          <div>
+            <div className="text-white font-medium mb-1">
+              @{username} not found
+            </div>
+            <div className="text-gray-400 text-sm">
+              User not ranked in this period
+            </div>
+            {timeSwitch && (
+              <div className="text-gray-500 text-xs mt-2">
+                Try selecting a different time period above
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
