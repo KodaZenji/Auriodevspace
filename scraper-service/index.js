@@ -10,9 +10,10 @@ const { scrapeHeyElsa } = require('./scrapers/heyelsa');
 const { scrapeMindoshare } = require('./scrapers/mindoshare');
 const { scrapeHelios } = require('./scrapers/helios');
 const { scrapeBeyond } = require('./scrapers/beyond');
+const { scrapeCodeXero } = require('./scrapers/codexero'); // ← ADDED
 const { scrapeC8ntinuum } = require('./scrapers/c8ntinuum');
 const { scrapeDeepnodeai } = require('./scrapers/deepnodeai');
-const { scrapeSpace } = require('./scrapers/space'); // ADDED
+const { scrapeSpace } = require('./scrapers/space');
 
 const app = express();
 app.use(express.json());
@@ -28,8 +29,9 @@ async function performScraping() {
     adichain: null,
     heyelsa: {},
     beyond: {},
+    codexero: {},
     mindoshare: null,
-    space: null, // ADDED
+    space: null,
     helios: null,
     c8ntinuum: null,
     deepnodeai: null
@@ -76,6 +78,16 @@ async function performScraping() {
     if (period !== '30d') {
       await sleep(config.beyond.periodDelay);
     }
+  } 
+  
+  // CodeXero
+  for (const period of config.codexero.periods) {
+    console.log(`\n--- Starting CodeXero ${period} ---`);
+    results.codexero[period] = await scrapeCodeXero(period, config.codexero.maxPages);
+    
+    if (period !== '30d') {
+      await sleep(config.codexero.periodDelay);
+    }
   }
 
   // Mindoshare
@@ -85,7 +97,7 @@ async function performScraping() {
   );
   await sleep(config.mindoshare.delay || 5000);
 
-  // Space - ADDED
+  // Space
   console.log('\n--- Starting Space ---');
   results.space = await scrapeSpace(
     config.space?.maxPages || 12
@@ -230,7 +242,33 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 6: Mindoshare
+  // Chunk 6: CodeXero (all periods) - ADDED
+  if (results.codexero) {
+    chunks.push({
+      chunkType: 'codexero',
+      data: {
+        success: true,
+        results: {
+          codexero: {
+            'epoch-1': {
+              count: results.codexero['epoch-1']?.length || 0,
+              data: results.codexero['epoch-1']
+            },
+            '7d': {
+              count: results.codexero['7d']?.length || 0,
+              data: results.codexero['7d']
+            },
+            '30d': {
+              count: results.codexero['30d']?.length || 0,
+              data: results.codexero['30d']
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Chunk 7: Mindoshare
   if (results.mindoshare) {
     chunks.push({
       chunkType: 'mindoshare',
@@ -246,7 +284,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 7: Space - ADDED
+  // Chunk 8: Space
   if (results.space) {
     chunks.push({
       chunkType: 'space',
@@ -262,7 +300,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 8: Helios
+  // Chunk 9: Helios
   if (results.helios) {
     chunks.push({
       chunkType: 'helios',
@@ -278,7 +316,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 9: C8ntinuum
+  // Chunk 10: C8ntinuum
   if (results.c8ntinuum) {
     chunks.push({
       chunkType: 'c8ntinuum',
@@ -294,7 +332,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 10: DeepnodeAI
+  // Chunk 11: DeepnodeAI
   if (results.deepnodeai) {
     chunks.push({
       chunkType: 'deepnodeai',
@@ -434,7 +472,7 @@ app.get('/scrape-all-async', (req, res) => {
     estimatedTime: '10-15 minutes',
     webhook: webhookUrl,
     chunkingEnabled: true,
-    totalChunks: 10,
+    totalChunks: 11, // ← UPDATED from 10 to 11
     timestamp: new Date().toISOString()
   });
 
@@ -464,7 +502,7 @@ app.post('/scrape', (req, res) => {
     message: 'Scraping started',
     estimatedTime: '10-15 minutes',
     chunkingEnabled: true,
-    totalChunks: 10,
+    totalChunks: 11, // ← UPDATED from 10 to 11
     timestamp: new Date().toISOString()
   });
 
@@ -482,6 +520,16 @@ app.get('/scrape/yappers/:days', async (req, res) => {
   try {
     const data = await scrapeYappers(days);
     res.json({ success: true, period: `${days}d`, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/scrape/codexero', async (req, res) => {
+  const period = req.query.period || '7d';
+  try {
+    const data = await scrapeCodeXero(period, config.codexero.maxPages);
+    res.json({ success: true, period, count: data?.length || 0, data });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -536,5 +584,5 @@ app.listen(PORT, () => {
   console.log(`🚀 Leaderboard Scraper running on port ${PORT}`);
   console.log(`📍 Health: http://localhost:${PORT}/health`);
   console.log(`🔗 Async Scrape: GET /scrape-all-async?webhook=URL`);
-  console.log(`📦 Chunking: Enabled (10 separate webhook calls)`);
+  console.log(`📦 Chunking: Enabled (11 separate webhook calls)`);
 });
