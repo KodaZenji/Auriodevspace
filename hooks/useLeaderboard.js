@@ -6,18 +6,21 @@ export function useLeaderboard() {
   const [results, setResults] = useState(null);
   const [goatDays, setGoatDays] = useState('30');
   const [elsaPeriod, setElsaPeriod] = useState('7d');
+  const [codexeroPeriod, setCodexeroPeriod] = useState('epoch-1'); 
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  const handleSearch = useCallback(async (customGoatDays, customElsaPeriod) => {
+  const handleSearch = useCallback(async (customGoatDays, customElsaPeriod, customCodexeroPeriod) => {
     const daysToUse = customGoatDays || goatDays;
-    const periodToUse = customElsaPeriod || elsaPeriod;
+    const elsaPeriodToUse = customElsaPeriod || elsaPeriod;
+    const codexeroPeriodToUse = customCodexeroPeriod || codexeroPeriod;
 
     if (!searchUser.trim()) return;
     
     setLoading(true);
     
     try {
-      const response = await fetch(`/api/leaderboards?days=${daysToUse}&elsaPeriod=${periodToUse}`);
+      // Send both periods to API
+      const response = await fetch(`/api/leaderboards?days=${daysToUse}&elsaPeriod=${elsaPeriodToUse}&codexeroPeriod=${codexeroPeriodToUse}`);
       const data = await response.json();
       
       if (data.error) {
@@ -97,7 +100,7 @@ export function useLeaderboard() {
           c8ntinuum: !!c8ntinuumUser,
           deepnodeai: !!deepnodeaiUser,
           beyond: !!beyondUser,
-          codexero: !!codexeroUser 
+          codexero: !!codexeroUser
         },
         goat: goatUser ? {
           rank: goatUser.rank,
@@ -176,7 +179,7 @@ export function useLeaderboard() {
           app_use_multiplier: beyondUser.app_use_multiplier,
           score: beyondUser.score
         } : null,
-codexero: codexeroUser ? {
+        codexero: codexeroUser ? {
           rank: codexeroUser.position,
           username: codexeroUser.username,
           mindshare_percentage: codexeroUser.mindshare_percentage,
@@ -191,7 +194,7 @@ codexero: codexeroUser ? {
     } finally {
       setLoading(false);
     }
-  }, [searchUser, goatDays, elsaPeriod]);
+  }, [searchUser, goatDays, elsaPeriod, codexeroPeriod]);
 
   const countFoundPlatforms = () => {
     if (!results) return 0;
@@ -207,6 +210,8 @@ codexero: codexeroUser ? {
     setGoatDays,
     elsaPeriod,
     setElsaPeriod,
+    codexeroPeriod, 
+    setCodexeroPeriod, 
     lastUpdated,
     handleSearch,
     countFoundPlatforms
