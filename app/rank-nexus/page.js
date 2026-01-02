@@ -36,6 +36,8 @@ export default function RankNexus() {
     setGoatDays,
     elsaPeriod,
     setElsaPeriod,
+    codexeroPeriod, 
+    setCodexeroPeriod, 
     lastUpdated,
     handleSearch,
     countFoundPlatforms
@@ -53,9 +55,11 @@ export default function RankNexus() {
   const handleTimeChange = (platform, value) => {
     if (searchUser.trim()) {
       if (platform === 'goat') {
-        handleSearch(value, elsaPeriod);
+        handleSearch(value, elsaPeriod, codexeroPeriod);
       } else if (platform === 'elsa' || platform === 'beyond') {
-        handleSearch(goatDays, value);
+        handleSearch(goatDays, value, codexeroPeriod);
+      } else if (platform === 'codexero') {
+        handleSearch(goatDays, elsaPeriod, value);
       }
     }
   };
@@ -252,15 +256,16 @@ export default function RankNexus() {
                 onTimeChange={handleTimeChange}
               />
             )}
-             {/* CodeXero */}
+
+            {/* CodeXero - FIXED: Now uses codexeroPeriod */}
             {results.codexero && (
               <LeaderboardCard 
                 platform="codexero" 
                 data={results.codexero} 
                 platformName="CodeXero-Cluster Protocol"
                 timeSwitch={true}
-                currentValue={elsaPeriod}
-                onValueChange={setElsaPeriod}
+                currentValue={codexeroPeriod}
+                onValueChange={setCodexeroPeriod}
                 options={[
                   { value: 'epoch-1', label: 'E1' },
                   { value: '7d', label: '7d' },
