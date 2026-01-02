@@ -210,7 +210,21 @@ export default function LeaderboardCard({
               {data.mindshare_percentage?.toFixed(2)}%
             </div>
           </div>
-        );
+        ); 
+        case 'codexero':
+  return (
+    <div className="text-right">
+      <div className="text-xs text-gray-400">Mindshare</div>
+      <div className="font-bold text-lg" style={{
+        background: 'linear-gradient(135deg, #10b981, #34d399)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text'
+      }}>
+        {data.mindshare_percentage?.toFixed(2)}%
+      </div>
+    </div>
+  );
       default:
         return null;
     }
