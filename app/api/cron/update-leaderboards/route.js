@@ -42,7 +42,7 @@ export async function GET(request) {
       .select('id', { count: 'exact', head: true });
     console.log(`✅ Deleted ${adichainDeleted?.count || 0} old Adichain entries`);
 
-    // Cleanup old DataHaven entries (NEW)
+    // Cleanup old DataHaven entries
     let datahavenDeletedCount = 0;
     try {
       const datahavenDeleted = await supabase
@@ -130,6 +130,108 @@ export async function GET(request) {
     const { data: activeBeyondSnapshots } = await supabase
       .from('leaderboard_cache')
       .select('snapshot_id')
+      .eq('cache_type', 'beyond');
+    const activeBeyondCount = activeBeyondSnapshots?.filter(s => s.snapshot_id).length || 0;
+    console.log(`📋 Active Beyond snapshots: ${activeBeyondCount}`);
+    console.log('✅ Beyond cleanup skipped (snapshot-aware)');
+
+    // HeyElsa cleanup (snapshot-aware)
+    const { data: activeSnapshots } = await supabase
+      .from('leaderboard_cache')
+      .select('snapshot_id')
+      .eq('cache_type', 'heyelsa');
+    const activeCount = activeSnapshots?.filter(s => s.snapshot_id).length || 0;
+    console.log(`📋 Active HeyElsa snapshots: ${activeCount}`);
+    console.log('✅ HeyElsa cleanup skipped (snapshot-aware)');
+
+    // CodeXero cleanup (snapshot-aware)
+    const { data: activeCodexeroSnapshots } = await supabase
+      .from('leaderboard_cache')
+      .select('snapshot_id')
+      .eq('cache_type', 'codexero');
+    const activeCodexeroCount = activeCodexeroSnapshots?.filter(s => s.snapshot_id).length || 0;
+    console.log(`📋 Active CodeXero snapshots: ${activeCodexeroCount}`);
+    console.log('✅ CodeXero cleanup skipped (snapshot-aware)');
+
+    console.log('✅ Cleanup completed');
+
+    // Trigger Railway scraper
+    const railwayUrl = process.env.RAILWAY_SCRAPER_URL;
+    const webhookUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://auriodevspace.vercel.app'}/api/webhook/scraper-complete`;
+    
+    if (!railwayUrl) {
+      throw new Error('RAILWAY_SCRAPER_URL not configured');
+    }
+
+    console.log('🚂 Triggering Railway scraper...');
+    console.log(`📥 Webhook callback: ${webhookUrl}`);
+
+    const triggerUrl = `${railwayUrl}/scrape-all-async?webhook=${encodeURIComponent(webhookUrl)}`;
+    console.log(`🔗 Trigger URL: ${triggerUrl}`);
+
+    const triggerResponse = await fetch(triggerUrl, {
+      method: 'GET',
+      signal: AbortSignal.timeout(10000),
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Vercel-Cron/1.0'
+      }
+    });
+
+    console.log('📡 Response status:', triggerResponse.status);
+    
+    const responseText = await triggerResponse.text();
+    console.log('📡 Response preview:', responseText.substring(0, 200));
+
+    if (!triggerResponse.ok) {
+      throw new Error(`Railway trigger failed: ${triggerResponse.status} - ${responseText}`);
+    }
+
+    let triggerResult;
+    try {
+      triggerResult = JSON.parse(responseText);
+    } catch (e) {
+      console.warn('Could not parse JSON response');
+      triggerResult = { raw: responseText };
+    }
+
+    console.log('✅ Railway scraper triggered successfully');
+
+    return NextResponse.json({
+      success: true,
+      message: 'Cron job completed. Railway scraper is running in background.',
+      cleanup: {
+        yappers_deleted: yappersDeleted?.count || 0,
+        duelduck_deleted: duckDeleted?.count || 0,
+        adichain_deleted: adichainDeleted?.count || 0,
+        datahaven_deleted: datahavenDeletedCount,
+        mindoshare_perceptronntwk_deleted: mindoshareDeletedCount,
+        space_deleted: spaceDeletedCount,
+        helios_deleted: heliosDeletedCount,
+        c8ntinuum_deleted: c8ntinuumDeletedCount,
+        deepnodeai_deleted: deepnodeaiDeletedCount,
+        beyond_deleted: 'snapshot-aware cleanup',
+        heyelsa_deleted: 'snapshot-aware cleanup',
+        codexero_deleted: 'snapshot-aware cleanup',
+        active_beyond_snapshots: activeBeyondSnapshots?.length || 0,
+        active_heyelsa_snapshots: activeSnapshots?.length || 0,
+        active_codexero_snapshots: activeCodexeroSnapshots?.length || 0
+      },
+      scraping: triggerResult,
+      note: 'Data will be stored via webhook when scraping completes (~10-15 minutes)'
+    });
+
+  } catch (error) {
+    console.error('❌ Cron error:', error);
+    return NextResponse.json(
+      { 
+        error: 'Failed to trigger leaderboard update', 
+        details: error.message 
+      },
+      { status: 500 }
+    );
+  }
+}      .select('snapshot_id')
       .eq('cache_type', 'beyond');
     const activeBeyondCount = activeBeyondSnapshots?.filter(s => s.snapshot_id).length || 0;
     console.log(`📋 Active Beyond snapshots: ${activeBeyondCount}`);
@@ -232,3 +334,4 @@ export async function GET(request) {
     );
   }
 }
+
