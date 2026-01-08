@@ -156,7 +156,7 @@ export default function LeaderboardCard({
       case 'datahaven':
         return (
           <div className="text-right">
-            <div className="text-xs text-gray-400">Total Points</div>
+            <div className="text-xs text-gray-400">Xeets</div>
             <div className="font-bold text-lg" style={{
               background: 'linear-gradient(135deg, #10b981, #34d399)',
               WebkitBackgroundClip: 'text',
