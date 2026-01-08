@@ -25,8 +25,18 @@ const LandingPage = () => {
       route: "/kaito-inner-ct",
       logo: "/kaito-Logo.png",
       logoAlt: "kaito Logo",
+      },
+    {
+     id: "rank-nexus",
+      title: "cross platform for infoFi leaderboards",
+      description: "your cross-platform leaderboards hub",
+      color: "from-slate-800/90 to-slate-700/90", // 
+      hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
+      route: "/rank-nexus",
+      logo: "/slazzer-preview-th9ga.png",
+      logoAlt: "Rank Nexus Logo",
       }
-      
+    
   ];
 
   return (
