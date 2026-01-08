@@ -6,6 +6,7 @@ import { PERIOD_TO_DAYS } from './config';
 import { storeYappers } from './storage/storeYappers';
 import { storeDuelDuck } from './storage/storeDuelDuck';
 import { storeAdichain } from './storage/storeAdichain';
+import { storeDataHaven } from './storage/storeDataHaven';
 import { storeHeyElsa } from './storage/storeHeyElsa';
 import { storeBeyond } from './storage/storeBeyond';
 import { storeCodeXero } from './storage/storeCodeXero'; // ← ADDED
@@ -50,19 +51,20 @@ export async function POST(request) {
     }
 
     const results = {
-      yappers: {},
-      duelduck: null,
-      adichain: null,
-      heyelsa: {},
-      beyond: {},
-      codexero: {},  // ← ADDED
-      mindoshare: null,
-      helios: null,
-      space: null,
-      deepnodeai: null,
-      c8ntinuum: null,
-      timestamp: new Date().toISOString()
-    };
+  yappers: {},
+  duelduck: null,
+  adichain: null,
+  datahaven: null,  // ← ADD THIS
+  heyelsa: {},
+  beyond: {},
+  codexero: {},
+  mindoshare: null,
+  helios: null,
+  space: null,
+  deepnodeai: null,
+  c8ntinuum: null,
+  timestamp: new Date().toISOString()
+};
 
     // Process based on chunk type or process all if not chunked
     if (chunkType === 'yappers' || !chunkType) {
@@ -76,6 +78,9 @@ export async function POST(request) {
     if (chunkType === 'adichain' || !chunkType) {
       await processAdichain(scrapedData, results);
     }
+    if (chunkType === 'datahaven' || !chunkType) {
+  await processDataHaven(scrapedData, results);
+}
     
     if (chunkType === 'heyelsa' || !chunkType) {
       await processHeyElsa(scrapedData, results);
@@ -178,6 +183,18 @@ async function processAdichain(scrapedData, results) {
   } catch (error) {
     console.error('❌ Adichain error:', error.message);
     results.adichain = { success: false, error: error.message };
+  }
+}
+async function processDataHaven(scrapedData, results) {
+  if (!scrapedData.results?.datahaven?.data) return;
+
+  try {
+    await storeDataHaven(scrapedData.results.datahaven.data);
+    results.datahaven = { success: true, count: scrapedData.results.datahaven.count };
+    console.log(`✅ Stored ${scrapedData.results.datahaven.count} DataHaven entries`);
+  } catch (error) {
+    console.error('❌ DataHaven error:', error.message);
+    results.datahaven = { success: false, error: error.message };
   }
 }
 
