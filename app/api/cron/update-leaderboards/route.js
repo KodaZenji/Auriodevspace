@@ -42,6 +42,20 @@ export async function GET(request) {
       .select('id', { count: 'exact', head: true });
     console.log(`✅ Deleted ${adichainDeleted?.count || 0} old Adichain entries`);
 
+    // Cleanup old DataHaven entries (NEW)
+    let datahavenDeletedCount = 0;
+    try {
+      const datahavenDeleted = await supabase
+        .from('datahaven_leaderboard')
+        .delete()
+        .lt('fetched_at', sevenDaysAgo.toISOString())
+        .select('id', { count: 'exact', head: true });
+      datahavenDeletedCount = datahavenDeleted?.count || 0;
+      console.log(`✅ Deleted ${datahavenDeletedCount} old DataHaven entries`);
+    } catch (err) {
+      console.log('⚠️ DataHaven table cleanup skipped:', err.message);
+    }
+
     // Cleanup Mindoshare entries
     let mindoshareDeletedCount = 0;
     try {
@@ -130,6 +144,15 @@ export async function GET(request) {
     console.log(`📋 Active HeyElsa snapshots: ${activeCount}`);
     console.log('✅ HeyElsa cleanup skipped (table is fresh)');
 
+    // CodeXero cleanup (snapshot-aware)
+    const { data: activeCodexeroSnapshots } = await supabase
+      .from('leaderboard_cache')
+      .select('snapshot_id')
+      .eq('cache_type', 'codexero');
+    const activeCodexeroCount = activeCodexeroSnapshots?.filter(s => s.snapshot_id).length || 0;
+    console.log(`📋 Active CodeXero snapshots: ${activeCodexeroCount}`);
+    console.log('✅ CodeXero cleanup skipped (snapshot-aware)');
+
     console.log('✅ Cleanup completed');
 
     // Trigger Railway scraper
@@ -143,7 +166,6 @@ export async function GET(request) {
     console.log('🚂 Triggering Railway scraper...');
     console.log(`📥 Webhook callback: ${webhookUrl}`);
 
-    // Use GET endpoint for backward compatibility
     const triggerUrl = `${railwayUrl}/scrape-all-async?webhook=${encodeURIComponent(webhookUrl)}`;
     console.log(`🔗 Trigger URL: ${triggerUrl}`);
 
@@ -182,6 +204,7 @@ export async function GET(request) {
         yappers_deleted: yappersDeleted?.count || 0,
         duelduck_deleted: duckDeleted?.count || 0,
         adichain_deleted: adichainDeleted?.count || 0,
+        datahaven_deleted: datahavenDeletedCount,
         mindoshare_perceptronntwk_deleted: mindoshareDeletedCount,
         space_deleted: spaceDeletedCount,
         helios_deleted: heliosDeletedCount,
@@ -189,8 +212,10 @@ export async function GET(request) {
         deepnodeai_deleted: deepnodeaiDeletedCount,
         beyond_deleted: 'snapshot-aware cleanup',
         heyelsa_deleted: 'snapshot-aware cleanup',
+        codexero_deleted: 'snapshot-aware cleanup',
         active_beyond_snapshots: activeBeyondSnapshots?.length || 0,
-        active_heyelsa_snapshots: activeSnapshots?.length || 0
+        active_heyelsa_snapshots: activeSnapshots?.length || 0,
+        active_codexero_snapshots: activeCodexeroSnapshots?.length || 0
       },
       scraping: triggerResult,
       note: 'Data will be stored via webhook when scraping completes (~10-15 minutes)'
