@@ -28,7 +28,7 @@ const LandingPage = () => {
       },
     {
      id: "rank-nexus",
-      title: "cross platform for infoFi leaderboards",
+      title: "Rank Nexus",
       description: "your cross-platform leaderboards hub",
       color: "from-slate-800/90 to-slate-700/90", // 
       hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
@@ -121,7 +121,7 @@ const LandingPage = () => {
 
         {/* Footer */}
         <footer className="w-full px-3 sm:px-6 lg:px-8 py-3 sm:py-6 bg-white/5 backdrop-blur-md border-t border-white/20 text-center text-xs sm:text-sm text-white/70 mt-auto">
-          © 2025 Auriosweb3. All rights reserved.
+          © 2026 Auriosweb3. All rights reserved.
         </footer>
       </div>
     </>
