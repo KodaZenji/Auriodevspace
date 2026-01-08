@@ -19,7 +19,6 @@ export function useLeaderboard() {
     setLoading(true);
     
     try {
-      // Send both periods to API
       const response = await fetch(`/api/leaderboards?days=${daysToUse}&elsaPeriod=${elsaPeriodToUse}&codexeroPeriod=${codexeroPeriodToUse}`);
       const data = await response.json();
       
@@ -43,6 +42,10 @@ export function useLeaderboard() {
       );
       
       const adiUser = data.adichain.data.find(
+        user => user.handle.toLowerCase() === normalizedSearch
+      );
+
+      const datahavenUser = data.datahaven.data.find(
         user => user.handle.toLowerCase() === normalizedSearch
       );
       
@@ -78,10 +81,8 @@ export function useLeaderboard() {
         user => user.username.toLowerCase() === normalizedSearch
       );
       
-      // Check if user found on any platform (across all periods)
-      // For platforms without time switches, just check once
-      // For platforms with time switches, we'll keep the card visible even if not found in current period
-      const foundAnywhere = goatUser || duckUser || adiUser || elsaUser || 
+      // Check if user found on any platform
+      const foundAnywhere = goatUser || duckUser || adiUser || datahavenUser || elsaUser || 
                            perceptronUser || spaceUser || heliosUser || 
                            c8ntinuumUser || deepnodeaiUser || beyondUser || codexeroUser;
       
@@ -92,14 +93,13 @@ export function useLeaderboard() {
         return;
       }
 
-      // Store the results, but keep track of whether user was found in the CURRENT period
-      // This allows us to show the card with an error state for that period
       const newResults = {
         username: searchUser.replace('@', ''),
         foundOn: {
           goat: !!goatUser,
           duck: !!duckUser,
           adi: !!adiUser,
+          datahaven: !!datahavenUser,
           elsa: !!elsaUser,
           perceptron: !!perceptronUser,
           space: !!spaceUser,
@@ -109,11 +109,11 @@ export function useLeaderboard() {
           beyond: !!beyondUser,
           codexero: !!codexeroUser
         },
-        // Track which platforms ever had this user (to keep card visible)
         everFoundOn: {
           goat: !!goatUser || (results?.everFoundOn?.goat),
           duck: !!duckUser || (results?.everFoundOn?.duck),
           adi: !!adiUser || (results?.everFoundOn?.adi),
+          datahaven: !!datahavenUser || (results?.everFoundOn?.datahaven),
           elsa: !!elsaUser || (results?.everFoundOn?.elsa),
           perceptron: !!perceptronUser || (results?.everFoundOn?.perceptron),
           space: !!spaceUser || (results?.everFoundOn?.space),
@@ -148,6 +148,14 @@ export function useLeaderboard() {
           signal_points: adiUser.signal_points,
           noise_points: adiUser.noise_points,
           rank_change: adiUser.rank_change
+        } : null,
+        datahaven: datahavenUser ? {
+          rank: datahavenUser.rank_total,
+          handle: datahavenUser.handle,
+          total_points: datahavenUser.total_points,
+          signal_points: datahavenUser.signal_points,
+          noise_points: datahavenUser.noise_points,
+          rank_change: datahavenUser.rank_change
         } : null,
         elsa: elsaUser ? {
           rank: elsaUser.position,
