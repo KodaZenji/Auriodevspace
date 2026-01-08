@@ -13,7 +13,7 @@ export default function LeaderboardCard({
   isExpanded,
   onToggle,
   onTimeChange,
-  notFoundInPeriod = false // NEW PROP
+  notFoundInPeriod = false
 }) {
   const formatNumber = (num) => {
     if (!num) return '0';
@@ -59,6 +59,7 @@ export default function LeaderboardCard({
           </>
         );
       case 'adi':
+      case 'datahaven':
         return (
           <>
             <div className="text-center bg-slate-800/50 rounded-lg p-2">
@@ -152,16 +153,17 @@ export default function LeaderboardCard({
           </div>
         );
       case 'adi':
+      case 'datahaven':
         return (
           <div className="text-right">
-            <div className="text-xs text-gray-400">Xeets</div>
+            <div className="text-xs text-gray-400">Total Points</div>
             <div className="font-bold text-lg" style={{
               background: 'linear-gradient(135deg, #10b981, #34d399)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text'
             }}>
-              {data.total_points?.toFixed(2)}
+              {formatNumber(data.total_points)}
             </div>
           </div>
         );
