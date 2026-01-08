@@ -1,6 +1,6 @@
 // ========================================
 // FILE: app/api/leaderboards/route.ts
-// Handles separate periods for Elsa/Beyond vs CodeXero
+// Handles separate periods for Elsa/Beyond vs CodeXero + DataHaven
 // ========================================
 
 import { NextResponse } from 'next/server';
@@ -35,6 +35,7 @@ export async function GET(request) {
       yappers,
       duelduck,
       adichain,
+      datahaven,
       heyelsa,
       mindoshare,
       space,
@@ -47,6 +48,7 @@ export async function GET(request) {
       fetchLeaderboard('yappers', days),
       fetchLeaderboard('duelduck'),
       fetchLeaderboard('adichain'),
+      fetchLeaderboard('datahaven'),
       fetchLeaderboard('heyelsa', elsaDays),
       fetchLeaderboard('mindoshare'),
       fetchLeaderboard('space'),
@@ -54,16 +56,8 @@ export async function GET(request) {
       fetchLeaderboard('c8ntinuum'),
       fetchLeaderboard('deepnodeai'),
       fetchLeaderboard('beyond', elsaDays),
-      fetchLeaderboard('codexero', codexeroDays) // Separate period for CodeXero
+      fetchLeaderboard('codexero', codexeroDays)
     ]);
-
-    // Check if core leaderboards are available
-    if (!yappers || !duelduck || !adichain) {
-      return NextResponse.json(
-        { error: 'No cached data available for core leaderboards' },
-        { status: 404 }
-      );
-    }
 
     return NextResponse.json({
       success: true,
@@ -72,9 +66,10 @@ export async function GET(request) {
       elsaDays,
       codexeroPeriod,
       codexeroDays,
-      yappers,
-      duelduck,
-      adichain,
+      yappers: yappers || { data: [], last_updated: null, count: 0 },
+      duelduck: duelduck || { data: [], last_updated: null, count: 0 },
+      adichain: adichain || { data: [], last_updated: null, count: 0 },
+      datahaven: datahaven || { data: [], last_updated: null, count: 0 },
       heyelsa: heyelsa || { data: [], last_updated: null, snapshot_id: null, count: 0, days: elsaDays },
       mindoshare: mindoshare || { data: [], last_updated: null, count: 0 },
       space: space || { data: [], last_updated: null, count: 0 },
