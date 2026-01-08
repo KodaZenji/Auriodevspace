@@ -33,7 +33,7 @@ export async function getTimeBasedCache(cacheType, days = 0) {
  * Fetch cache entry for snapshot-based leaderboards
  */
 export async function getSnapshotBasedCache(cacheType, days) {
-  const { data, error} = await supabase
+  const { data, error } = await supabase
     .from('leaderboard_cache')
     .select('last_updated, snapshot_id')
     .eq('cache_type', cacheType)
@@ -164,7 +164,7 @@ export const LEADERBOARD_CONFIGS = {
     orderBy: 'rank_total',
     ascending: true
   },
-  datahaven: {  // NEW
+  datahaven: {
     type: 'time-based',
     tableName: 'datahaven_leaderboard',
     cacheType: 'datahaven',
