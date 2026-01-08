@@ -14,6 +14,8 @@ const { scrapeCodeXero } = require('./scrapers/codexero'); // ← ADDED
 const { scrapeC8ntinuum } = require('./scrapers/c8ntinuum');
 const { scrapeDeepnodeai } = require('./scrapers/deepnodeai');
 const { scrapeSpace } = require('./scrapers/space');
+const { scrapeDataHaven } = require('./scrapers/datahaven');
+
 
 const app = express();
 app.use(express.json());
