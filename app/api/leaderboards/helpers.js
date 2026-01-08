@@ -33,7 +33,7 @@ export async function getTimeBasedCache(cacheType, days = 0) {
  * Fetch cache entry for snapshot-based leaderboards
  */
 export async function getSnapshotBasedCache(cacheType, days) {
-  const { data, error } = await supabase
+  const { data, error} = await supabase
     .from('leaderboard_cache')
     .select('last_updated, snapshot_id')
     .eq('cache_type', cacheType)
@@ -50,11 +50,6 @@ export async function getSnapshotBasedCache(cacheType, days) {
 
 /**
  * Fetch time-based leaderboard data
- * @param {string} tableName - Name of the leaderboard table
- * @param {string} fetchedAt - Timestamp from cache
- * @param {number} days - Days parameter (optional, default 0 for single-period boards)
- * @param {string} orderBy - Column to order by
- * @param {boolean} ascending - Sort direction
  */
 export async function fetchTimeBasedLeaderboard({
   tableName,
@@ -68,7 +63,6 @@ export async function fetchTimeBasedLeaderboard({
     .select('*')
     .eq('fetched_at', fetchedAt);
 
-  // Add days filter if provided
   if (days !== null) {
     query = query.eq('days', days);
   }
@@ -85,10 +79,6 @@ export async function fetchTimeBasedLeaderboard({
 
 /**
  * Fetch snapshot-based leaderboard data with JSONB transformation
- * @param {string} tableName - Name of the leaderboard table
- * @param {string} snapshotId - Snapshot UUID from cache
- * @param {number} days - Days parameter
- * @param {Function} transformer - Optional function to transform each row
  */
 export async function fetchSnapshotBasedLeaderboard({
   tableName,
@@ -108,7 +98,6 @@ export async function fetchSnapshotBasedLeaderboard({
     return null;
   }
 
-  // Apply transformer if provided
   if (transformer && data) {
     return data.map(transformer);
   }
@@ -121,7 +110,7 @@ export async function fetchSnapshotBasedLeaderboard({
 // ========================================
 
 /**
- * Transform HeyElsa/Beyond row with x_info JSONB unpacking
+ * Transform HeyElsa/Beyond/CodeXero row with x_info JSONB unpacking
  */
 export function transformSnapshotRow(row) {
   return {
@@ -148,7 +137,6 @@ export function transformSnapshotRow(row) {
 
 /**
  * Configuration for all leaderboards
- * Add new leaderboards here to automatically include them in the API
  */
 export const LEADERBOARD_CONFIGS = {
   // Time-based leaderboards (use fetched_at)
@@ -172,6 +160,14 @@ export const LEADERBOARD_CONFIGS = {
     type: 'time-based',
     tableName: 'adichain_leaderboard',
     cacheType: 'adichain',
+    usesDays: false,
+    orderBy: 'rank_total',
+    ascending: true
+  },
+  datahaven: {  // NEW
+    type: 'time-based',
+    tableName: 'datahaven_leaderboard',
+    cacheType: 'datahaven',
     usesDays: false,
     orderBy: 'rank_total',
     ascending: true
@@ -247,9 +243,6 @@ export const LEADERBOARD_CONFIGS = {
 
 /**
  * Fetch a leaderboard based on its configuration
- * @param {string} leaderboardKey - Key from LEADERBOARD_CONFIGS
- * @param {number} days - Days parameter
- * @returns {Object} { data, last_updated, snapshot_id?, count, days? }
  */
 export async function fetchLeaderboard(leaderboardKey, days = 0) {
   const config = LEADERBOARD_CONFIGS[leaderboardKey];
@@ -261,7 +254,6 @@ export async function fetchLeaderboard(leaderboardKey, days = 0) {
 
   try {
     if (config.type === 'time-based') {
-      // Fetch cache
       const cache = await getTimeBasedCache(
         config.cacheType, 
         config.usesDays ? days : 0
@@ -269,7 +261,6 @@ export async function fetchLeaderboard(leaderboardKey, days = 0) {
       
       if (!cache) return null;
 
-      // Fetch data
       const data = await fetchTimeBasedLeaderboard({
         tableName: config.tableName,
         fetchedAt: cache.last_updated,
@@ -285,12 +276,10 @@ export async function fetchLeaderboard(leaderboardKey, days = 0) {
       };
 
     } else if (config.type === 'snapshot-based') {
-      // Fetch cache
       const cache = await getSnapshotBasedCache(config.cacheType, days);
       
       if (!cache) return null;
 
-      // Fetch data
       const data = await fetchSnapshotBasedLeaderboard({
         tableName: config.tableName,
         snapshotId: cache.snapshot_id,
