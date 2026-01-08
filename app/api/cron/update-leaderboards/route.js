@@ -136,34 +136,12 @@ export async function GET(request) {
     console.log('✅ Beyond cleanup skipped (snapshot-aware)');
 
     // HeyElsa cleanup (snapshot-aware)
-    const { data: activeSnapshots } = await supabase
+    const { data: activeHeyElsaSnapshots } = await supabase
       .from('leaderboard_cache')
       .select('snapshot_id')
       .eq('cache_type', 'heyelsa');
-    const activeCount = activeSnapshots?.filter(s => s.snapshot_id).length || 0;
-    console.log(`📋 Active HeyElsa snapshots: ${activeCount}`);
-    console.log('✅ HeyElsa cleanup skipped (snapshot-aware)');
-
-    // CodeXero cleanup (snapshot-aware)
-    const { data: activeCodexeroSnapshots } = await supabase
-      .from('leaderboard_cache')
-      .select('snapshot_id')
-      .eq('cache_type', 'codexero');
-    const activeCodexeroCount = activeCodexeroSnapshots?.filter(s => s.snapshot_id).length || 0;
-    console.log(`📋 Active CodeXero snapshots: ${activeCodexeroCount}`);
-    console.log('✅ CodeXero cleanup skipped (snapshot-aware)');
-
-    console.log('✅ Cleanup completed');length || 0;
-    console.log(`📋 Active Beyond snapshots: ${activeBeyondCount}`);
-    console.log('✅ Beyond cleanup skipped (snapshot-aware)');
-
-    // HeyElsa cleanup (snapshot-aware)
-    const { data: activeSnapshots } = await supabase
-      .from('leaderboard_cache')
-      .select('snapshot_id')
-      .eq('cache_type', 'heyelsa');
-    const activeCount = activeSnapshots?.filter(s => s.snapshot_id).length || 0;
-    console.log(`📋 Active HeyElsa snapshots: ${activeCount}`);
+    const activeHeyElsaCount = activeHeyElsaSnapshots?.filter(s => s.snapshot_id).length || 0;
+    console.log(`📋 Active HeyElsa snapshots: ${activeHeyElsaCount}`);
     console.log('✅ HeyElsa cleanup skipped (snapshot-aware)');
 
     // CodeXero cleanup (snapshot-aware)
@@ -236,7 +214,7 @@ export async function GET(request) {
         heyelsa_deleted: 'snapshot-aware cleanup',
         codexero_deleted: 'snapshot-aware cleanup',
         active_beyond_snapshots: activeBeyondSnapshots?.length || 0,
-        active_heyelsa_snapshots: activeSnapshots?.length || 0,
+        active_heyelsa_snapshots: activeHeyElsaSnapshots?.length || 0,
         active_codexero_snapshots: activeCodexeroSnapshots?.length || 0
       },
       scraping: triggerResult,
