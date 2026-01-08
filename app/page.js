@@ -33,7 +33,7 @@ const LandingPage = () => {
       color: "from-slate-800/90 to-slate-700/90", // 
       hoverColor: "hover:from-slate-600/95 hover:to-slate-500/95", // 
       route: "/rank-nexus",
-      logo: "/slazzer-preview-th9ga.png",
+      logo: "/nexus.png",
       logoAlt: "Rank Nexus Logo",
       }
     
