@@ -46,5 +46,9 @@ module.exports = {
   deepnodeai: {
     maxPages: 12,
     delay: 3000
+  },
+  datahaven: {      
+    maxPages: 15,
+    delay: 5000
   }
 };
