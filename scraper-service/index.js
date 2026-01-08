@@ -26,19 +26,19 @@ const PORT = process.env.PORT || 3001;
 // ===================================
 async function performScraping() {
   const results = {
-    yappers: {},
-    duelduck: null,
-    adichain: null,
-    heyelsa: {},
-    beyond: {},
-    codexero: {},
-    mindoshare: null,
-    space: null,
-    helios: null,
-    c8ntinuum: null,
-    deepnodeai: null
-  };
-
+  yappers: {},
+  duelduck: null,
+  adichain: null,
+  datahaven: null,  
+  heyelsa: {},
+  beyond: {},
+  codexero: {},
+  mindoshare: null,
+  space: null,
+  helios: null,
+  c8ntinuum: null,
+  deepnodeai: null
+};
   // Yappers
   for (const days of config.yappers.periods) {
     console.log(`\n--- Starting Yappers ${days}d ---`);
@@ -55,6 +55,12 @@ async function performScraping() {
   console.log('\n--- Starting Adichain ---');
   results.adichain = await scrapeAdichain(config.adichain.maxPages);
   await sleep(config.adichain.delay);
+
+  // DataHaven
+console.log('\n--- Starting DataHaven ---');
+results.datahaven = await scrapeDataHaven(config.datahaven.maxPages);
+await sleep(config.datahaven.delay);
+
 
   // HeyElsa
   for (const period of config.heyelsa.periods) {
@@ -192,7 +198,23 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 4: HeyElsa (all periods)
+  // Chunk 4: DataHaven
+if (results.datahaven) {
+  chunks.push({
+    chunkType: 'datahaven',
+    data: {
+      success: true,
+      results: {
+        datahaven: {
+          count: results.datahaven?.length || 0,
+          data: results.datahaven
+        }
+      }
+    }
+  });
+}
+
+  // Chunk 5: HeyElsa (all periods)
   if (results.heyelsa) {
     chunks.push({
       chunkType: 'heyelsa',
@@ -218,7 +240,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 5: Beyond (all periods)
+  // Chunk 6: Beyond (all periods)
   if (results.beyond) {
     chunks.push({
       chunkType: 'beyond',
@@ -244,7 +266,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 6: CodeXero (all periods) - ADDED
+  // Chunk 7: CodeXero (all periods) - ADDED
   if (results.codexero) {
     chunks.push({
       chunkType: 'codexero',
@@ -270,7 +292,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 7: Mindoshare
+  // Chunk 8: Mindoshare
   if (results.mindoshare) {
     chunks.push({
       chunkType: 'mindoshare',
@@ -286,7 +308,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 8: Space
+  // Chunk 9: Space
   if (results.space) {
     chunks.push({
       chunkType: 'space',
@@ -302,7 +324,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 9: Helios
+  // Chunk 10: Helios
   if (results.helios) {
     chunks.push({
       chunkType: 'helios',
@@ -318,7 +340,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 10: C8ntinuum
+  // Chunk 11: C8ntinuum
   if (results.c8ntinuum) {
     chunks.push({
       chunkType: 'c8ntinuum',
@@ -334,7 +356,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 11: DeepnodeAI
+  // Chunk 12: DeepnodeAI
   if (results.deepnodeai) {
     chunks.push({
       chunkType: 'deepnodeai',
@@ -474,7 +496,7 @@ app.get('/scrape-all-async', (req, res) => {
     estimatedTime: '10-15 minutes',
     webhook: webhookUrl,
     chunkingEnabled: true,
-    totalChunks: 11, // ← UPDATED from 10 to 11
+    totalChunks: 12, // ← UPDATED from 10 to 11
     timestamp: new Date().toISOString()
   });
 
@@ -504,7 +526,7 @@ app.post('/scrape', (req, res) => {
     message: 'Scraping started',
     estimatedTime: '10-15 minutes',
     chunkingEnabled: true,
-    totalChunks: 11, // ← UPDATED from 10 to 11
+    totalChunks: 12, // ← UPDATED from 10 to 11
     timestamp: new Date().toISOString()
   });
 
@@ -582,9 +604,19 @@ app.get('/scrape/deepnodeai', async (req, res) => {
   }
 });
 
+app.get('/scrape/datahaven', async (req, res) => {
+  try {
+    const data = await scrapeDataHaven(config.datahaven.maxPages);
+    res.json({ success: true, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log(`🚀 Leaderboard Scraper running on port ${PORT}`);
   console.log(`📍 Health: http://localhost:${PORT}/health`);
   console.log(`🔗 Async Scrape: GET /scrape-all-async?webhook=URL`);
-  console.log(`📦 Chunking: Enabled (11 separate webhook calls)`);
+  console.log(`📦 Chunking: Enabled (12 separate webhook calls)`);
 });
