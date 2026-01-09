@@ -31,7 +31,7 @@ export async function GET(request) {
 
   try {
     // Fetch all leaderboards in parallel
-    const [
+     const [
       yappers,
       duelduck,
       adichain,
@@ -42,6 +42,7 @@ export async function GET(request) {
       helios,
       c8ntinuum,
       deepnodeai,
+      womfun,      // ← ADD THIS
       beyond,
       codexero
     ] = await Promise.all([
@@ -55,6 +56,7 @@ export async function GET(request) {
       fetchLeaderboard('helios'),
       fetchLeaderboard('c8ntinuum'),
       fetchLeaderboard('deepnodeai'),
+      fetchLeaderboard('womfun'),    // ← ADD THIS
       fetchLeaderboard('beyond', elsaDays),
       fetchLeaderboard('codexero', codexeroDays)
     ]);
@@ -76,6 +78,7 @@ export async function GET(request) {
       helios: helios || { data: [], last_updated: null, count: 0 },
       c8ntinuum: c8ntinuum || { data: [], last_updated: null, count: 0 },
       deepnodeai: deepnodeai || { data: [], last_updated: null, count: 0 },
+      womfun: womfun || { data: [], last_updated: null, count: 0 },  // ← ADD THIS
       beyond: beyond || { data: [], last_updated: null, snapshot_id: null, count: 0, days: elsaDays },
       codexero: codexero || { data: [], last_updated: null, snapshot_id: null, count: 0, days: codexeroDays }
     });
