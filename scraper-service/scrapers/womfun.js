@@ -9,8 +9,11 @@ async function scrapeWomFun(maxPages = 15) {
     const context = await createContext(browser);
     const page = await context.newPage();
 
-    // Visit the site first to get correct browser context
-    await page.goto('https://campaigns.wom.fun', { waitUntil: 'networkidle' });
+    // Visit the exact campaign page first to get session and proper context
+    const campaignPageUrl = 'https://campaigns.wom.fun/campaign/e0d90c13-01d9-4fe2-82e1-65c9739a5283';
+    await page.goto(campaignPageUrl, { waitUntil: 'networkidle' });
+
+    console.log('[WomFun] Loaded campaign page:', campaignPageUrl);
 
     const allUsers = [];
     const limit = 50;
@@ -20,19 +23,20 @@ async function scrapeWomFun(maxPages = 15) {
 
     for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
       console.log(`[WomFun] Fetching page ${pageNum} (offset: ${offset})...`);
-      
+
       try {
+        // Fetch leaderboard from inside the browser to preserve cookies/tokens
         const json = await page.evaluate(async ({ campaignId, limit, offset }) => {
           const url = `https://wom-api-v2.onrender.com/campaigns/${campaignId}/leaderboard?limit=${limit}&offset=${offset}`;
-
+          
           const res = await fetch(url, {
-            method: "GET",
+            method: 'GET',
             headers: {
-              "Accept": "*/*",
-              "Origin": "https://campaigns.wom.fun",
-              "Referer": "https://campaigns.wom.fun/",
+              'Accept': '*/*',
+              'Origin': 'https://campaigns.wom.fun',
+              'Referer': 'https://campaigns.wom.fun/',
             },
-            credentials: "include"
+            credentials: 'include' // important to send session cookies
           });
 
           try {
@@ -60,7 +64,6 @@ async function scrapeWomFun(maxPages = 15) {
         allUsers.push(...transformedData);
         console.log(`[WomFun] ✅ Page ${pageNum}: ${transformedData.length} users (total: ${allUsers.length})`);
 
-        // Stop if complete
         if (json.total && offset + limit >= json.total) {
           console.log('[WomFun] Reached end of data');
           break;
@@ -68,7 +71,7 @@ async function scrapeWomFun(maxPages = 15) {
 
         offset += limit;
 
-        // Delay to avoid spam
+        // Random delay between 3-5 seconds
         await sleep(3000 + Math.random() * 2000);
 
       } catch (err) {
