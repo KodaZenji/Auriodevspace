@@ -126,6 +126,20 @@ export async function GET(request) {
       console.log('⚠️ DeepnodeAI table cleanup skipped:', err.message);
     }
 
+    // Cleanup WomFun entries
+    let womfunDeletedCount = 0;
+    try {
+      const womfunDeleted = await supabase
+        .from('womfun_leaderboard')
+        .delete()
+        .lt('fetched_at', sevenDaysAgo.toISOString())
+        .select('id', { count: 'exact', head: true });
+      womfunDeletedCount = womfunDeleted?.count || 0;
+      console.log(`✅ Deleted ${womfunDeletedCount} old WomFun entries`);
+    } catch (err) {
+      console.log('⚠️ WomFun table cleanup skipped:', err.message);
+    }
+
     // Beyond cleanup (snapshot-aware)
     const { data: activeBeyondSnapshots } = await supabase
       .from('leaderboard_cache')
@@ -152,20 +166,6 @@ export async function GET(request) {
     const activeCodexeroCount = activeCodexeroSnapshots?.filter(s => s.snapshot_id).length || 0;
     console.log(`📋 Active CodeXero snapshots: ${activeCodexeroCount}`);
     console.log('✅ CodeXero cleanup skipped (snapshot-aware)');
-
-    // Cleanup WomFun entries
-let womfunDeletedCount = 0;
-try {
-  const womfunDeleted = await supabase
-    .from('womfun_leaderboard')
-    .delete()
-    .lt('fetched_at', sevenDaysAgo.toISOString())
-    .select('id', { count: 'exact', head: true });
-  womfunDeletedCount = womfunDeleted?.count || 0;
-  console.log(`✅ Deleted ${womfunDeletedCount} old WomFun entries`);
-} catch (err) {
-  console.log('⚠️ WomFun table cleanup skipped:', err.message);
-}
 
     console.log('✅ Cleanup completed');
 
@@ -215,23 +215,23 @@ try {
       success: true,
       message: 'Cron job completed. Railway scraper is running in background.',
       cleanup: {
-  yappers_deleted: yappersDeleted?.count || 0,
-  duelduck_deleted: duckDeleted?.count || 0,
-  adichain_deleted: adichainDeleted?.count || 0,
-  datahaven_deleted: datahavenDeletedCount,
-  mindoshare_perceptronntwk_deleted: mindoshareDeletedCount,
-  space_deleted: spaceDeletedCount,
-  helios_deleted: heliosDeletedCount,
-  c8ntinuum_deleted: c8ntinuumDeletedCount,
-  deepnodeai_deleted: deepnodeaiDeletedCount,
-  womfun_deleted: womfunDeletedCount, // ← ADD THIS
-  beyond_deleted: 'snapshot-aware cleanup',
-  heyelsa_deleted: 'snapshot-aware cleanup',
-  codexero_deleted: 'snapshot-aware cleanup',
-  active_beyond_snapshots: activeBeyondSnapshots?.length || 0,
-  active_heyelsa_snapshots: activeHeyElsaSnapshots?.length || 0,
-  active_codexero_snapshots: activeCodexeroSnapshots?.length || 0
-};
+        yappers_deleted: yappersDeleted?.count || 0,
+        duelduck_deleted: duckDeleted?.count || 0,
+        adichain_deleted: adichainDeleted?.count || 0,
+        datahaven_deleted: datahavenDeletedCount,
+        mindoshare_perceptronntwk_deleted: mindoshareDeletedCount,
+        space_deleted: spaceDeletedCount,
+        helios_deleted: heliosDeletedCount,
+        c8ntinuum_deleted: c8ntinuumDeletedCount,
+        deepnodeai_deleted: deepnodeaiDeletedCount,
+        womfun_deleted: womfunDeletedCount,
+        beyond_deleted: 'snapshot-aware cleanup',
+        heyelsa_deleted: 'snapshot-aware cleanup',
+        codexero_deleted: 'snapshot-aware cleanup',
+        active_beyond_snapshots: activeBeyondSnapshots?.length || 0,
+        active_heyelsa_snapshots: activeHeyElsaSnapshots?.length || 0,
+        active_codexero_snapshots: activeCodexeroSnapshots?.length || 0
+      },
       scraping: triggerResult,
       note: 'Data will be stored via webhook when scraping completes (~10-15 minutes)'
     });
@@ -247,4 +247,3 @@ try {
     );
   }
 }
-
