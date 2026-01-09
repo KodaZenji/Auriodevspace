@@ -1,69 +1,83 @@
-const { sleep, createBrowser, createContext } = require('../utils');
+const { sleep } = require('../utils');
 
 async function scrapeWomFun(maxPages = 15) {
-  let browser;
   try {
     console.log('[WomFun] Starting...');
 
-    browser = await createBrowser(false);
-    const context = await createContext(browser);
-    const page = await context.newPage();
-
-    // Visit the exact campaign page
-    const campaignPageUrl = 'https://campaigns.wom.fun/campaign/e0d90c13-01d9-4fe2-82e1-65c9739a5283';
-    await page.goto(campaignPageUrl, { waitUntil: 'networkidle' });
-    console.log('[WomFun] Loaded campaign page');
-
+    const campaignId = 'e0d90c13-01d9-4fe2-82e1-65c9739a5283';
     const leaderboard = [];
+    let offset = 0;
+    const limit = 50; // Fetch 50 users per request
 
     for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
-      console.log(`[WomFun] Scraping page ${pageNum}...`);
+      console.log(`[WomFun] Fetching page ${pageNum} (offset: ${offset})...`);
 
-      await page.waitForSelector('.leaderboard-row', { timeout: 10000 }).catch(() => {
-        console.log('[WomFun] No leaderboard rows found, stopping.');
-        return;
+      // The API endpoint - adjust this based on the actual endpoint from your Network tab
+      const apiUrl = `https://campaigns.wom.fun/api/campaigns/${campaignId}/leaderboard?offset=${offset}&limit=${limit}`;
+
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip, deflate, br, zstd',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Authorization': 'ey.3hb5GoJPLF1NfeIdRrBcCf6&pXVCIaimgZH6LilJb4JyTWLdJM0F5iZzIWc.TBEaFs8fRdFuHT3JMKgjHIcm1SYIAhMXIDZiYpl65UEl9-ey.JhwYoIQUJptWIhaxWhGHI4EnMTz2cmFwbH8xS3dSTbDh61hFdQLNqImCcm8kNcbxp5nCq_HrFwWJROajM2NsbW3dMMFSNCIalmzcyy6In6yak2CSLmiIvanxWrPqwvN2t-zCHTyAbDzbUCJhdTn9biObdj9HmK4NGMMzZGTvN1wo5IzIm1u4cZIdBiFrzUHzxZnYXJQ.M9LaMYSoLg-csQF-.sThySf9nFiuqhvoTYNN0YIobbSwml.NpG9_0YwarSZCYnzlMX6IguuJsTLPpAKl0_eBulpJxlqnCzZK',
+          'Origin': 'https://campaigns.wom.fun',
+          'Referer': `https://campaigns.wom.fun/campaign/${campaignId}`,
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Site': 'same-origin',
+          'Sec-Ch-Ua': '"Chromium";v="130", "Not?A_Brand";v="99", "Google Chrome";v="130"',
+          'Sec-Ch-Ua-Mobile': '?1',
+          'Sec-Ch-Ua-Platform': '"Android"'
+        }
       });
 
-      const usersOnPage = await page.evaluate(() => {
-        return Array.from(document.querySelectorAll('.leaderboard-row')).map(row => ({
-          rank: row.querySelector('.rank')?.innerText?.trim() || null,
-          twitter_username: row.querySelector('.username')?.innerText?.trim() || null,
-          twitter_profile_image_url: row.querySelector('img.profile-image')?.src || null,
-          wallet_address: row.querySelector('.wallet')?.innerText?.trim() || null,
-          poi_score: row.querySelector('.poi-score')?.innerText?.trim() || null,
-          mindshare_score: row.querySelector('.mindshare-score')?.innerText?.trim() || null,
-          reputation: row.querySelector('.reputation')?.innerText?.trim() || null,
-        }));
-      });
-
-      if (!usersOnPage || usersOnPage.length === 0) {
-        console.log('[WomFun] No more users found, stopping.');
+      if (!response.ok) {
+        console.error(`[WomFun] API error: ${response.status} ${response.statusText}`);
         break;
       }
 
-      leaderboard.push(...usersOnPage);
-      console.log(`[WomFun] ✅ Page ${pageNum}: ${usersOnPage.length} users (total: ${leaderboard.length})`);
+      const data = await response.json();
+      
+      // Handle different response structures
+      let users = [];
+      if (Array.isArray(data)) {
+        users = data;
+      } else if (data.leaderboard && Array.isArray(data.leaderboard)) {
+        users = data.leaderboard;
+      } else if (data.success && data.leaderboard) {
+        users = data.leaderboard;
+      }
 
-      const nextButton = await page.$('.pagination-next');
-      if (nextButton) {
-        await nextButton.click();
-        await sleep(3000 + Math.random() * 2000);
-      } else {
-        console.log('[WomFun] No next page button found, stopping.');
+      if (users.length === 0) {
+        console.log('[WomFun] No more data, stopping.');
         break;
       }
+
+      leaderboard.push(...users);
+      console.log(`[WomFun] ✅ Page ${pageNum}: ${users.length} users (total: ${leaderboard.length})`);
+
+      // Check if we've reached the end
+      if (users.length < limit) {
+        console.log('[WomFun] Received fewer users than limit, stopping.');
+        break;
+      }
+
+      offset += limit;
+      await sleep(1000 + Math.random() * 1000); // Random delay between 1-2 seconds
     }
 
-    await browser.close();
     console.log(`[WomFun] ✅ Complete: ${leaderboard.length} users`);
     return {
       success: true,
-      leaderboard
+      leaderboard,
+      total: leaderboard.length,
+      offset: 0
     };
 
   } catch (e) {
-    if (browser) await browser.close();
-    console.error('[WomFun] ❌', e.message);
+    console.error('[WomFun] ❌ Error:', e.message);
     return {
       success: false,
       leaderboard: []
