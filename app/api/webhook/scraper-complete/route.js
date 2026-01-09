@@ -15,6 +15,8 @@ import { storeHelios } from './storage/storeHelios';
 import { storeSpace } from './storage/storeSpace';
 import { storeDeepnodeai } from './storage/storeDeepnodeai';
 import { storeC8ntinuum } from './storage/storeC8ntinuum';
+import { storeWomFun } from './storage/storeWomFun';
+
 
 export async function POST(request) {
   // Auth check
@@ -51,10 +53,11 @@ export async function POST(request) {
     }
 
     const results = {
+  const results = {
   yappers: {},
   duelduck: null,
   adichain: null,
-  datahaven: null,  // ← ADD THIS
+  datahaven: null,
   heyelsa: {},
   beyond: {},
   codexero: {},
@@ -63,10 +66,10 @@ export async function POST(request) {
   space: null,
   deepnodeai: null,
   c8ntinuum: null,
+  womfun: null, // ← ADD THIS
   timestamp: new Date().toISOString()
 };
-
-    // Process based on chunk type or process all if not chunked
+      // Process based on chunk type or process all if not chunked
     if (chunkType === 'yappers' || !chunkType) {
       await processYappers(scrapedData, results);
     }
@@ -113,7 +116,9 @@ export async function POST(request) {
     if (chunkType === 'c8ntinuum' || !chunkType) {
       await processC8ntinuum(scrapedData, results);
     }
-
+    if (chunkType === 'womfun' || !chunkType) {
+  await processWomFun(scrapedData, results);
+    }
     if (chunkType) {
       console.log(`✅ Chunk ${chunkIndex}/${chunkTotal} stored: ${chunkType}`);
     } else {
@@ -321,5 +326,17 @@ async function processC8ntinuum(scrapedData, results) {
   } catch (error) {
     console.error('❌ C8ntinuum error:', error.message);
     results.c8ntinuum = { success: false, error: error.message };
+  }
+}
+async function processWomFun(scrapedData, results) {
+  if (!scrapedData.results?.womfun?.data) return;
+
+  try {
+    await storeWomFun(scrapedData.results.womfun.data);
+    results.womfun = { success: true, count: scrapedData.results.womfun.count };
+    console.log(`✅ Stored ${scrapedData.results.womfun.count} WomFun entries`);
+  } catch (error) {
+    console.error('❌ WomFun error:', error.message);
+    results.womfun = { success: false, error: error.message };
   }
 }
