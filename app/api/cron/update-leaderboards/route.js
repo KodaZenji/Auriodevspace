@@ -42,7 +42,7 @@ export async function GET(request) {
       .select('id', { count: 'exact', head: true });
     console.log(`✅ Deleted ${adichainDeleted?.count || 0} old Adichain entries`);
 
-    // Cleanup old DataHaven entries
+    // Cleanup old DataHaven 
     let datahavenDeletedCount = 0;
     try {
       const datahavenDeleted = await supabase
@@ -247,3 +247,4 @@ export async function GET(request) {
     );
   }
 }
+
