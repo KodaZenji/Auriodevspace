@@ -50,5 +50,9 @@ module.exports = {
   datahaven: {      
     maxPages: 15,
     delay: 5000
-  }
+  },
+  womfun: {
+  maxPages: 15,
+  delay: 5000
+},
 };
