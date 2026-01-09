@@ -4,90 +4,70 @@ async function scrapeWomFun(maxPages = 15) {
   let browser;
   try {
     console.log('[WomFun] Starting...');
-    
+
     browser = await createBrowser(false);
     const context = await createContext(browser);
     const page = await context.newPage();
 
-    // Visit the exact campaign page first to get session and proper context
+    // Visit the exact campaign page
     const campaignPageUrl = 'https://campaigns.wom.fun/campaign/e0d90c13-01d9-4fe2-82e1-65c9739a5283';
     await page.goto(campaignPageUrl, { waitUntil: 'networkidle' });
+    console.log('[WomFun] Loaded campaign page');
 
-    console.log('[WomFun] Loaded campaign page:', campaignPageUrl);
-
-    const allUsers = [];
-    const limit = 50;
-    let offset = 0;
-
-    const campaignId = 'e0d90c13-01d9-44e2-82e1-65c9739a5283';
+    const leaderboard = [];
 
     for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
-      console.log(`[WomFun] Fetching page ${pageNum} (offset: ${offset})...`);
+      console.log(`[WomFun] Scraping page ${pageNum}...`);
 
-      try {
-        // Fetch leaderboard from inside the browser to preserve cookies/tokens
-        const json = await page.evaluate(async ({ campaignId, limit, offset }) => {
-          const url = `https://wom-api-v2.onrender.com/campaigns/${campaignId}/leaderboard?limit=${limit}&offset=${offset}`;
-          
-          const res = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Accept': '*/*',
-              'Origin': 'https://campaigns.wom.fun',
-              'Referer': 'https://campaigns.wom.fun/',
-            },
-            credentials: 'include' // important to send session cookies
-          });
+      await page.waitForSelector('.leaderboard-row', { timeout: 10000 }).catch(() => {
+        console.log('[WomFun] No leaderboard rows found, stopping.');
+        return;
+      });
 
-          try {
-            return await res.json();
-          } catch (err) {
-            return null;
-          }
-        }, { campaignId, limit, offset });
-
-        if (!json || !json.success || !json.leaderboard || json.leaderboard.length === 0) {
-          console.log('[WomFun] No more data or failed JSON');
-          break;
-        }
-
-        const transformedData = json.leaderboard.map(user => ({
-          rank: user.rank,
-          twitter_username: user.twitter_username,
-          twitter_profile_image_url: user.twitter_profile_image_url,
-          wallet_address: user.wallet_address,
-          poi_score: user.poi_score,
-          mindshare_score: user.mindshare_score,
-          reputation: user.reputation
+      const usersOnPage = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll('.leaderboard-row')).map(row => ({
+          rank: row.querySelector('.rank')?.innerText?.trim() || null,
+          twitter_username: row.querySelector('.username')?.innerText?.trim() || null,
+          twitter_profile_image_url: row.querySelector('img.profile-image')?.src || null,
+          wallet_address: row.querySelector('.wallet')?.innerText?.trim() || null,
+          poi_score: row.querySelector('.poi-score')?.innerText?.trim() || null,
+          mindshare_score: row.querySelector('.mindshare-score')?.innerText?.trim() || null,
+          reputation: row.querySelector('.reputation')?.innerText?.trim() || null,
         }));
+      });
 
-        allUsers.push(...transformedData);
-        console.log(`[WomFun] ✅ Page ${pageNum}: ${transformedData.length} users (total: ${allUsers.length})`);
+      if (!usersOnPage || usersOnPage.length === 0) {
+        console.log('[WomFun] No more users found, stopping.');
+        break;
+      }
 
-        if (json.total && offset + limit >= json.total) {
-          console.log('[WomFun] Reached end of data');
-          break;
-        }
+      leaderboard.push(...usersOnPage);
+      console.log(`[WomFun] ✅ Page ${pageNum}: ${usersOnPage.length} users (total: ${leaderboard.length})`);
 
-        offset += limit;
-
-        // Random delay between 3-5 seconds
+      const nextButton = await page.$('.pagination-next');
+      if (nextButton) {
+        await nextButton.click();
         await sleep(3000 + Math.random() * 2000);
-
-      } catch (err) {
-        console.error(`[WomFun] Error on page ${pageNum}:`, err.message);
+      } else {
+        console.log('[WomFun] No next page button found, stopping.');
         break;
       }
     }
 
     await browser.close();
-    console.log(`[WomFun] ✅ Complete: ${allUsers.length} users`);
-    return allUsers;
+    console.log(`[WomFun] ✅ Complete: ${leaderboard.length} users`);
+    return {
+      success: true,
+      leaderboard
+    };
 
   } catch (e) {
     if (browser) await browser.close();
     console.error('[WomFun] ❌', e.message);
-    return null;
+    return {
+      success: false,
+      leaderboard: []
+    };
   }
 }
 
