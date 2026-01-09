@@ -212,6 +212,14 @@ export const LEADERBOARD_CONFIGS = {
     orderBy: 'rank',
     ascending: true
   },
+  womfun: {
+    type: 'time-based',
+    tableName: 'womfun_leaderboard',
+    cacheType: 'womfun',
+    usesDays: false,
+    orderBy: 'rank',
+    ascending: true
+  },
 
   // Snapshot-based leaderboards (use snapshot_id)
   heyelsa: {
