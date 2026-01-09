@@ -97,6 +97,23 @@ export default function LeaderboardCard({
             </div>
           </>
         );
+      case 'womfun':
+        return (
+          <>
+            <div className="text-center bg-slate-800/50 rounded-lg p-2">
+              <div className="text-gray-400 text-xs mb-1">POI Score</div>
+              <div className="text-white font-bold">{data.poi_score?.toFixed(2) || '0.00'}</div>
+            </div>
+            <div className="text-center bg-slate-800/50 rounded-lg p-2">
+              <div className="text-gray-400 text-xs mb-1">Mindshare Score</div>
+              <div className="text-white font-bold">{data.mindshare_score?.toFixed(2) || '0.00'}</div>
+            </div>
+            <div className="text-center bg-slate-800/50 rounded-lg p-2">
+              <div className="text-gray-400 text-xs mb-1">Reputation</div>
+              <div className="text-white font-bold">{data.reputation || 0}</div>
+            </div>
+          </>
+        );
       case 'elsa':
       case 'beyond':
       case 'codexero': 
@@ -182,6 +199,20 @@ export default function LeaderboardCard({
               backgroundClip: 'text'
             }}>
               {data.mindometric}%
+            </div>
+          </div>
+        );
+      case 'womfun':
+        return (
+          <div className="text-right">
+            <div className="text-xs text-gray-400">Mindshare</div>
+            <div className="font-bold text-lg" style={{
+              background: 'linear-gradient(135deg, #10b981, #34d399)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>
+              {((data.mindshare_score || 0) / 100).toFixed(2)}%
             </div>
           </div>
         );
