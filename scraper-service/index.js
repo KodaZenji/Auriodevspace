@@ -15,7 +15,7 @@ const { scrapeC8ntinuum } = require('./scrapers/c8ntinuum');
 const { scrapeDeepnodeai } = require('./scrapers/deepnodeai');
 const { scrapeSpace } = require('./scrapers/space');
 const { scrapeDataHaven } = require('./scrapers/datahaven');
-
+const { scrapeWomFun } = require('./scrapers/womfun');
 
 const app = express();
 app.use(express.json());
@@ -37,7 +37,8 @@ async function performScraping() {
   space: null,
   helios: null,
   c8ntinuum: null,
-  deepnodeai: null
+  deepnodeai: null,
+  womfun: null  // ← ADD THIS
 };
   // Yappers
   for (const days of config.yappers.periods) {
@@ -125,6 +126,11 @@ await sleep(config.datahaven.delay);
     config.c8ntinuum.maxPages
   );
   await sleep(config.c8ntinuum.delay || 5000);
+
+  // WomFun
+console.log('\n--- Starting WomFun ---');
+results.womfun = await scrapeWomFun(config.womfun.maxPages);
+await sleep(config.womfun.delay || 5000);
 
   // DeepNodeAI
   console.log('\n--- Starting DeepNodeAI ---');
@@ -356,7 +362,23 @@ if (results.datahaven) {
     });
   }
 
-  // Chunk 12: DeepnodeAI
+  // Chunk 12: WomFun
+if (results.womfun) {
+  chunks.push({
+    chunkType: 'womfun',
+    data: {
+      success: true,
+      results: {
+        womfun: {
+          count: results.womfun?.length || 0,
+          data: results.womfun
+        }
+      }
+    }
+  });
+}
+
+  // Chunk 13: DeepnodeAI
   if (results.deepnodeai) {
     chunks.push({
       chunkType: 'deepnodeai',
@@ -496,7 +518,7 @@ app.get('/scrape-all-async', (req, res) => {
     estimatedTime: '10-15 minutes',
     webhook: webhookUrl,
     chunkingEnabled: true,
-    totalChunks: 12, // ← UPDATED from 10 to 11
+    totalChunks: 13, // ← UPDATED from 10 to 11
     timestamp: new Date().toISOString()
   });
 
@@ -526,7 +548,7 @@ app.post('/scrape', (req, res) => {
     message: 'Scraping started',
     estimatedTime: '10-15 minutes',
     chunkingEnabled: true,
-    totalChunks: 12, // ← UPDATED from 10 to 11
+    totalChunks: 13, // ← UPDATED from 10 to 11
     timestamp: new Date().toISOString()
   });
 
@@ -613,6 +635,14 @@ app.get('/scrape/datahaven', async (req, res) => {
   }
 });
 
+app.get('/scrape/womfun', async (req, res) => {
+  try {
+    const data = await scrapeWomFun(config.womfun.maxPages);
+    res.json({ success: true, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`🚀 Leaderboard Scraper running on port ${PORT}`);
