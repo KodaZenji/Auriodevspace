@@ -5,14 +5,13 @@ async function scrapeWomFun(maxPages = 15) {
     console.log('[WomFun] Starting...');
 
     const campaignId = 'e0d90c13-01d9-4fe2-82e1-65c9739a5283';
-    const leaderboard = [];
+    const allUsers = [];
     let offset = 0;
-    const limit = 50; // Fetch 50 users per request
+    const limit = 50;
 
     for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
       console.log(`[WomFun] Fetching page ${pageNum} (offset: ${offset})...`);
 
-      // The API endpoint - adjust this based on the actual endpoint from your Network tab
       const apiUrl = `https://campaigns.wom.fun/api/campaigns/${campaignId}/leaderboard?offset=${offset}&limit=${limit}`;
 
       const response = await fetch(apiUrl, {
@@ -39,6 +38,7 @@ async function scrapeWomFun(maxPages = 15) {
       }
 
       const data = await response.json();
+      console.log('[WomFun] Response:', JSON.stringify(data).substring(0, 200) + '...');
       
       // Handle different response structures
       let users = [];
@@ -46,17 +46,17 @@ async function scrapeWomFun(maxPages = 15) {
         users = data;
       } else if (data.leaderboard && Array.isArray(data.leaderboard)) {
         users = data.leaderboard;
-      } else if (data.success && data.leaderboard) {
-        users = data.leaderboard;
+      } else if (data.data && data.data.leaderboard) {
+        users = data.data.leaderboard;
       }
 
       if (users.length === 0) {
-        console.log('[WomFun] No more data, stopping.');
+        console.log('[WomFun] No more users found, stopping.');
         break;
       }
 
-      leaderboard.push(...users);
-      console.log(`[WomFun] ✅ Page ${pageNum}: ${users.length} users (total: ${leaderboard.length})`);
+      allUsers.push(...users);
+      console.log(`[WomFun] ✅ Page ${pageNum}: ${users.length} users (total: ${allUsers.length})`);
 
       // Check if we've reached the end
       if (users.length < limit) {
@@ -65,22 +65,25 @@ async function scrapeWomFun(maxPages = 15) {
       }
 
       offset += limit;
-      await sleep(1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+      await sleep(1000 + Math.random() * 1000);
     }
 
-    console.log(`[WomFun] ✅ Complete: ${leaderboard.length} users`);
+    console.log(`[WomFun] ✅ Complete: ${allUsers.length} users scraped`);
     return {
       success: true,
-      leaderboard,
-      total: leaderboard.length,
+      leaderboard: allUsers,
+      total: allUsers.length,
       offset: 0
     };
 
   } catch (e) {
     console.error('[WomFun] ❌ Error:', e.message);
+    console.error(e.stack);
     return {
       success: false,
-      leaderboard: []
+      leaderboard: [],
+      total: 0,
+      offset: 0
     };
   }
 }
