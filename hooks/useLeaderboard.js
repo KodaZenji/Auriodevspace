@@ -80,11 +80,15 @@ export function useLeaderboard() {
       const codexeroUser = data.codexero.data.find(
         user => user.username.toLowerCase() === normalizedSearch
       );
+
+      const womfunUser = data.womfun?.data.find(
+        user => user.twitter_username.toLowerCase() === normalizedSearch
+      );
       
       // Check if user found on any platform
       const foundAnywhere = goatUser || duckUser || adiUser || datahavenUser || elsaUser || 
                            perceptronUser || spaceUser || heliosUser || 
-                           c8ntinuumUser || deepnodeaiUser || beyondUser || codexeroUser;
+                           c8ntinuumUser || deepnodeaiUser || beyondUser || codexeroUser || womfunUser;
       
       if (!foundAnywhere) {
         alert(`User @${searchUser} not found on any leaderboard`);
@@ -107,7 +111,8 @@ export function useLeaderboard() {
           c8ntinuum: !!c8ntinuumUser,
           deepnodeai: !!deepnodeaiUser,
           beyond: !!beyondUser,
-          codexero: !!codexeroUser
+          codexero: !!codexeroUser,
+          womfun: !!womfunUser
         },
         everFoundOn: {
           goat: !!goatUser || (results?.everFoundOn?.goat),
@@ -121,7 +126,8 @@ export function useLeaderboard() {
           c8ntinuum: !!c8ntinuumUser || (results?.everFoundOn?.c8ntinuum),
           deepnodeai: !!deepnodeaiUser || (results?.everFoundOn?.deepnodeai),
           beyond: !!beyondUser || (results?.everFoundOn?.beyond),
-          codexero: !!codexeroUser || (results?.everFoundOn?.codexero)
+          codexero: !!codexeroUser || (results?.everFoundOn?.codexero),
+          womfun: !!womfunUser || (results?.everFoundOn?.womfun)
         },
         goat: goatUser ? {
           rank: goatUser.rank,
@@ -215,6 +221,13 @@ export function useLeaderboard() {
           position_change: codexeroUser.position_change,
           app_use_multiplier: codexeroUser.app_use_multiplier,
           score: codexeroUser.score
+        } : null,
+        womfun: womfunUser ? {
+          rank: womfunUser.rank,
+          username: womfunUser.twitter_username,
+          mindshare_score: womfunUser.mindshare_score,
+          poi_score: womfunUser.poi_score,
+          reputation: womfunUser.reputation
         } : null
       };
 
