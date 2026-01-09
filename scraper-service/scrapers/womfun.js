@@ -7,47 +7,50 @@ async function scrapeWomFun(maxPages = 15) {
     const campaignId = 'e0d90c13-01d9-4fe2-82e1-65c9739a5283';
     const allUsers = [];
     let offset = 0;
-    const limit = 50;
+    const limit = 35; // Based on your screenshot
 
     for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
       console.log(`[WomFun] Fetching page ${pageNum} (offset: ${offset})...`);
 
-      const apiUrl = `https://campaigns.wom.fun/api/campaigns/${campaignId}/leaderboard?offset=${offset}&limit=${limit}`;
+      // The CORRECT API endpoint from your Network tab
+      const apiUrl = `https://wom-api-v2.onrender.com/campaigns/${campaignId}/leaderboard?limit=${limit}&offset=${offset}`;
 
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
+          'Accept': '*/*',
           'Accept-Encoding': 'gzip, deflate, br, zstd',
           'Accept-Language': 'en-US,en;q=0.9',
-          'Authorization': 'ey.3hb5GoJPLF1NfeIdRrBcCf6&pXVCIaimgZH6LilJb4JyTWLdJM0F5iZzIWc.TBEaFs8fRdFuHT3JMKgjHIcm1SYIAhMXIDZiYpl65UEl9-ey.JhwYoIQUJptWIhaxWhGHI4EnMTz2cmFwbH8xS3dSTbDh61hFdQLNqImCcm8kNcbxp5nCq_HrFwWJROajM2NsbW3dMMFSNCIalmzcyy6In6yak2CSLmiIvanxWrPqwvN2t-zCHTyAbDzbUCJhdTn9biObdj9HmK4NGMMzZGTvN1wo5IzIm1u4cZIdBiFrzUHzxZnYXJQ.M9LaMYSoLg-csQF-.sThySf9nFiuqhvoTYNN0YIobbSwml.NpG9_0YwarSZCYnzlMX6IguuJsTLPpAKl0_eBulpJxlqnCzZK',
           'Origin': 'https://campaigns.wom.fun',
-          'Referer': `https://campaigns.wom.fun/campaign/${campaignId}`,
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36',
-          'Sec-Fetch-Mode': 'cors',
-          'Sec-Fetch-Site': 'same-origin',
+          'Referer': 'https://campaigns.wom.fun/',
           'Sec-Ch-Ua': '"Chromium";v="130", "Not?A_Brand";v="99", "Google Chrome";v="130"',
           'Sec-Ch-Ua-Mobile': '?1',
-          'Sec-Ch-Ua-Platform': '"Android"'
+          'Sec-Ch-Ua-Platform': '"Android"',
+          'Sec-Fetch-Dest': 'empty',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Site': 'cross-site',
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36'
         }
       });
 
       if (!response.ok) {
         console.error(`[WomFun] API error: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('[WomFun] Error response:', errorText);
         break;
       }
 
       const data = await response.json();
-      console.log('[WomFun] Response:', JSON.stringify(data).substring(0, 200) + '...');
+      console.log('[WomFun] Response structure:', Object.keys(data));
       
-      // Handle different response structures
+      // Based on Image 2, the response has a "leaderboard" array
       let users = [];
-      if (Array.isArray(data)) {
-        users = data;
-      } else if (data.leaderboard && Array.isArray(data.leaderboard)) {
+      if (data.success && Array.isArray(data.leaderboard)) {
         users = data.leaderboard;
-      } else if (data.data && data.data.leaderboard) {
-        users = data.data.leaderboard;
+      } else if (Array.isArray(data.leaderboard)) {
+        users = data.leaderboard;
+      } else if (Array.isArray(data)) {
+        users = data;
       }
 
       if (users.length === 0) {
@@ -65,7 +68,7 @@ async function scrapeWomFun(maxPages = 15) {
       }
 
       offset += limit;
-      await sleep(1000 + Math.random() * 1000);
+      await sleep(1500 + Math.random() * 1000); // 1.5-2.5 second delay
     }
 
     console.log(`[WomFun] ✅ Complete: ${allUsers.length} users scraped`);
