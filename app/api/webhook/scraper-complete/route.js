@@ -9,14 +9,13 @@ import { storeAdichain } from './storage/storeAdichain';
 import { storeDataHaven } from './storage/storeDataHaven';
 import { storeHeyElsa } from './storage/storeHeyElsa';
 import { storeBeyond } from './storage/storeBeyond';
-import { storeCodeXero } from './storage/storeCodeXero'; // ← ADDED
+import { storeCodeXero } from './storage/storeCodeXero';
 import { storeMindoshare } from './storage/storeMindoshare';
 import { storeHelios } from './storage/storeHelios';
 import { storeSpace } from './storage/storeSpace';
 import { storeDeepnodeai } from './storage/storeDeepnodeai';
 import { storeC8ntinuum } from './storage/storeC8ntinuum';
 import { storeWomFun } from './storage/storeWomFun';
-
 
 export async function POST(request) {
   // Auth check
@@ -53,23 +52,23 @@ export async function POST(request) {
     }
 
     const results = {
-  const results = {
-  yappers: {},
-  duelduck: null,
-  adichain: null,
-  datahaven: null,
-  heyelsa: {},
-  beyond: {},
-  codexero: {},
-  mindoshare: null,
-  helios: null,
-  space: null,
-  deepnodeai: null,
-  c8ntinuum: null,
-  womfun: null, // ← ADD THIS
-  timestamp: new Date().toISOString()
-};
-      // Process based on chunk type or process all if not chunked
+      yappers: {},
+      duelduck: null,
+      adichain: null,
+      datahaven: null,
+      heyelsa: {},
+      beyond: {},
+      codexero: {},
+      mindoshare: null,
+      helios: null,
+      space: null,
+      deepnodeai: null,
+      c8ntinuum: null,
+      womfun: null,
+      timestamp: new Date().toISOString()
+    };
+
+    // Process based on chunk type or process all if not chunked
     if (chunkType === 'yappers' || !chunkType) {
       await processYappers(scrapedData, results);
     }
@@ -81,9 +80,10 @@ export async function POST(request) {
     if (chunkType === 'adichain' || !chunkType) {
       await processAdichain(scrapedData, results);
     }
+
     if (chunkType === 'datahaven' || !chunkType) {
-  await processDataHaven(scrapedData, results);
-}
+      await processDataHaven(scrapedData, results);
+    }
     
     if (chunkType === 'heyelsa' || !chunkType) {
       await processHeyElsa(scrapedData, results);
@@ -116,9 +116,11 @@ export async function POST(request) {
     if (chunkType === 'c8ntinuum' || !chunkType) {
       await processC8ntinuum(scrapedData, results);
     }
+
     if (chunkType === 'womfun' || !chunkType) {
-  await processWomFun(scrapedData, results);
+      await processWomFun(scrapedData, results);
     }
+
     if (chunkType) {
       console.log(`✅ Chunk ${chunkIndex}/${chunkTotal} stored: ${chunkType}`);
     } else {
@@ -190,6 +192,7 @@ async function processAdichain(scrapedData, results) {
     results.adichain = { success: false, error: error.message };
   }
 }
+
 async function processDataHaven(scrapedData, results) {
   if (!scrapedData.results?.datahaven?.data) return;
 
@@ -243,7 +246,6 @@ async function processBeyond(scrapedData, results) {
   }
 }
 
-// ← ADDED CODEXERO PROCESSING
 async function processCodeXero(scrapedData, results) {
   if (!scrapedData.results?.codexero) return;
 
@@ -328,6 +330,7 @@ async function processC8ntinuum(scrapedData, results) {
     results.c8ntinuum = { success: false, error: error.message };
   }
 }
+
 async function processWomFun(scrapedData, results) {
   if (!scrapedData.results?.womfun?.data) return;
 
