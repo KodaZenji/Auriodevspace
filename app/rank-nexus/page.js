@@ -25,7 +25,8 @@ export default function RankNexus() {
     c8ntinuum: false,
     deepnodeai: false,
     beyond: false,
-    codexero: false
+    codexero: false,
+    womfun: false
   });
 
   const {
@@ -157,6 +158,20 @@ export default function RankNexus() {
                   username={results.username}
                   isExpanded={expandedCards.deepnodeai}
                   onToggle={() => toggleCard('deepnodeai')}
+                  onTimeChange={handleTimeChange}
+                />
+              )}
+
+              {results.womfun && (
+                <LeaderboardCard 
+                  platform="womfun" 
+                  data={results.womfun} 
+                  platformName="WomFun"
+                  timeSwitch={false}
+                  showAvatar={countFoundPlatforms() === 1}
+                  username={results.username}
+                  isExpanded={expandedCards.womfun}
+                  onToggle={() => toggleCard('womfun')}
                   onTimeChange={handleTimeChange}
                 />
               )}
