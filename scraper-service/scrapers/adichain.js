@@ -13,7 +13,7 @@ async function scrapeAdichain(maxPages = 15) {
     const limit = 100;
 
     for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
-      const url = `https://www.xeet.ai/api/topics/adi/tournament?page=${pageNum}&limit=${limit}&timeframe=all&tournamentId=3396f69f-70c1-4703-9b01-47b147e095ef`;
+      const url = `https://www.xeet.ai/api/topics/adi/tournament?page=${pageNum}&limit=${limit}&timeframe=all&tournamentId=1c1288ec-0220-42a4-afa5-c5053c00ec8e`;
 
       const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
 
