@@ -14,7 +14,7 @@ async function scrapeDuelDuck(maxPages = 10) {
     const pageSize = 100;
 
     for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
-      const url = `https://api.duelduck.com/mention-challenge/leaderboard?opts.pagination.page_size=${pageSize}&opts.pagination.page_num=${pageNum}&opts.order.order_by=total_score&opts.order.order_type=desc&challenge_id=131938ae-0b07-4ac5-8b67-4c1d3cbbee5e`;
+      const url = `https://api.duelduck.com/mention-challenge/leaderboard?opts.pagination.page_size=${pageSize}&opts.pagination.page_num=${pageNum}&opts.order.order_by=total_score%2Cid&opts.order.order_type=desc&challenge_id=e010872c-6470-4018-8518-0bfc35d8ea45`;
 
       const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
 
