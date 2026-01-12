@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 let supabase;
 
 // ============================================
-// OPTIMIZED AVATAR COMPONENT WITH REACT.MEMO
+// OPTIMIZED AVATAR COMPONENT WITH IMAGE PROXY
 // ============================================
 const LazyAvatar = React.memo(({ handle, size = 40, borderColor = "border-[#5D4037]" }) => {
   const [imgSrc, setImgSrc] = useState(null);
@@ -16,7 +16,12 @@ const LazyAvatar = React.memo(({ handle, size = 40, borderColor = "border-[#5D40
   useEffect(() => {
     // Create Image object for background loading
     const img = new Image();
-    img.src = `https://unavatar.io/twitter/${handle}`;
+    
+    // Use weserv.nl proxy to handle CORS and loading issues
+    const avatarUrl = `https://unavatar.io/twitter/${handle}`;
+    const proxiedUrl = `https://images.weserv.nl/?url=${encodeURIComponent(avatarUrl)}`;
+    
+    img.src = proxiedUrl;
     
     img.onload = () => {
       setImgSrc(img.src);
@@ -24,8 +29,10 @@ const LazyAvatar = React.memo(({ handle, size = 40, borderColor = "border-[#5D40
     };
     
     img.onerror = () => {
-      // Fallback to generated avatar
-      setImgSrc(`https://api.dicebear.com/7.x/initials/svg?seed=${handle}&size=${size * 2}&backgroundColor=1f2937`);
+      // Fallback to generated avatar using proxy
+      const fallbackUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${handle}&size=${size * 2}&backgroundColor=1f2937`;
+      const proxiedFallback = `https://images.weserv.nl/?url=${encodeURIComponent(fallbackUrl)}`;
+      setImgSrc(proxiedFallback);
       setLoading(false);
     };
     
