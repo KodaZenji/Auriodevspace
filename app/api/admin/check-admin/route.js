@@ -1,50 +1,30 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+// app/api/admin/check-admin/route.js
+
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
+
+// Add your admin emails here
+const ADMIN_EMAILS = [
+  '2400072.benjamin@nict.edu.ng',
+  // Add more admin emails as needed
+]
 
 export async function GET() {
   try {
-    // Create Supabase client using cookies (reads logged-in user)
-    const supabase = createRouteHandlerClient({ cookies });
-
-    // Fetch logged-in user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json(
-        { admin: false, reason: "Not logged in" },
-        { status: 401 }
-      );
+    const supabase = createRouteHandlerClient({ cookies })
+    
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) {
+      return NextResponse.json({ admin: false }, { status: 401 })
     }
-
-    // Check if user exists in the admins table
-    const { data: adminData, error } = await supabase
-      .from("admins")
-      .select("id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (error) {
-      return NextResponse.json(
-        { admin: false, error: error.message },
-        { status: 500 }
-      );
-    }
-
-    if (!adminData) {
-      return NextResponse.json(
-        { admin: false, reason: "Not an admin" },
-        { status: 403 }
-      );
-    }
-
-    return NextResponse.json({ admin: true });
-  } catch (err) {
-    return NextResponse.json(
-      { admin: false, error: err.message },
-      { status: 500 }
-    );
+    
+    const isAdmin = ADMIN_EMAILS.includes(user.email)
+    
+    return NextResponse.json({ admin: isAdmin })
+  } catch (error) {
+    console.error('Admin check error:', error)
+    return NextResponse.json({ admin: false, error: error.message }, { status: 500 })
   }
 }
