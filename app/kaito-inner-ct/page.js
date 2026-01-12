@@ -6,6 +6,137 @@ import { useRouter } from "next/navigation";
 
 let supabase;
 
+// ============================================
+// OPTIMIZED AVATAR COMPONENT WITH REACT.MEMO
+// ============================================
+const LazyAvatar = React.memo(({ handle, size = 40, borderColor = "border-[#5D4037]" }) => {
+  const [imgSrc, setImgSrc] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    // Create Image object for background loading
+    const img = new Image();
+    img.src = `https://unavatar.io/twitter/${handle}`;
+    
+    img.onload = () => {
+      setImgSrc(img.src);
+      setLoading(false);
+    };
+    
+    img.onerror = () => {
+      // Fallback to generated avatar
+      setImgSrc(`https://api.dicebear.com/7.x/initials/svg?seed=${handle}&size=${size * 2}&backgroundColor=1f2937`);
+      setLoading(false);
+    };
+    
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [handle, size]);
+
+  return (
+    <div 
+      className={`relative rounded-full overflow-hidden ${borderColor}`}
+      style={{ 
+        width: size, 
+        height: size,
+        border: '2px solid'
+      }}
+    >
+      {loading ? (
+        <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 animate-pulse" />
+      ) : (
+        <img 
+          src={imgSrc} 
+          alt={handle}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+      )}
+    </div>
+  );
+});
+
+LazyAvatar.displayName = 'LazyAvatar';
+
+// ============================================
+// ACCOUNT ROW COMPONENT (MEMOIZED)
+// ============================================
+const AccountRow = React.memo(({ account, onRemove, isAdmin }) => {
+  return (
+    <div className="flex items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700">
+      <div className="flex items-center gap-3">
+        <LazyAvatar handle={account.handle} size={40} borderColor="border-purple-500" />
+        <span>{account.handle}</span>
+      </div>
+      {isAdmin && (
+        <button
+          onClick={() => onRemove(account.handle)}
+          className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg whitespace-nowrap transition-colors"
+        >
+          Remove
+        </button>
+      )}
+    </div>
+  );
+});
+
+AccountRow.displayName = 'AccountRow';
+
+// ============================================
+// ACCOUNT CARD COMPONENT (MEMOIZED)
+// ============================================
+const AccountCard = React.memo(({ account }) => {
+  return (
+    <div
+      className="
+        bg-gray-900 border border-gray-800 rounded-lg p-2
+        grid grid-cols-[auto_1fr_auto] gap-2 items-center
+        transition-all duration-200
+        hover:border-emerald-400 hover:bg-gray-800/50
+        active:border-emerald-400 active:bg-gray-800/50 active:scale-[0.99]
+      "
+    >
+      <LazyAvatar handle={account.handle} size={36} />
+
+      <a
+        href={`https://x.com/${account.handle}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="
+          text-gray-300 font-medium text-sm truncate
+          hover:text-blue-400
+          active:text-blue-500
+          transition-colors duration-200
+        "
+      >
+        {account.handle}
+      </a>
+
+      <a
+        href={`https://x.com/${account.handle}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="
+          px-3 py-1.5 bg-blue-500 text-white text-xs font-medium rounded-md
+          hover:bg-blue-600
+          active:bg-blue-700 active:scale-[0.97]
+          transition-all duration-200
+          whitespace-nowrap
+        "
+      >
+        Follow
+      </a>
+    </div>
+  );
+});
+
+AccountCard.displayName = 'AccountCard';
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
 export default function HollyCTDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
@@ -27,7 +158,6 @@ export default function HollyCTDashboard() {
     
     initSupabase();
   }, []);
-
 
   useEffect(() => {
     if (mounted) {
@@ -177,8 +307,6 @@ export default function HollyCTDashboard() {
           {filtered.length} accounts found now
         </p>
 
-        <div> </div>
-
         <div style={{ marginBottom: '0.2rem' }}>&nbsp;</div>
 
         {/* ADMIN BUTTON */}
@@ -188,14 +316,14 @@ export default function HollyCTDashboard() {
               onClick={handleLogin}
               className="px-4 py-2 bg-gradient-to-r from-[#4E342E] via-[#5D4037] to-[#6D4C41] 
                 hover:from-[#5D4037] hover:via-[#6D4C41] hover:to-[#4E342E] 
-                rounded-lg text-white flex items-center gap-2 whitespace-nowrap"
+                rounded-lg text-white flex items-center gap-2 whitespace-nowrap transition-all"
             >
               🔒 Admin Login
             </button>
           ) : (
             <button
               onClick={handleLogout}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white flex items-center gap-2 whitespace-nowrap"
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white flex items-center gap-2 whitespace-nowrap transition-colors"
             >
               <LogOut className="w-4 h-4" />
               Logout
@@ -221,7 +349,7 @@ export default function HollyCTDashboard() {
               />
               <button
                 onClick={addAccount}
-                className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg whitespace-nowrap"
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg whitespace-nowrap transition-colors"
               >
                 Add
               </button>
@@ -229,27 +357,12 @@ export default function HollyCTDashboard() {
 
             <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
               {accounts.map((acc) => (
-                <div
+                <AccountRow 
                   key={acc.id}
-                  className="flex items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700"
-                >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={`https://unavatar.io/twitter/${acc.handle}`}
-                      className="w-10 h-10 rounded-full border-2 border-purple-500"
-                      onError={(e) => {
-                        e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${acc.handle}`;
-                      }}
-                    />
-                    <span>{acc.handle}</span>
-                  </div>
-                  <button
-                    onClick={() => removeAccount(acc.handle)}
-                    className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg whitespace-nowrap"
-                  >
-                    Remove
-                  </button>
-                </div>
+                  account={acc}
+                  onRemove={removeAccount}
+                  isAdmin={isAdmin}
+                />
               ))}
             </div>
           </div>
@@ -269,55 +382,11 @@ export default function HollyCTDashboard() {
           />
         </div>
 
-        {/* LIST */}
+        {/* LIST WITH OPTIMIZED CARDS */}
         <div className="bg-gray-800 bg-opacity-70 rounded-xl border border-gray-700 p-2 space-y-1 mb-6">
           {pageItems.length > 0 ? (
             pageItems.map((acc) => (
-              <div
-                key={acc.id}
-                className="
-                  bg-gray-900 border border-gray-800 rounded-lg p-2
-                  grid grid-cols-[auto_1fr_auto] gap-2 items-center
-                  transition-all duration-200
-                  hover:border-emerald-400 hover:bg-gray-800/50
-                  active:border-emerald-400 active:bg-gray-800/50 active:scale-[0.99]
-                "
-              >
-                <img
-                  src={`https://unavatar.io/twitter/${acc.handle}`}
-                  className="w-9 h-9 rounded-full border border-[#5D4037]"
-                  onError={(e) => {
-                    e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${acc.handle}`;
-                  }}
-                />
-
-                <a
-                  href={`https://x.com/${acc.handle}`}
-                  target="_blank"
-                  className="
-                    text-gray-300 font-medium text-sm truncate
-                    hover:text-blue-400
-                    active:text-blue-500
-                    transition-colors duration-200
-                  "
-                >
-                  {acc.handle}
-                </a>
-
-                <a
-                  href={`https://x.com/${acc.handle}`}
-                  target="_blank"
-                  className="
-                    px-3 py-1.5 bg-blue-500 text-white text-xs font-medium rounded-md
-                    hover:bg-blue-600
-                    active:bg-blue-700 active:scale-[0.97]
-                    transition-all duration-200
-                    whitespace-nowrap
-                  "
-                >
-                  Follow
-                </a>
-              </div>
+              <AccountCard key={acc.id} account={acc} />
             ))
           ) : (
             <div className="text-center text-gray-400 py-6">
@@ -332,7 +401,7 @@ export default function HollyCTDashboard() {
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
-              className="px-6 py-2 bg-blue-600 disabled:bg-gray-600 rounded-lg"
+              className="px-6 py-2 bg-blue-600 disabled:bg-gray-600 rounded-lg transition-colors"
             >
               <ChevronLeft />
             </button>
@@ -348,27 +417,29 @@ export default function HollyCTDashboard() {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`px-4 py-2 rounded-lg ${
+                    className={`px-4 py-2 rounded-lg transition-colors ${
                       currentPage === page
                         ? "bg-blue-600"
-                        : "bg-blue bg-opacity-10"
+                        : "bg-blue bg-opacity-10 hover:bg-opacity-20"
                     }`}
                   >
                     {page}
                   </button>
                 );
               }
-              return (
-                <span key={`dots-${i}`} className="px-2 text-gray-400">
-                  ...
-                </span>
-              );
+              if (page === 2 && currentPage > 3) {
+                return <span key={`dots-start`} className="px-2 text-gray-400">...</span>;
+              }
+              if (page === totalPages - 1 && currentPage < totalPages - 2) {
+                return <span key={`dots-end`} className="px-2 text-gray-400">...</span>;
+              }
+              return null;
             })}
 
             <button
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(currentPage + 1)}
-              className="px-4 py-2 bg-blue-600 disabled:bg-gray-600 rounded-lg"
+              className="px-4 py-2 bg-blue-600 disabled:bg-gray-600 rounded-lg transition-colors"
             >
               <ChevronRight />
             </button>
