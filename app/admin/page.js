@@ -98,7 +98,7 @@ export default function AdminLogin() {
           </p>
         </div>
 
-        <div className="bg-gray-900 bg-opacity-50 p-8 rounded-xl border border-white border-opacity-10">
+        <div className="bg-gray-900 border border-gray-700 p-8 rounded-xl shadow-2xl">
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
@@ -114,8 +114,8 @@ export default function AdminLogin() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5D4037]"
-                  placeholder="admin@example.com"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#5D4037] focus:border-[#5D4037]"
+                  placeholder="Enter your email"
                 />
               </div>
             </div>
@@ -134,8 +134,8 @@ export default function AdminLogin() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5D4037]"
-                  placeholder="••••••••"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#5D4037] focus:border-[#5D4037]"
+                  placeholder="Enter your password"
                 />
               </div>
             </div>
