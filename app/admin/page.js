@@ -17,13 +17,45 @@ export default function AdminLogin() {
 
   useEffect(() => {
     checkUser()
+    
+    // Listen for auth state changes (magic link callback)
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        // Check if user is admin
+        const res = await fetch('/api/admin/check-admin', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        })
+        const adminData = await res.json()
+        
+        if (adminData.admin) {
+          router.push('/kaito-inner-ct')
+        }
+      }
+    })
+
+    return () => {
+      authListener?.subscription.unsubscribe()
+    }
   }, [])
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      // User is already logged in, redirect back
-      router.push('/kaito-inner-ct')
+      // User is already logged in, check if admin
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      const res = await fetch('/api/admin/check-admin', {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`
+        }
+      })
+      const adminData = await res.json()
+      
+      if (adminData.admin) {
+        router.push('/kaito-inner-ct')
+      }
     }
   }
 
@@ -41,8 +73,15 @@ export default function AdminLogin() {
 
       if (error) throw error
 
+      // Get session token
+      const { data: { session } } = await supabase.auth.getSession()
+
       // Check if user is admin
-      const res = await fetch('/api/admin/check-admin')
+      const res = await fetch('/api/admin/check-admin', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
       const adminData = await res.json()
 
       if (adminData.admin) {
@@ -68,10 +107,14 @@ export default function AdminLogin() {
     setMessage('')
 
     try {
+      const redirectUrl = typeof window !== 'undefined' 
+        ? `${window.location.origin}/kaito-inner-ct`
+        : 'https://auriodevspace.vercel.app/kaito-inner-ct';
+      
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/kaito-inner-ct`,
+          emailRedirectTo: redirectUrl,
         },
       })
 
@@ -165,7 +208,7 @@ export default function AdminLogin() {
                 type="button"
                 onClick={handleMagicLink}
                 disabled={loading}
-                className="w-full py-3 px-4 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-white border-opacity-20"
+                className="w-full py-3 px-4 bg-white bg-opacity-10 text-gray-300 hover:bg-opacity-20 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-white border-opacity-20"
               >
                 {loading ? 'Sending...' : 'Send Magic Link'}
               </button>
