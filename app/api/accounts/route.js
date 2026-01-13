@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 
+// Disable caching for this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -15,7 +19,8 @@ export async function GET() {
         'apikey': supabaseKey,
         'Authorization': `Bearer ${supabaseKey}`,
         'Content-Type': 'application/json'
-      }
+      },
+      cache: 'no-store' // Don't cache the fetch request
     });
 
     if (!response.ok) {
@@ -34,11 +39,17 @@ export async function GET() {
       imageUrl: account.imageUrl
     }));
 
-    return NextResponse.json(accounts);
+    // Return with no-cache headers
+    return NextResponse.json(accounts, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    });
 
   } catch (error) {
     console.error('API Error:', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
