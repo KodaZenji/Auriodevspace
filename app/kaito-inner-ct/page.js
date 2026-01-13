@@ -217,22 +217,37 @@ export default function HollyCTDashboard() {
   const addAccount = async () => {
     if (!newHandle.trim()) return;
 
-    const handle = newHandle.replace("@", "").trim();
+    try {
+      const handle = newHandle.replace("@", "").trim();
 
-    const res = await fetch("/api/accounts/add", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ handle }),
-    });
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        alert('You must be logged in to add accounts');
+        return;
+      }
 
-    const data = await res.json();
+      const res = await fetch("/api/accounts/add", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ handle }),
+      });
 
-    if (data.error) return alert("Failed: " + data.error);
+      const data = await res.json();
 
-    await fetchAccounts();
-    setNewHandle("");
-    setCurrentPage(1);
-    alert("Account added.");
+      if (data.error) return alert("Failed: " + data.error);
+
+      await fetchAccounts();
+      setNewHandle("");
+      setCurrentPage(1);
+      alert("Account added.");
+    } catch (error) {
+      console.error('Add account error:', error);
+      alert("Failed to add account");
+    }
   };
 
   const removeAccount = async (handle) => {
