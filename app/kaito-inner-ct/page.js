@@ -195,9 +195,19 @@ export default function HollyCTDashboard() {
   const fetchAccounts = async () => {
     setLoadingAccounts(true);
     try {
-      const res = await fetch("/api/accounts");
+      // Add timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      const res = await fetch(`/api/accounts?_=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       const data = await res.json();
-      if (!data.error) setAccounts(data);
+      if (!data.error) {
+        console.log('Fetched accounts:', data.length);
+        setAccounts(data);
+      }
     } catch (e) {
       console.error("Error fetching accounts", e);
     }
@@ -254,6 +264,8 @@ export default function HollyCTDashboard() {
     if (!confirm(`Remove @${handle}?`)) return;
 
     try {
+      console.log('Attempting to remove account:', handle);
+      
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
@@ -261,6 +273,8 @@ export default function HollyCTDashboard() {
         return;
       }
 
+      console.log('Sending delete request with token');
+      
       const res = await fetch("/api/accounts/remove", {
         method: "POST",
         headers: { 
@@ -270,15 +284,33 @@ export default function HollyCTDashboard() {
         body: JSON.stringify({ handle }),
       });
 
+      console.log('Delete response status:', res.status);
+      
       const data = await res.json();
+      
+      console.log('Delete response data:', data);
 
-      if (data.error) return alert("Delete failed: " + data.error);
+      if (!res.ok || data.error) {
+        alert("Delete failed: " + (data.error || 'Unknown error'));
+        return;
+      }
 
+      console.log('Delete successful, updating UI');
+      
+      // Immediately update UI
+      setAccounts(prevAccounts => {
+        const filtered = prevAccounts.filter(acc => acc.handle !== handle);
+        console.log('Filtered accounts:', filtered.length, 'from', prevAccounts.length);
+        return filtered;
+      });
+      
+      // Fetch fresh data
       await fetchAccounts();
-      alert("Account removed.");
+      
+      alert("Account removed successfully!");
     } catch (error) {
       console.error('Remove account error:', error);
-      alert("Failed to remove account");
+      alert("Failed to remove account: " + error.message);
     }
   };
 
