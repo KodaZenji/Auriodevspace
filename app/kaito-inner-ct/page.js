@@ -163,7 +163,11 @@ export default function HollyCTDashboard() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
+      console.log('Session:', session); // DEBUG
+      
       if (session?.user) {
+        console.log('User email:', session.user.email); // DEBUG
+        
         const res = await fetch("/api/admin/check-admin", {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
@@ -171,10 +175,17 @@ export default function HollyCTDashboard() {
         });
         const data = await res.json();
         
+        console.log('Admin check response:', data); // DEBUG
+        
         if (data.admin) {
+          console.log('Setting isAdmin to true'); // DEBUG
           setIsAdmin(true);
           sessionStorage.setItem("isAdmin", "true");
+        } else {
+          console.log('User is not admin'); // DEBUG
         }
+      } else {
+        console.log('No session found'); // DEBUG
       }
     } catch (err) {
       console.error("Admin check failed:", err);
