@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { UserPlus, ChevronLeft, ChevronRight, LogOut, BadgeCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-let supabase;
+import { supabase } from '@/lib/supabaseClient';
 
 // ============================================
 // OPTIMIZED AVATAR COMPONENT WITH IMAGE PROXY
@@ -151,31 +150,16 @@ export default function HollyCTDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [newHandle, setNewHandle] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [mounted, setMounted] = useState(false);
   const itemsPerPage = 50;
   
   const router = useRouter();
 
   useEffect(() => {
-    const initSupabase = async () => {
-      const { createClientComponentClient } = await import("@supabase/auth-helpers-nextjs");
-      supabase = createClientComponentClient();
-      setMounted(true);
-    };
-    
-    initSupabase();
+    checkAdmin();
+    fetchAccounts();
   }, []);
 
-  useEffect(() => {
-    if (mounted) {
-      checkAdmin();
-      fetchAccounts();
-    }
-  }, [mounted]);
-
   const checkAdmin = async () => {
-    if (!supabase) return;
-    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -210,9 +194,7 @@ export default function HollyCTDashboard() {
   };
 
   const handleLogout = async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
+    await supabase.auth.signOut();
     sessionStorage.removeItem("isAdmin");
     setIsAdmin(false);
   };
@@ -262,7 +244,7 @@ export default function HollyCTDashboard() {
   const start = (currentPage - 1) * itemsPerPage;
   const pageItems = filtered.slice(start, start + itemsPerPage);
 
-  if (!mounted || loadingAccounts) {
+  if (loadingAccounts) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-2xl">Loading...</div>
