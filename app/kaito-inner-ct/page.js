@@ -161,10 +161,14 @@ export default function HollyCTDashboard() {
 
   const checkAdmin = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (user) {
-        const res = await fetch("/api/admin/check-admin");
+      if (session?.user) {
+        const res = await fetch("/api/admin/check-admin", {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
         const data = await res.json();
         
         if (data.admin) {
