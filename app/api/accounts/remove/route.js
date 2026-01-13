@@ -1,6 +1,5 @@
+import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 
 const ADMIN_EMAILS = [
   '2400072.benjamin@nict.edu.ng',
@@ -9,17 +8,29 @@ const ADMIN_EMAILS = [
 
 export async function POST(request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    // Get authorization header
+    const authHeader = request.headers.get('authorization')
     
-    // Check if user is authenticated and admin
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized - No token provided' }, { status: 401 })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
+
+    // Verify the token and get user
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     
     if (!ADMIN_EMAILS.includes(user.email)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
     }
     
     const { handle } = await request.json();
