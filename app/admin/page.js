@@ -21,6 +21,38 @@ export default function AdminLogin() {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         // Check if user is admin
+        try {
+          const res = await fetch('/api/admin/check-admin', {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`
+            }
+          })
+          const adminData = await res.json()
+          
+          if (adminData.admin) {
+            router.push('/kaito-inner-ct')
+          } else {
+            setError('Access denied. You are not an admin.')
+            await supabase.auth.signOut()
+          }
+        } catch (err) {
+          console.error('Admin check failed:', err)
+          setError('Failed to verify admin status')
+        }
+      }
+    })
+
+    return () => {
+      authListener?.subscription.unsubscribe()
+    }
+  }, [router])
+
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (session?.user) {
+      // User is already logged in, check if admin
+      try {
         const res = await fetch('/api/admin/check-admin', {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
@@ -31,29 +63,8 @@ export default function AdminLogin() {
         if (adminData.admin) {
           router.push('/kaito-inner-ct')
         }
-      }
-    })
-
-    return () => {
-      authListener?.subscription.unsubscribe()
-    }
-  }, [])
-
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      // User is already logged in, check if admin
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      const res = await fetch('/api/admin/check-admin', {
-        headers: {
-          'Authorization': `Bearer ${session?.access_token}`
-        }
-      })
-      const adminData = await res.json()
-      
-      if (adminData.admin) {
-        router.push('/kaito-inner-ct')
+      } catch (err) {
+        console.error('Admin check failed:', err)
       }
     }
   }
@@ -74,6 +85,10 @@ export default function AdminLogin() {
 
       // Get session token
       const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        throw new Error('No session after login')
+      }
 
       // Check if user is admin
       const res = await fetch('/api/admin/check-admin', {
@@ -107,8 +122,8 @@ export default function AdminLogin() {
 
     try {
       const redirectUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}/kaito-inner-ct`
-        : 'https://auriodevspace.vercel.app/kaito-inner-ct';
+        ? `${window.location.origin}/admin`
+        : 'https://auriodevspace.vercel.app/admin';
       
       const { error } = await supabase.auth.signInWithOtp({
         email,
