@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 import { LogIn, Mail, Lock } from 'lucide-react'
 
@@ -13,7 +13,6 @@ export default function AdminLogin() {
   const [message, setMessage] = useState('')
   
   const router = useRouter()
-  const supabase = createClientComponentClient()
 
   useEffect(() => {
     checkUser()
