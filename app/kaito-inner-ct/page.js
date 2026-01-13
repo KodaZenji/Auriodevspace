@@ -238,18 +238,33 @@ export default function HollyCTDashboard() {
   const removeAccount = async (handle) => {
     if (!confirm(`Remove @${handle}?`)) return;
 
-    const res = await fetch("/api/accounts/remove", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ handle }),
-    });
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        alert('You must be logged in to remove accounts');
+        return;
+      }
 
-    const data = await res.json();
+      const res = await fetch("/api/accounts/remove", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ handle }),
+      });
 
-    if (data.error) return alert("Delete failed: " + data.error);
+      const data = await res.json();
 
-    await fetchAccounts();
-    alert("Account removed.");
+      if (data.error) return alert("Delete failed: " + data.error);
+
+      await fetchAccounts();
+      alert("Account removed.");
+    } catch (error) {
+      console.error('Remove account error:', error);
+      alert("Failed to remove account");
+    }
   };
 
   const filtered = accounts.filter((a) =>
