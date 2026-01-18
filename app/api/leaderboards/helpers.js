@@ -140,14 +140,6 @@ export function transformSnapshotRow(row) {
  */
 export const LEADERBOARD_CONFIGS = {
   // Time-based leaderboards (use fetched_at)
-  yappers: {
-    type: 'time-based',
-    tableName: 'yappers_leaderboard',
-    cacheType: 'yappers',
-    usesDays: true,
-    orderBy: 'rank',
-    ascending: true
-  },
   duelduck: {
     type: 'time-based',
     tableName: 'duelduck_leaderboard',
@@ -155,22 +147,6 @@ export const LEADERBOARD_CONFIGS = {
     usesDays: false,
     orderBy: 'total_score',
     ascending: false
-  },
-  adichain: {
-    type: 'time-based',
-    tableName: 'adichain_leaderboard',
-    cacheType: 'adichain',
-    usesDays: false,
-    orderBy: 'rank_total',
-    ascending: true
-  },
-  datahaven: {
-    type: 'time-based',
-    tableName: 'datahaven_leaderboard',
-    cacheType: 'datahaven',
-    usesDays: false,
-    orderBy: 'rank_total',
-    ascending: true
   },
   mindoshare: {
     type: 'time-based',
