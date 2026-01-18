@@ -24,23 +24,6 @@ export default function LeaderboardCard({
 
   const renderMetrics = () => {
     switch(platform) {
-      case 'goat':
-        return (
-          <>
-            <div className="text-center bg-slate-800/50 rounded-lg p-2">
-              <div className="text-gray-400 text-xs mb-1">Tweets</div>
-              <div className="text-white font-bold">{formatNumber(data.tweets)}</div>
-            </div>
-            <div className="text-center bg-slate-800/50 rounded-lg p-2">
-              <div className="text-gray-400 text-xs mb-1">Likes</div>
-              <div className="text-white font-bold">{formatNumber(data.likes)}</div>
-            </div>
-            <div className="text-center bg-slate-800/50 rounded-lg p-2">
-              <div className="text-gray-400 text-xs mb-1">Impressions</div>
-              <div className="text-white font-bold">{formatNumber(data.impressions)}</div>
-            </div>
-          </>
-        );
       case 'duck':
         return (
           <>
@@ -55,24 +38,6 @@ export default function LeaderboardCard({
             <div className="text-center bg-slate-800/50 rounded-lg p-2">
               <div className="text-gray-400 text-xs mb-1">Share</div>
               <div className="text-white font-bold">{data.user_share}%</div>
-            </div>
-          </>
-        );
-      case 'adi':
-      case 'datahaven':
-        return (
-          <>
-            <div className="text-center bg-slate-800/50 rounded-lg p-2">
-              <div className="text-gray-400 text-xs mb-1">Rank Change</div>
-              <div className="text-white font-bold">{data.rank_change || 0}</div>
-            </div>
-            <div className="text-center bg-slate-800/50 rounded-lg p-2">
-              <div className="text-gray-400 text-xs mb-1">Signal</div>
-              <div className="text-white font-bold">{formatNumber(data.signal_points)}</div>
-            </div>
-            <div className="text-center bg-slate-800/50 rounded-lg p-2">
-              <div className="text-gray-400 text-xs mb-1">Noise</div>
-              <div className="text-white font-bold">{formatNumber(data.noise_points)}</div>
             </div>
           </>
         );
@@ -140,20 +105,6 @@ export default function LeaderboardCard({
 
   const renderPrimaryMetric = () => {
     switch(platform) {
-      case 'goat':
-        return (
-          <div className="text-right">
-            <div className="text-xs text-gray-400">Mindshare</div>
-            <div className="font-bold text-lg" style={{
-              background: 'linear-gradient(135deg, #10b981, #34d399)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
-              {data.mindshare?.toFixed(2)}%
-            </div>
-          </div>
-        );
       case 'duck':
         return (
           <div className="text-right">
@@ -166,21 +117,6 @@ export default function LeaderboardCard({
             }}>
               <span className="text-blue-400">💎</span>
               ${data.usdc_reward?.toFixed(2)}
-            </div>
-          </div>
-        );
-      case 'adi':
-      case 'datahaven':
-        return (
-          <div className="text-right">
-            <div className="text-xs text-gray-400">Xeets</div>
-            <div className="font-bold text-lg" style={{
-              background: 'linear-gradient(135deg, #10b981, #34d399)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
-              {formatNumber(data.total_points)}
             </div>
           </div>
         );
