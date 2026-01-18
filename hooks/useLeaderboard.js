@@ -4,13 +4,11 @@ export function useLeaderboard() {
   const [searchUser, setSearchUser] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
-  const [goatDays, setGoatDays] = useState('30');
   const [elsaPeriod, setElsaPeriod] = useState('7d');
   const [codexeroPeriod, setCodexeroPeriod] = useState('epoch-1');
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  const handleSearch = useCallback(async (customGoatDays, customElsaPeriod, customCodexeroPeriod) => {
-    const daysToUse = customGoatDays || goatDays;
+  const handleSearch = useCallback(async (customElsaPeriod, customCodexeroPeriod) => {
     const elsaPeriodToUse = customElsaPeriod || elsaPeriod;
     const codexeroPeriodToUse = customCodexeroPeriod || codexeroPeriod;
 
@@ -19,7 +17,7 @@ export function useLeaderboard() {
     setLoading(true);
     
     try {
-      const response = await fetch(`/api/leaderboards?days=${daysToUse}&elsaPeriod=${elsaPeriodToUse}&codexeroPeriod=${codexeroPeriodToUse}`);
+      const response = await fetch(`/api/leaderboards?elsaPeriod=${elsaPeriodToUse}&codexeroPeriod=${codexeroPeriodToUse}`);
       const data = await response.json();
       
       if (data.error) {
@@ -28,25 +26,13 @@ export function useLeaderboard() {
         return;
       }
       
-      setLastUpdated(data.yappers.last_updated);
+      setLastUpdated(data.duelduck.last_updated);
       
       const normalizedSearch = searchUser.toLowerCase().replace('@', '');
       
       // Search each leaderboard
-      const goatUser = data.yappers.data.find(
-        user => user.username.toLowerCase() === normalizedSearch
-      );
-      
       const duckUser = data.duelduck.data.find(
         user => user.x_username.toLowerCase() === normalizedSearch
-      );
-      
-      const adiUser = data.adichain.data.find(
-        user => user.handle.toLowerCase() === normalizedSearch
-      );
-
-      const datahavenUser = data.datahaven.data.find(
-        user => user.handle.toLowerCase() === normalizedSearch
       );
       
       const elsaUser = data.heyelsa.data.find(
@@ -86,9 +72,9 @@ export function useLeaderboard() {
       );
       
       // Check if user found on any platform
-      const foundAnywhere = goatUser || duckUser || adiUser || datahavenUser || elsaUser || 
-                           perceptronUser || spaceUser || heliosUser || 
-                           c8ntinuumUser || deepnodeaiUser || beyondUser || codexeroUser || womfunUser;
+      const foundAnywhere = duckUser || elsaUser || perceptronUser || spaceUser || 
+                           heliosUser || c8ntinuumUser || deepnodeaiUser || 
+                           beyondUser || codexeroUser || womfunUser;
       
       if (!foundAnywhere) {
         alert(`User @${searchUser} not found on any leaderboard`);
@@ -100,10 +86,7 @@ export function useLeaderboard() {
       const newResults = {
         username: searchUser.replace('@', ''),
         foundOn: {
-          goat: !!goatUser,
           duck: !!duckUser,
-          adi: !!adiUser,
-          datahaven: !!datahavenUser,
           elsa: !!elsaUser,
           perceptron: !!perceptronUser,
           space: !!spaceUser,
@@ -115,10 +98,7 @@ export function useLeaderboard() {
           womfun: !!womfunUser
         },
         everFoundOn: {
-          goat: !!goatUser || (results?.everFoundOn?.goat),
           duck: !!duckUser || (results?.everFoundOn?.duck),
-          adi: !!adiUser || (results?.everFoundOn?.adi),
-          datahaven: !!datahavenUser || (results?.everFoundOn?.datahaven),
           elsa: !!elsaUser || (results?.everFoundOn?.elsa),
           perceptron: !!perceptronUser || (results?.everFoundOn?.perceptron),
           space: !!spaceUser || (results?.everFoundOn?.space),
@@ -129,15 +109,6 @@ export function useLeaderboard() {
           codexero: !!codexeroUser || (results?.everFoundOn?.codexero),
           womfun: !!womfunUser || (results?.everFoundOn?.womfun)
         },
-        goat: goatUser ? {
-          rank: goatUser.rank,
-          username: goatUser.username,
-          mindshare: goatUser.mindshare * 100,
-          tweets: goatUser.tweet_counts,
-          likes: goatUser.total_likes,
-          impressions: goatUser.total_impressions,
-          score: goatUser.score
-        } : null,
         duck: duckUser ? {
           rank: data.duelduck.data.indexOf(duckUser) + 1,
           x_username: duckUser.x_username,
@@ -146,22 +117,6 @@ export function useLeaderboard() {
           user_share: duckUser.user_share,
           usdc_reward: duckUser.usdc_reward,
           total_score: duckUser.total_score
-        } : null,
-        adi: adiUser ? {
-          rank: adiUser.rank_total,
-          handle: adiUser.handle,
-          total_points: adiUser.total_points,
-          signal_points: adiUser.signal_points,
-          noise_points: adiUser.noise_points,
-          rank_change: adiUser.rank_change
-        } : null,
-        datahaven: datahavenUser ? {
-          rank: datahavenUser.rank_total,
-          handle: datahavenUser.handle,
-          total_points: datahavenUser.total_points,
-          signal_points: datahavenUser.signal_points,
-          noise_points: datahavenUser.noise_points,
-          rank_change: datahavenUser.rank_change
         } : null,
         elsa: elsaUser ? {
           rank: elsaUser.position,
@@ -238,7 +193,7 @@ export function useLeaderboard() {
     } finally {
       setLoading(false);
     }
-  }, [searchUser, goatDays, elsaPeriod, codexeroPeriod, results]);
+  }, [searchUser, elsaPeriod, codexeroPeriod, results]);
 
   const countFoundPlatforms = () => {
     if (!results) return 0;
@@ -250,8 +205,6 @@ export function useLeaderboard() {
     setSearchUser,
     loading,
     results,
-    goatDays,
-    setGoatDays,
     elsaPeriod,
     setElsaPeriod,
     codexeroPeriod,
