@@ -6,14 +6,14 @@ export const PERIOD_TO_DAYS = {
 };
 
 export const LEADERBOARD_NAMES = {
-  YAPPERS: 'yappers',
   DUELDUCK: 'duelduck',
-  ADICHAIN: 'adichain',
   HEYELSA: 'heyelsa',
   BEYOND: 'beyond',
+  CODEXERO: 'codexero',
   MINDOSHARE: 'mindoshare',
   HELIOS: 'helios',
   SPACE: 'space',
   DEEPNODEAI: 'deepnodeai',
-  C8NTINUUM: 'c8ntinuum'
+  C8NTINUUM: 'c8ntinuum',
+  WOMFUN: 'womfun'
 };
