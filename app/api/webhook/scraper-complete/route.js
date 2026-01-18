@@ -3,10 +3,7 @@ import crypto from 'crypto';
 import { PERIOD_TO_DAYS } from './config';
 
 // Import all storage handlers
-import { storeYappers } from './storage/storeYappers';
 import { storeDuelDuck } from './storage/storeDuelDuck';
-import { storeAdichain } from './storage/storeAdichain';
-import { storeDataHaven } from './storage/storeDataHaven';
 import { storeHeyElsa } from './storage/storeHeyElsa';
 import { storeBeyond } from './storage/storeBeyond';
 import { storeCodeXero } from './storage/storeCodeXero';
@@ -52,10 +49,7 @@ export async function POST(request) {
     }
 
     const results = {
-      yappers: {},
       duelduck: null,
-      adichain: null,
-      datahaven: null,
       heyelsa: {},
       beyond: {},
       codexero: {},
@@ -69,20 +63,8 @@ export async function POST(request) {
     };
 
     // Process based on chunk type or process all if not chunked
-    if (chunkType === 'yappers' || !chunkType) {
-      await processYappers(scrapedData, results);
-    }
-    
     if (chunkType === 'duelduck' || !chunkType) {
       await processDuelDuck(scrapedData, results);
-    }
-    
-    if (chunkType === 'adichain' || !chunkType) {
-      await processAdichain(scrapedData, results);
-    }
-
-    if (chunkType === 'datahaven' || !chunkType) {
-      await processDataHaven(scrapedData, results);
     }
     
     if (chunkType === 'heyelsa' || !chunkType) {
@@ -150,23 +132,6 @@ export async function POST(request) {
 // Processing Functions
 // ===================================
 
-async function processYappers(scrapedData, results) {
-  if (!scrapedData.results?.yappers) return;
-
-  for (const [days, yappersData] of Object.entries(scrapedData.results.yappers)) {
-    if (yappersData.data && yappersData.data.length > 0) {
-      try {
-        await storeYappers(yappersData.data, parseInt(days));
-        results.yappers[days] = { success: true, count: yappersData.count };
-        console.log(`✅ Stored ${yappersData.count} Yappers (${days}d)`);
-      } catch (error) {
-        console.error(`❌ Yappers ${days}d error:`, error.message);
-        results.yappers[days] = { success: false, error: error.message };
-      }
-    }
-  }
-}
-
 async function processDuelDuck(scrapedData, results) {
   if (!scrapedData.results?.duelduck?.data) return;
 
@@ -177,32 +142,6 @@ async function processDuelDuck(scrapedData, results) {
   } catch (error) {
     console.error('❌ DuelDuck error:', error.message);
     results.duelduck = { success: false, error: error.message };
-  }
-}
-
-async function processAdichain(scrapedData, results) {
-  if (!scrapedData.results?.adichain?.data) return;
-
-  try {
-    await storeAdichain(scrapedData.results.adichain.data);
-    results.adichain = { success: true, count: scrapedData.results.adichain.count };
-    console.log(`✅ Stored ${scrapedData.results.adichain.count} Adichain entries`);
-  } catch (error) {
-    console.error('❌ Adichain error:', error.message);
-    results.adichain = { success: false, error: error.message };
-  }
-}
-
-async function processDataHaven(scrapedData, results) {
-  if (!scrapedData.results?.datahaven?.data) return;
-
-  try {
-    await storeDataHaven(scrapedData.results.datahaven.data);
-    results.datahaven = { success: true, count: scrapedData.results.datahaven.count };
-    console.log(`✅ Stored ${scrapedData.results.datahaven.count} DataHaven entries`);
-  } catch (error) {
-    console.error('❌ DataHaven error:', error.message);
-    results.datahaven = { success: false, error: error.message };
   }
 }
 
