@@ -18,14 +18,6 @@ export async function GET(request) {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Cleanup old Yappers entries
-    const yappersDeleted = await supabase
-      .from('yappers_leaderboard')
-      .delete()
-      .lt('fetched_at', sevenDaysAgo.toISOString())
-      .select('id', { count: 'exact', head: true });
-    console.log(`✅ Deleted ${yappersDeleted?.count || 0} old Yappers entries`);
-
     // Cleanup old DuelDuck entries
     const duckDeleted = await supabase
       .from('duelduck_leaderboard')
@@ -33,28 +25,6 @@ export async function GET(request) {
       .lt('fetched_at', sevenDaysAgo.toISOString())
       .select('id', { count: 'exact', head: true });
     console.log(`✅ Deleted ${duckDeleted?.count || 0} old DuelDuck entries`);
-
-    // Cleanup old Adichain entries
-    const adichainDeleted = await supabase
-      .from('adichain_leaderboard')
-      .delete()
-      .lt('fetched_at', sevenDaysAgo.toISOString())
-      .select('id', { count: 'exact', head: true });
-    console.log(`✅ Deleted ${adichainDeleted?.count || 0} old Adichain entries`);
-
-    // Cleanup old DataHaven 
-    let datahavenDeletedCount = 0;
-    try {
-      const datahavenDeleted = await supabase
-        .from('datahaven_leaderboard')
-        .delete()
-        .lt('fetched_at', sevenDaysAgo.toISOString())
-        .select('id', { count: 'exact', head: true });
-      datahavenDeletedCount = datahavenDeleted?.count || 0;
-      console.log(`✅ Deleted ${datahavenDeletedCount} old DataHaven entries`);
-    } catch (err) {
-      console.log('⚠️ DataHaven table cleanup skipped:', err.message);
-    }
 
     // Cleanup Mindoshare entries
     let mindoshareDeletedCount = 0;
@@ -215,10 +185,7 @@ export async function GET(request) {
       success: true,
       message: 'Cron job completed. Railway scraper is running in background.',
       cleanup: {
-        yappers_deleted: yappersDeleted?.count || 0,
         duelduck_deleted: duckDeleted?.count || 0,
-        adichain_deleted: adichainDeleted?.count || 0,
-        datahaven_deleted: datahavenDeletedCount,
         mindoshare_perceptronntwk_deleted: mindoshareDeletedCount,
         space_deleted: spaceDeletedCount,
         helios_deleted: heliosDeletedCount,
@@ -247,4 +214,3 @@ export async function GET(request) {
     );
   }
 }
-
