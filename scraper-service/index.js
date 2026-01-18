@@ -3,18 +3,15 @@ const config = require('./config');
 const { sleep } = require('./utils');
 
 // Import all scrapers
-const { scrapeYappers } = require('./scrapers/yappers');
 const { scrapeDuelDuck } = require('./scrapers/duelduck');
-const { scrapeAdichain } = require('./scrapers/adichain');
 const { scrapeHeyElsa } = require('./scrapers/heyelsa');
 const { scrapeMindoshare } = require('./scrapers/mindoshare');
 const { scrapeHelios } = require('./scrapers/helios');
 const { scrapeBeyond } = require('./scrapers/beyond');
-const { scrapeCodeXero } = require('./scrapers/codexero'); // ← ADDED
+const { scrapeCodeXero } = require('./scrapers/codexero');
 const { scrapeC8ntinuum } = require('./scrapers/c8ntinuum');
 const { scrapeDeepnodeai } = require('./scrapers/deepnodeai');
 const { scrapeSpace } = require('./scrapers/space');
-const { scrapeDataHaven } = require('./scrapers/datahaven');
 const { scrapeWomFun } = require('./scrapers/womfun');
 
 const app = express();
@@ -26,42 +23,22 @@ const PORT = process.env.PORT || 3001;
 // ===================================
 async function performScraping() {
   const results = {
-  yappers: {},
-  duelduck: null,
-  adichain: null,
-  datahaven: null,  
-  heyelsa: {},
-  beyond: {},
-  codexero: {},
-  mindoshare: null,
-  space: null,
-  helios: null,
-  c8ntinuum: null,
-  deepnodeai: null,
-  womfun: null  // ← ADD THIS
-};
-  // Yappers
-  for (const days of config.yappers.periods) {
-    console.log(`\n--- Starting Yappers ${days}d ---`);
-    results.yappers[days] = await scrapeYappers(days);
-    await sleep(config.yappers.delay);
-  }
+    duelduck: null,
+    heyelsa: {},
+    beyond: {},
+    codexero: {},
+    mindoshare: null,
+    space: null,
+    helios: null,
+    c8ntinuum: null,
+    deepnodeai: null,
+    womfun: null
+  };
 
   // DuelDuck
   console.log('\n--- Starting DuelDuck ---');
   results.duelduck = await scrapeDuelDuck(config.duelduck.maxPages);
   await sleep(config.duelduck.delay);
-
-  // Adichain
-  console.log('\n--- Starting Adichain ---');
-  results.adichain = await scrapeAdichain(config.adichain.maxPages);
-  await sleep(config.adichain.delay);
-
-  // DataHaven
-console.log('\n--- Starting DataHaven ---');
-results.datahaven = await scrapeDataHaven(config.datahaven.maxPages);
-await sleep(config.datahaven.delay);
-
 
   // HeyElsa
   for (const period of config.heyelsa.periods) {
@@ -128,9 +105,9 @@ await sleep(config.datahaven.delay);
   await sleep(config.c8ntinuum.delay || 5000);
 
   // WomFun
-console.log('\n--- Starting WomFun ---');
-results.womfun = await scrapeWomFun(config.womfun.maxPages);
-await sleep(config.womfun.delay || 5000);
+  console.log('\n--- Starting WomFun ---');
+  results.womfun = await scrapeWomFun(config.womfun.maxPages);
+  await sleep(config.womfun.delay || 5000);
 
   // DeepNodeAI
   console.log('\n--- Starting DeepNodeAI ---');
@@ -150,29 +127,7 @@ async function sendResultsInChunks(webhookUrl, results) {
   const chunks = [];
   const authHeader = `Bearer ${process.env.WEBHOOK_SECRET || 'default-secret'}`;
 
-  // Chunk 1: Yappers
-  if (results.yappers) {
-    chunks.push({
-      chunkType: 'yappers',
-      data: {
-        success: true,
-        results: {
-          yappers: {
-            '7': {
-              count: results.yappers[7]?.length || 0,
-              data: results.yappers[7]
-            },
-            '30': {
-              count: results.yappers[30]?.length || 0,
-              data: results.yappers[30]
-            }
-          }
-        }
-      }
-    });
-  }
-
-  // Chunk 2: DuelDuck
+  // Chunk 1: DuelDuck
   if (results.duelduck) {
     chunks.push({
       chunkType: 'duelduck',
@@ -188,39 +143,7 @@ async function sendResultsInChunks(webhookUrl, results) {
     });
   }
 
-  // Chunk 3: Adichain
-  if (results.adichain) {
-    chunks.push({
-      chunkType: 'adichain',
-      data: {
-        success: true,
-        results: {
-          adichain: {
-            count: results.adichain?.length || 0,
-            data: results.adichain
-          }
-        }
-      }
-    });
-  }
-
-  // Chunk 4: DataHaven
-if (results.datahaven) {
-  chunks.push({
-    chunkType: 'datahaven',
-    data: {
-      success: true,
-      results: {
-        datahaven: {
-          count: results.datahaven?.length || 0,
-          data: results.datahaven
-        }
-      }
-    }
-  });
-}
-
-  // Chunk 5: HeyElsa (all periods)
+  // Chunk 2: HeyElsa (all periods)
   if (results.heyelsa) {
     chunks.push({
       chunkType: 'heyelsa',
@@ -246,7 +169,7 @@ if (results.datahaven) {
     });
   }
 
-  // Chunk 6: Beyond (all periods)
+  // Chunk 3: Beyond (all periods)
   if (results.beyond) {
     chunks.push({
       chunkType: 'beyond',
@@ -272,7 +195,7 @@ if (results.datahaven) {
     });
   }
 
-  // Chunk 7: CodeXero (all periods) - ADDED
+  // Chunk 4: CodeXero (all periods)
   if (results.codexero) {
     chunks.push({
       chunkType: 'codexero',
@@ -298,7 +221,7 @@ if (results.datahaven) {
     });
   }
 
-  // Chunk 8: Mindoshare
+  // Chunk 5: Mindoshare
   if (results.mindoshare) {
     chunks.push({
       chunkType: 'mindoshare',
@@ -314,7 +237,7 @@ if (results.datahaven) {
     });
   }
 
-  // Chunk 9: Space
+  // Chunk 6: Space
   if (results.space) {
     chunks.push({
       chunkType: 'space',
@@ -330,7 +253,7 @@ if (results.datahaven) {
     });
   }
 
-  // Chunk 10: Helios
+  // Chunk 7: Helios
   if (results.helios) {
     chunks.push({
       chunkType: 'helios',
@@ -346,7 +269,7 @@ if (results.datahaven) {
     });
   }
 
-  // Chunk 11: C8ntinuum
+  // Chunk 8: C8ntinuum
   if (results.c8ntinuum) {
     chunks.push({
       chunkType: 'c8ntinuum',
@@ -362,23 +285,23 @@ if (results.datahaven) {
     });
   }
 
-  // Chunk 12: WomFun
-if (results.womfun) {
-  chunks.push({
-    chunkType: 'womfun',
-    data: {
-      success: true,
-      results: {
-        womfun: {
-          count: results.womfun?.length || 0,
-          data: results.womfun
+  // Chunk 9: WomFun
+  if (results.womfun) {
+    chunks.push({
+      chunkType: 'womfun',
+      data: {
+        success: true,
+        results: {
+          womfun: {
+            count: results.womfun?.length || 0,
+            data: results.womfun
+          }
         }
       }
-    }
-  });
-}
+    });
+  }
 
-  // Chunk 13: DeepnodeAI
+  // Chunk 10: DeepnodeAI
   if (results.deepnodeai) {
     chunks.push({
       chunkType: 'deepnodeai',
@@ -518,7 +441,7 @@ app.get('/scrape-all-async', (req, res) => {
     estimatedTime: '10-15 minutes',
     webhook: webhookUrl,
     chunkingEnabled: true,
-    totalChunks: 13, // ← UPDATED from 10 to 11
+    totalChunks: 10,
     timestamp: new Date().toISOString()
   });
 
@@ -548,7 +471,7 @@ app.post('/scrape', (req, res) => {
     message: 'Scraping started',
     estimatedTime: '10-15 minutes',
     chunkingEnabled: true,
-    totalChunks: 13, // ← UPDATED from 10 to 11
+    totalChunks: 10,
     timestamp: new Date().toISOString()
   });
 
@@ -560,16 +483,6 @@ app.post('/scrape', (req, res) => {
 // ===================================
 // Individual scraper endpoints (testing)
 // ===================================
-
-app.get('/scrape/yappers/:days', async (req, res) => {
-  const days = parseInt(req.params.days);
-  try {
-    const data = await scrapeYappers(days);
-    res.json({ success: true, period: `${days}d`, count: data?.length || 0, data });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
 
 app.get('/scrape/codexero', async (req, res) => {
   const period = req.query.period || '7d';
@@ -626,15 +539,6 @@ app.get('/scrape/deepnodeai', async (req, res) => {
   }
 });
 
-app.get('/scrape/datahaven', async (req, res) => {
-  try {
-    const data = await scrapeDataHaven(config.datahaven.maxPages);
-    res.json({ success: true, count: data?.length || 0, data });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
 app.get('/scrape/womfun', async (req, res) => {
   try {
     const data = await scrapeWomFun(config.womfun.maxPages);
@@ -648,5 +552,5 @@ app.listen(PORT, () => {
   console.log(`🚀 Leaderboard Scraper running on port ${PORT}`);
   console.log(`📍 Health: http://localhost:${PORT}/health`);
   console.log(`🔗 Async Scrape: GET /scrape-all-async?webhook=URL`);
-  console.log(`📦 Chunking: Enabled (12 separate webhook calls)`);
+  console.log(`📦 Chunking: Enabled (10 separate webhook calls)`);
 });
