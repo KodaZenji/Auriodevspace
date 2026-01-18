@@ -14,10 +14,7 @@ import { useUpdateTimer } from '@/hooks/useUpdateTimer';
 export default function RankNexus() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [expandedCards, setExpandedCards] = useState({ 
-    goat: false, 
-    duck: false, 
-    adi: false,
-    datahaven: false, 
+    duck: false,
     elsa: false,
     perceptron: false,
     space: false,
@@ -34,8 +31,6 @@ export default function RankNexus() {
     setSearchUser,
     loading,
     results,
-    goatDays,
-    setGoatDays,
     elsaPeriod,
     setElsaPeriod,
     codexeroPeriod, 
@@ -56,12 +51,10 @@ export default function RankNexus() {
 
   const handleTimeChange = (platform, value) => {
     if (searchUser.trim()) {
-      if (platform === 'goat') {
-        handleSearch(value, elsaPeriod, codexeroPeriod);
-      } else if (platform === 'elsa' || platform === 'beyond') {
-        handleSearch(goatDays, value, codexeroPeriod);
+      if (platform === 'elsa' || platform === 'beyond') {
+        handleSearch(value, codexeroPeriod);
       } else if (platform === 'codexero') {
-        handleSearch(goatDays, elsaPeriod, value);
+        handleSearch(elsaPeriod, value);
       }
     }
   };
@@ -175,27 +168,6 @@ export default function RankNexus() {
                   onTimeChange={handleTimeChange}
                 />
               )}
-
-              {(results.goat || results.everFoundOn?.goat) && (
-                <LeaderboardCard 
-                  platform="goat" 
-                  data={results.goat || {}} 
-                  platformName="Goat Network"
-                  timeSwitch={true}
-                  currentValue={goatDays}
-                  onValueChange={setGoatDays}
-                  options={[
-                    { value: '7', label: '7d' },
-                    { value: '30', label: '30d' }
-                  ]}
-                  showAvatar={countFoundPlatforms() === 1}
-                  username={results.username}
-                  isExpanded={expandedCards.goat}
-                  onToggle={() => toggleCard('goat')}
-                  onTimeChange={handleTimeChange}
-                  notFoundInPeriod={!results.goat && results.everFoundOn?.goat}
-                />
-              )}
               
               {results.duck && (
                 <LeaderboardCard 
@@ -207,34 +179,6 @@ export default function RankNexus() {
                   username={results.username}
                   isExpanded={expandedCards.duck}
                   onToggle={() => toggleCard('duck')}
-                  onTimeChange={handleTimeChange}
-                />
-              )}
-
-              {results.adi && (
-                <LeaderboardCard 
-                  platform="adi" 
-                  data={results.adi} 
-                  platformName="Adichain"
-                  timeSwitch={false}
-                  showAvatar={countFoundPlatforms() === 1}
-                  username={results.username}
-                  isExpanded={expandedCards.adi}
-                  onToggle={() => toggleCard('adi')}
-                  onTimeChange={handleTimeChange}
-                />
-              )}
-
-              {results.datahaven && (
-                <LeaderboardCard 
-                  platform="datahaven" 
-                  data={results.datahaven} 
-                  platformName="DataHaven"
-                  timeSwitch={false}
-                  showAvatar={countFoundPlatforms() === 1}
-                  username={results.username}
-                  isExpanded={expandedCards.datahaven}
-                  onToggle={() => toggleCard('datahaven')}
                   onTimeChange={handleTimeChange}
                 />
               )}
