@@ -118,9 +118,7 @@ async function performScraping() {
     config.deepnodeai.maxPages
   );
 
-  return results;
-}
-for (const timeFilter of config.yapsfandom.timeFilters) {
+  for (const timeFilter of config.yapsfandom.timeFilters) {
   console.log(`\n--- Starting YapsFandom ${timeFilter} ---`);
   results.yapsfandom[timeFilter] = await scrapeYapsFandom(
     timeFilter,
@@ -130,6 +128,8 @@ for (const timeFilter of config.yapsfandom.timeFilters) {
   if (timeFilter !== 'ALL') {
     await sleep(config.yapsfandom.periodDelay);
   }
+}
+  return results;
 }
 
 // ===================================
