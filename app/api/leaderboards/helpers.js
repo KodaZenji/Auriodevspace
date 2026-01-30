@@ -2,39 +2,43 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
 // ========================================
-// CACHE HELPERS
+// CACHE RETRIEVAL FUNCTIONS
 // ========================================
 
-async function getTimeBasedCache(cacheType: string, days: number) {
+async function getTimeBasedCache(cacheType, days) {
   const { data, error } = await supabase
     .from('leaderboard_cache')
     .select('*')
     .eq('cache_type', cacheType)
     .eq('days', days)
+    .order('last_updated', { ascending: false })
+    .limit(1)
     .single();
 
   if (error) {
-    console.error(`Cache fetch error for ${cacheType}:`, error);
+    console.error(`Cache lookup error for ${cacheType}:`, error);
     return null;
   }
 
   return data;
 }
 
-async function getSnapshotBasedCache(cacheType: string, days: number) {
+async function getSnapshotBasedCache(cacheType, days) {
   const { data, error } = await supabase
     .from('leaderboard_cache')
     .select('*')
     .eq('cache_type', cacheType)
     .eq('days', days)
+    .order('last_updated', { ascending: false })
+    .limit(1)
     .single();
 
   if (error) {
-    console.error(`Cache fetch error for ${cacheType}:`, error);
+    console.error(`Cache lookup error for ${cacheType}:`, error);
     return null;
   }
 
@@ -42,10 +46,10 @@ async function getSnapshotBasedCache(cacheType: string, days: number) {
 }
 
 // ========================================
-// FETCH HELPERS
+// DATA FETCH FUNCTIONS
 // ========================================
 
-async function fetchTimeBasedLeaderboard({ tableName, fetchedAt, days, orderBy = 'rank', ascending = true }) {
+async function fetchTimeBasedLeaderboard({ tableName, fetchedAt, days, orderBy, ascending }) {
   let query = supabase
     .from(tableName)
     .select('*')
@@ -55,12 +59,12 @@ async function fetchTimeBasedLeaderboard({ tableName, fetchedAt, days, orderBy =
     query = query.eq('days', days);
   }
 
-  query = query.order(orderBy, { ascending });
+  query = query.order(orderBy || 'rank', { ascending: ascending ?? true });
 
   const { data, error } = await query;
 
   if (error) {
-    console.error(`Fetch error for ${tableName}:`, error);
+    console.error(`Error fetching from ${tableName}:`, error);
     return null;
   }
 
@@ -72,30 +76,28 @@ async function fetchSnapshotBasedLeaderboard({ tableName, snapshotId, days, tran
     .from(tableName)
     .select('*')
     .eq('snapshot_id', snapshotId)
-    .eq('days', days)
-    .order('position', { ascending: true });
+    .order('rank', { ascending: true });
 
   if (error) {
-    console.error(`Fetch error for ${tableName}:`, error);
+    console.error(`Error fetching from ${tableName}:`, error);
     return null;
   }
 
-  return data ? data.map(transformer) : null;
+  return transformer ? data.map(row => transformer(row, days)) : data;
 }
 
 // ========================================
 // TRANSFORMERS
 // ========================================
 
-function transformSnapshotRow(row: any) {
+function transformSnapshotRow(row, days) {
   return {
+    rank: row.rank,
     username: row.username,
-    position: row.position,
-    position_change: row.position_change,
-    mindshare_percentage: row.mindshare_percentage,
-    relative_mindshare: row.relative_mindshare,
-    app_use_multiplier: row.app_use_multiplier,
-    x_info: row.x_info
+    total_xp: row.total_xp,
+    level: row.level,
+    avatar_url: row.avatar_url,
+    days
   };
 }
 
@@ -104,68 +106,13 @@ function transformSnapshotRow(row: any) {
 // ========================================
 
 const LEADERBOARD_CONFIGS = {
-  duelduck: {
+  goatranchecker: {
     type: 'time-based',
-    tableName: 'duelduck_leaderboard',
-    cacheType: 'duelduck',
-    usesDays: false,
-    orderBy: 'rank',
-    ascending: true
-  },
-  mindoshare: {
-    type: 'time-based',
-    tableName: 'mindoshare_perceptronntwk',
-    cacheType: 'PerceptronNTWK',
-    usesDays: false,
-    orderBy: 'rank',
-    ascending: true
-  },
-  space: {
-    type: 'time-based',
-    tableName: 'space_leaderboard',
-    cacheType: 'space',
-    usesDays: false,
-    orderBy: 'rank',
-    ascending: true
-  },
-  helios: {
-    type: 'time-based',
-    tableName: 'helios_leaderboard',
-    cacheType: 'helios',
-    usesDays: false,
-    orderBy: 'rank',
-    ascending: true
-  },
-  c8ntinuum: {
-    type: 'time-based',
-    tableName: 'c8ntinuum_leaderboard',
-    cacheType: 'c8ntinuum',
-    usesDays: false,
-    orderBy: 'rank',
-    ascending: true
-  },
-  deepnodeai: {
-    type: 'time-based',
-    tableName: 'deepnodeai_leaderboard',
-    cacheType: 'deepnodeai',
-    usesDays: false,
-    orderBy: 'rank',
-    ascending: true
-  },
-  womfun: {
-    type: 'time-based',
-    tableName: 'womfun_leaderboard',
-    cacheType: 'womfun',
-    usesDays: false,
-    orderBy: 'rank',
-    ascending: true
-  },
-  heyelsa: {
-    type: 'snapshot-based',
-    tableName: 'heyelsa_leaderboard',
-    cacheType: 'heyelsa',
+    tableName: 'goatranchecker_leaderboard',
+    cacheType: 'goatranchecker',
     usesDays: true,
-    transformer: transformSnapshotRow
+    orderBy: 'rank',
+    ascending: true
   },
   beyond: {
     type: 'snapshot-based',
@@ -181,7 +128,7 @@ const LEADERBOARD_CONFIGS = {
     usesDays: true,
     transformer: transformSnapshotRow
   },
-  yapsfandom: {                    
+  yapsfandom: {
     type: 'time-based',
     tableName: 'yapsfandom_leaderboard',
     cacheType: 'yapsfandom',
@@ -195,7 +142,7 @@ const LEADERBOARD_CONFIGS = {
 // UNIFIED FETCH FUNCTION
 // ========================================
 
-export async function fetchLeaderboard(leaderboardKey: string, days: number = 0) {
+export async function fetchLeaderboard(leaderboardKey, days = 0) {
   const config = LEADERBOARD_CONFIGS[leaderboardKey];
   
   if (!config) {
