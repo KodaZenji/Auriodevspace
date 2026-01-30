@@ -13,6 +13,8 @@ const { scrapeC8ntinuum } = require('./scrapers/c8ntinuum');
 const { scrapeDeepnodeai } = require('./scrapers/deepnodeai');
 const { scrapeSpace } = require('./scrapers/space');
 const { scrapeWomFun } = require('./scrapers/womfun');
+const { scrapeYapsFandom } = require('./scrapers/yapsfandom');
+
 
 const app = express();
 app.use(express.json());
@@ -23,17 +25,18 @@ const PORT = process.env.PORT || 3001;
 // ===================================
 async function performScraping() {
   const results = {
-    duelduck: null,
-    heyelsa: {},
-    beyond: {},
-    codexero: {},
-    mindoshare: null,
-    space: null,
-    helios: null,
-    c8ntinuum: null,
-    deepnodeai: null,
-    womfun: null
-  };
+  duelduck: null,
+  heyelsa: {},
+  beyond: {},
+  codexero: {},
+  mindoshare: null,
+  space: null,
+  helios: null,
+  c8ntinuum: null,
+  deepnodeai: null,
+  womfun: null,
+  yapsfandom: {}  
+};
 
   // DuelDuck
   console.log('\n--- Starting DuelDuck ---');
@@ -116,6 +119,17 @@ async function performScraping() {
   );
 
   return results;
+}
+for (const timeFilter of config.yapsfandom.timeFilters) {
+  console.log(`\n--- Starting YapsFandom ${timeFilter} ---`);
+  results.yapsfandom[timeFilter] = await scrapeYapsFandom(
+    timeFilter,
+    config.yapsfandom.maxPages
+  );
+  
+  if (timeFilter !== 'ALL') {
+    await sleep(config.yapsfandom.periodDelay);
+  }
 }
 
 // ===================================
@@ -316,7 +330,27 @@ async function sendResultsInChunks(webhookUrl, results) {
       }
     });
   }
-
+  // chunk 11
+  if (results.yapsfandom) {
+  chunks.push({
+    chunkType: 'yapsfandom',
+    data: {
+      success: true,
+      results: {
+        yapsfandom: {
+          '7D': {
+            count: results.yapsfandom['7D']?.length || 0,
+            data: results.yapsfandom['7D']
+          },
+          'ALL': {
+            count: results.yapsfandom['ALL']?.length || 0,
+            data: results.yapsfandom['ALL']
+          }
+        }
+      }
+    }
+  });
+  }
   // Send each chunk
   const chunkResults = [];
   for (let i = 0; i < chunks.length; i++) {
@@ -441,7 +475,7 @@ app.get('/scrape-all-async', (req, res) => {
     estimatedTime: '10-15 minutes',
     webhook: webhookUrl,
     chunkingEnabled: true,
-    totalChunks: 10,
+    totalChunks: 11,
     timestamp: new Date().toISOString()
   });
 
@@ -543,6 +577,16 @@ app.get('/scrape/womfun', async (req, res) => {
   try {
     const data = await scrapeWomFun(config.womfun.maxPages);
     res.json({ success: true, count: data?.length || 0, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/scrape/yapsfandom', async (req, res) => {
+  const timeFilter = req.query.timeFilter || '7D';
+  try {
+    const data = await scrapeYapsFandom(timeFilter, config.yapsfandom.maxPages);
+    res.json({ success: true, timeFilter, count: data?.length || 0, data });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
