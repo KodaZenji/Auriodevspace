@@ -1,3 +1,8 @@
+// ========================================
+// FILE: app/api/leaderboards/helpers.js
+// Reusable helper functions for leaderboard fetching
+// ========================================
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -6,50 +11,53 @@ const supabase = createClient(
 );
 
 // ========================================
-// CACHE RETRIEVAL FUNCTIONS
+// CACHE FETCHERS
 // ========================================
 
-async function getTimeBasedCache(cacheType, days) {
+/**
+ * Fetch cache entry for time-based leaderboards
+ */
+export async function getTimeBasedCache(cacheType, days = 0) {
   const { data, error } = await supabase
     .from('leaderboard_cache')
-    .select('*')
+    .select('last_updated')
     .eq('cache_type', cacheType)
     .eq('days', days)
-    .order('last_updated', { ascending: false })
-    .limit(1)
     .single();
 
-  if (error) {
-    console.error(`Cache lookup error for ${cacheType}:`, error);
-    return null;
-  }
-
+  if (error) console.warn(`Cache not found for ${cacheType}:`, error.message);
   return data;
 }
 
-async function getSnapshotBasedCache(cacheType, days) {
+/**
+ * Fetch cache entry for snapshot-based leaderboards
+ */
+export async function getSnapshotBasedCache(cacheType, days) {
   const { data, error } = await supabase
     .from('leaderboard_cache')
-    .select('*')
+    .select('last_updated, snapshot_id')
     .eq('cache_type', cacheType)
     .eq('days', days)
-    .order('last_updated', { ascending: false })
-    .limit(1)
     .single();
 
-  if (error) {
-    console.error(`Cache lookup error for ${cacheType}:`, error);
-    return null;
-  }
-
+  if (error) console.warn(`Cache not found for ${cacheType}:`, error.message);
   return data;
 }
 
 // ========================================
-// DATA FETCH FUNCTIONS
+// LEADERBOARD FETCHERS
 // ========================================
 
-async function fetchTimeBasedLeaderboard({ tableName, fetchedAt, days, orderBy, ascending }) {
+/**
+ * Fetch time-based leaderboard data
+ */
+export async function fetchTimeBasedLeaderboard({
+  tableName,
+  fetchedAt,
+  days = null,
+  orderBy = 'rank',
+  ascending = true
+}) {
   let query = supabase
     .from(tableName)
     .select('*')
@@ -59,45 +67,67 @@ async function fetchTimeBasedLeaderboard({ tableName, fetchedAt, days, orderBy, 
     query = query.eq('days', days);
   }
 
-  query = query.order(orderBy || 'rank', { ascending: ascending ?? true });
-
-  const { data, error } = await query;
+  const { data, error } = await query.order(orderBy, { ascending });
 
   if (error) {
-    console.error(`Error fetching from ${tableName}:`, error);
+    console.error(`Error fetching ${tableName}:`, error);
     return null;
   }
 
   return data;
 }
 
-async function fetchSnapshotBasedLeaderboard({ tableName, snapshotId, days, transformer }) {
+/**
+ * Fetch snapshot-based leaderboard data with JSONB transformation
+ */
+export async function fetchSnapshotBasedLeaderboard({
+  tableName,
+  snapshotId,
+  days,
+  transformer = null
+}) {
   const { data, error } = await supabase
     .from(tableName)
     .select('*')
     .eq('snapshot_id', snapshotId)
-    .order('rank', { ascending: true });
+    .eq('days', days)
+    .order('position', { ascending: true });
 
   if (error) {
-    console.error(`Error fetching from ${tableName}:`, error);
+    console.error(`Error fetching ${tableName}:`, error);
     return null;
   }
 
-  return transformer ? data.map(row => transformer(row, days)) : data;
+  if (transformer && data) {
+    return data.map(transformer);
+  }
+
+  return data;
 }
 
 // ========================================
-// TRANSFORMERS
+// DATA TRANSFORMERS
 // ========================================
 
-function transformSnapshotRow(row, days) {
+/**
+ * Transform HeyElsa/Beyond/CodeXero row with x_info JSONB unpacking
+ */
+export function transformSnapshotRow(row) {
   return {
-    rank: row.rank,
+    id: row.id,
     username: row.username,
-    total_xp: row.total_xp,
-    level: row.level,
-    avatar_url: row.avatar_url,
-    days
+    name: row.x_info?.name,
+    image_url: row.x_info?.imageUrl,
+    rank: row.x_info?.rank,
+    score: row.x_info?.score,
+    score_percentile: row.x_info?.scorePercentile,
+    score_quantile: row.x_info?.scoreQuantile,
+    mindshare_percentage: row.mindshare_percentage,
+    relative_mindshare: row.relative_mindshare,
+    app_use_multiplier: row.app_use_multiplier,
+    position: row.position,
+    position_change: row.position_change,
+    days: row.days
   };
 }
 
@@ -105,14 +135,75 @@ function transformSnapshotRow(row, days) {
 // LEADERBOARD CONFIGURATIONS
 // ========================================
 
-const LEADERBOARD_CONFIGS = {
-  goatranchecker: {
+/**
+ * Configuration for all leaderboards
+ */
+export const LEADERBOARD_CONFIGS = {
+  // Time-based leaderboards (use fetched_at)
+  duelduck: {
     type: 'time-based',
-    tableName: 'goatranchecker_leaderboard',
-    cacheType: 'goatranchecker',
-    usesDays: true,
+    tableName: 'duelduck_leaderboard',
+    cacheType: 'duelduck',
+    usesDays: false,
+    orderBy: 'total_score',
+    ascending: false
+  },
+  mindoshare: {
+    type: 'time-based',
+    tableName: 'mindoshare_perceptronntwk',
+    cacheType: 'PerceptronNTWK',
+    usesDays: false,
     orderBy: 'rank',
     ascending: true
+  },
+  space: {
+    type: 'time-based',
+    tableName: 'space_leaderboard',
+    cacheType: 'space',
+    usesDays: false,
+    orderBy: 'rank',
+    ascending: true
+  },
+  helios: {
+    type: 'time-based',
+    tableName: 'helios_leaderboard',
+    cacheType: 'helios',
+    usesDays: false,
+    orderBy: 'rank',
+    ascending: true
+  },
+  c8ntinuum: {
+    type: 'time-based',
+    tableName: 'c8ntinuum_leaderboard',
+    cacheType: 'c8ntinuum',
+    usesDays: false,
+    orderBy: 'rank',
+    ascending: true
+  },
+  deepnodeai: {
+    type: 'time-based',
+    tableName: 'deepnodeai_leaderboard',
+    cacheType: 'deepnodeai',
+    usesDays: false,
+    orderBy: 'rank',
+    ascending: true
+  },
+  womfun: {
+    type: 'time-based',
+    tableName: 'womfun_leaderboard',
+    cacheType: 'womfun',
+    usesDays: false,
+    orderBy: 'rank',
+    ascending: true
+  },
+
+  // Snapshot-based leaderboards (use snapshot_id)
+  heyelsa: {
+    type: 'snapshot-based',
+    tableName: 'heyelsa_leaderboard',
+    cacheType: 'heyelsa',
+    usesDays: true,
+    transformer: transformSnapshotRow
   },
   beyond: {
     type: 'snapshot-based',
@@ -127,14 +218,6 @@ const LEADERBOARD_CONFIGS = {
     cacheType: 'codexero',
     usesDays: true,
     transformer: transformSnapshotRow
-  },
-  yapsfandom: {
-    type: 'time-based',
-    tableName: 'yapsfandom_leaderboard',
-    cacheType: 'yapsfandom',
-    usesDays: true,
-    orderBy: 'rank',
-    ascending: true
   }
 };
 
@@ -142,6 +225,9 @@ const LEADERBOARD_CONFIGS = {
 // UNIFIED FETCH FUNCTION
 // ========================================
 
+/**
+ * Fetch a leaderboard based on its configuration
+ */
 export async function fetchLeaderboard(leaderboardKey, days = 0) {
   const config = LEADERBOARD_CONFIGS[leaderboardKey];
   
