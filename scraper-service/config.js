@@ -42,10 +42,5 @@ module.exports = {
   womfun: {
     maxPages: 15,
     delay: 5000
-},
-  yapsfandom: {    
-    timeFilters: ['7D', 'ALL'],  
-    maxPages: 15,
-    periodDelay: 10000
   }
 };
