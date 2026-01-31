@@ -139,19 +139,6 @@ export async function GET(request) {
 
     console.log('✅ Cleanup completed');
 
-    let yapsfandomDeletedCount = 0;
-try {
-  const yapsfandomDeleted = await supabase
-    .from('yapsfandom_leaderboard')
-    .delete()
-    .lt('fetched_at', sevenDaysAgo.toISOString())
-    .select('id', { count: 'exact', head: true });
-  yapsfandomDeletedCount = yapsfandomDeleted?.count || 0;
-  console.log(`✅ Deleted ${yapsfandomDeletedCount} old YapsFandom entries`);
-} catch (err) {
-  console.log('⚠️ YapsFandom table cleanup skipped:', err.message);
-}
-
     // Trigger Railway scraper
     const railwayUrl = process.env.RAILWAY_SCRAPER_URL;
     const webhookUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://auriodevspace.vercel.app'}/api/webhook/scraper-complete`;
@@ -210,8 +197,7 @@ try {
         codexero_deleted: 'snapshot-aware cleanup',
         active_beyond_snapshots: activeBeyondSnapshots?.length || 0,
         active_heyelsa_snapshots: activeHeyElsaSnapshots?.length || 0,
-        active_codexero_snapshots: activeCodexeroSnapshots?.length || 0,
-        yapsfandom_deleted: yapsfandomDeletedCount
+        active_codexero_snapshots: activeCodexeroSnapshots?.length || 0
       },
       scraping: triggerResult,
       note: 'Data will be stored via webhook when scraping completes (~10-15 minutes)'
@@ -228,4 +214,3 @@ try {
     );
   }
 }
-
