@@ -13,9 +13,6 @@ import { storeSpace } from './storage/storeSpace';
 import { storeDeepnodeai } from './storage/storeDeepnodeai';
 import { storeC8ntinuum } from './storage/storeC8ntinuum';
 import { storeWomFun } from './storage/storeWomFun';
-import { storeYapsFandom } from './storage/storeYapsFandom';
-
-
 
 export async function POST(request) {
   // Auth check
@@ -62,7 +59,6 @@ export async function POST(request) {
       deepnodeai: null,
       c8ntinuum: null,
       womfun: null,
-      yapsfandom: {},
       timestamp: new Date().toISOString()
     };
 
@@ -106,10 +102,6 @@ export async function POST(request) {
     if (chunkType === 'womfun' || !chunkType) {
       await processWomFun(scrapedData, results);
     }
-    if (chunkType === 'yapsfandom' || !chunkType) {
-  await processYapsFandom(scrapedData, results);
-    }
-
 
     if (chunkType) {
       console.log(`✅ Chunk ${chunkIndex}/${chunkTotal} stored: ${chunkType}`);
@@ -290,20 +282,3 @@ async function processWomFun(scrapedData, results) {
     results.womfun = { success: false, error: error.message };
   }
 }
-async function processYapsFandom(scrapedData, results) {
-  if (!scrapedData.results?.yapsfandom) return;
-
-  for (const [timeFilter, yapsfandomData] of Object.entries(scrapedData.results.yapsfandom)) {
-    if (yapsfandomData.data?.length) {
-      try {
-        await storeYapsFandom(yapsfandomData.data, timeFilter);
-        results.yapsfandom[timeFilter] = { success: true, count: yapsfandomData.count };
-        console.log(`✅ Stored ${yapsfandomData.count} YapsFandom (${timeFilter})`);
-      } catch (error) {
-        console.error(`❌ YapsFandom ${timeFilter} error:`, error.message);
-        results.yapsfandom[timeFilter] = { success: false, error: error.message };
-      }
-    }
-  }
-}
-
