@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KemJee Labs",
+  title: "Kemjee Labs and tools",
   description: "Developer tools and utilities by Aurio 💚",
   icons: {
   icon: '/image.jpg', 
