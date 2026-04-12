@@ -342,7 +342,7 @@ export default function Page() {
         </span>
         <div style={{ display: "flex", gap: 20 }}>
           {[
-            { label: "X",        href: "https://x.com/kodazenji" },
+            { label: "X",        href: "https://x.com/0x_Aurio" },
             { label: "GitHub",   href: "https://github.com/KodaZenji" },
             { label: "LinkedIn", href: "#" },
           ].map(({ label, href }) => (
