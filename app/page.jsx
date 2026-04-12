@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 
-const LAUNCH_DATE = new Date("2026-06-017T00:00:00Z").getTime();
+const LAUNCH_DATE = new Date("2026-06-17T00:00:00Z").getTime();
 
 function useCountdown(target) {
   const [time, setTime] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
   useEffect(() => {
     const tick = () => {
       const diff = target - Date.now();
-      if (diff <= 0) return;
+      if (diff <= 0) {
+  setTime({ days: 0, hours: 0, mins: 0, secs: 0 });
+  return;
+      }
       setTime({
         days:  Math.floor(diff / 86400000),
         hours: Math.floor((diff % 86400000) / 3600000),
