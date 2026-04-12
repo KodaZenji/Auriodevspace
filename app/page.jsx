@@ -273,7 +273,7 @@ export default function Page() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="Enter your email for early bird acess"
+              placeholder="Enter your email for early bird access"
               style={{
                 flex: 1, minWidth: 220,
                 background: "rgba(255,255,255,0.05)",
