@@ -1,6 +1,8 @@
 "use client";
 
+
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 const LAUNCH_DATE = new Date("2026-05-17T00:00:00Z").getTime();
 
@@ -81,12 +83,17 @@ export default function Page() {
     return () => window.removeEventListener("mousemove", move);
   }, []);
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!email) return;
-    setSubmitted(true);
-  }
+  async function handleSubmit(e) {
+  e.preventDefault();
+  if (!email) return;
 
+  const { error } = await supabase
+    .from("waitlist")
+    .insert([{ email }]);
+
+  if (!error) setSubmitted(true);
+  else console.error(error);
+  }
 
   return (
     <div style={{
