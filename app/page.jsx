@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 
 const LAUNCH_DATE = new Date("2026-06-17T00:00:00Z").getTime();
