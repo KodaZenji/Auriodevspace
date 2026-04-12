@@ -87,8 +87,6 @@ export default function Page() {
     setSubmitted(true);
   }
 
-  const gx = (pos.x / window.innerWidth  - 0.5) * 30;
-  const gy = (pos.y / window.innerHeight - 0.5) * 30;
 
   return (
     <div style={{
