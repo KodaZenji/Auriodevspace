@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-const LAUNCH_DATE = new Date("2026-06-17T00:00:00Z").getTime();
+const LAUNCH_DATE = new Date("2026-05-17T00:00:00Z").getTime();
 
 function useCountdown(target) {
   const [time, setTime] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
