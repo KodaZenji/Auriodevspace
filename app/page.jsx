@@ -63,7 +63,7 @@ const ROLES = [
   "Product Design & Strategy",
 ];
 
-export default function KemjeeLabs() {
+export default function Page() {
   const { days, hours, mins, secs } = useCountdown(LAUNCH_DATE);
   const role = useTypewriter(ROLES);
   const [email, setEmail] = useState("");
