@@ -185,6 +185,9 @@ function ArtModal({ item, onClose }) {
               <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
                 See this art on X
               </span>
+              <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 10 }}>
+                Click anywhere to close pop-up
+              </span>
             </div>
             <a
               href={item.twitterUrl}
@@ -544,7 +547,7 @@ export default function KemjeeLabsPage() {
               </span>
             </div>
             <p style={{ margin: "0 0 24px", fontSize: 13, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
-              Our lead Dev is an art connoisseur. Click any piece to view.
+              Our Senior Dev is an art connoisseur. He creates masterpieces. Click any to view.
             </p>
 
             <div style={{
