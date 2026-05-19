@@ -57,6 +57,13 @@ const ART_GALLERY = [
     imageUrl: "/primos.jpg",
     placeholder: true,
   },
+  {
+    id: "art-placeholder-4",
+    title: "I 'Canna' Like it ",
+    twitterUrl: "https://x.com/i/status/1873861411526631570",
+    imageUrl: "/Canna.jpg",
+    placeholder: true,
+  },
 ];
 
 const CODESPACES = [
