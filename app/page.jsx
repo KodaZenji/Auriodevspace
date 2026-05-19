@@ -62,7 +62,7 @@ const CODESPACES = [
     desc: "Smart accounts Curated— HollyWeb3's Inner CT splash dashboard",
     tags: ["Kaito", "CT KOLs"],
     icon: "◎",
-    href: "#/kaito-inner-ct",
+    href: "/kaito-inner-ct",
     status: "live",
     confidential: false,
   },
@@ -93,8 +93,8 @@ const CODESPACES = [
 const ART_GALLERY = [
   {
     id: "art-placeholder-1",
-    title: "Add via Twitter URL",
-    twitterUrl: null,
+    title: "Waifus Contest",
+    twitterUrl:"https://x.com/i/status/1890824234592571657",
     imageUrl: null,
     placeholder: true,
   },
