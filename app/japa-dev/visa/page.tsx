@@ -24,7 +24,7 @@ export default function VisaPage() {
 
       {/* Nav */}
       <header className="border-b border-zinc-900 px-6 py-4 flex items-center justify-between sticky top-0 bg-[#080808]/95 backdrop-blur z-40">
-        <Link href="/jobs" className="text-sm font-bold text-zinc-100 tracking-widest uppercase hover:text-green-400 transition-colors" style={{ fontFamily: "Syne, sans-serif" }}>
+        <Link href="/japa-dev" className="text-sm font-bold text-zinc-100 tracking-widest uppercase hover:text-green-400 transition-colors" style={{ fontFamily: "Syne, sans-serif" }}>
           ← JapaDev
         </Link>
         <span className="text-zinc-600 text-xs">UK Visa Guide · 2026</span>
