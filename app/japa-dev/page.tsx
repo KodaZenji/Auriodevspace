@@ -60,7 +60,7 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href="/jobs/visa"
+            href="/japa-dev/visa"
             className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-green-400 border border-zinc-800 hover:border-green-800 px-3 py-2 rounded-lg transition-colors"
           >
             <FileText size={12} />
