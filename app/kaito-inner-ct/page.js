@@ -524,6 +524,5 @@ export default function HollyCTDashboard() {
 
       </div>
     </div>
-    </div>
   );
 }
