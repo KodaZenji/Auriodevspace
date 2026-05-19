@@ -35,13 +35,11 @@ const ROLES = [
   "Product Design & Strategy",
 ];
 
-// Art gallery items — Twitter links or manual uploads
-// To add art: { id, title, twitterUrl } OR { id, title, imageUrl }
 const ART_GALLERY = [
   {
     id: "art-placeholder-1",
     title: "Waifus Contest",
-    twitterUrl:"https://x.com/i/status/1890824234592571657",
+    twitterUrl: "https://x.com/i/status/1890824234592571657",
     imageUrl: "/Waifus.jpg",
     placeholder: true,
   },
@@ -60,6 +58,7 @@ const ART_GALLERY = [
     placeholder: true,
   },
 ];
+
 const CODESPACES = [
   {
     id: "basematch",
@@ -113,14 +112,17 @@ const CODESPACES = [
   },
 ];
 
-
-// ─── NAV LINKS ─────────────────────────────────────────────────────────────
 const NAV_LINKS = [
   { label: "Codespaces", href: "#codespaces" },
   { label: "Art Gallery", href: "#artgallery" },
   { label: "GitHub", href: "https://github.com/KodaZenji", external: true },
   { label: "X / Twitter", href: "https://x.com/0x_Aurio", external: true },
 ];
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────
+function isImageSrc(icon) {
+  return typeof icon === "string" && (icon.startsWith("http") || icon.startsWith("/"));
+}
 
 // ─── ART MODAL ─────────────────────────────────────────────────────────────
 function ArtModal({ item, onClose }) {
@@ -163,52 +165,52 @@ function ArtModal({ item, onClose }) {
           }}
         >✕</button>
 
-{item.imageUrl && (
-  <img
-    src={item.imageUrl}
-    alt={item.title}
-    style={{ width: "100%", borderRadius: 10, marginBottom: item.twitterUrl ? 10 : 16 }}
-  />
-)}
+        {item.imageUrl && (
+          <img
+            src={item.imageUrl}
+            alt={item.title}
+            style={{ width: "100%", borderRadius: 10, marginBottom: item.twitterUrl ? 10 : 16 }}
+          />
+        )}
 
-{item.twitterUrl ? (
-  <div style={{
-    background: "rgba(0,200,83,0.05)",
-    border: "1px solid rgba(0,200,83,0.15)",
-    borderRadius: 10, padding: "12px 16px", marginBottom: 16,
-    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-  }}>
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <span style={{ fontSize: 16 }}>𝕏</span>
-      <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
-        See this art on X
-      </span>
-    </div>
-    <a
-      href={item.twitterUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{
-        background: "#00C853", color: "#050A05",
-        fontWeight: 700, fontSize: 12,
-        padding: "6px 16px", borderRadius: 6,
-        textDecoration: "none", whiteSpace: "nowrap",
-      }}
-    >
-      Open →
-    </a>
-  </div>
-) : !item.imageUrl ? (
-  <div style={{
-    background: "rgba(255,255,255,0.02)",
-    border: "1px dashed rgba(255,255,255,0.1)",
-    borderRadius: 10, padding: 40,
-    textAlign: "center", marginBottom: 16,
-    color: "rgba(255,255,255,0.2)", fontSize: 13,
-  }}>
-    [ Artwork coming soon ]
-  </div>
-) : null}
+        {item.twitterUrl ? (
+          <div style={{
+            background: "rgba(0,200,83,0.05)",
+            border: "1px solid rgba(0,200,83,0.15)",
+            borderRadius: 10, padding: "12px 16px", marginBottom: 16,
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 16 }}>𝕏</span>
+              <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
+                See this art on X
+              </span>
+            </div>
+            <a
+              href={item.twitterUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                background: "#00C853", color: "#050A05",
+                fontWeight: 700, fontSize: 12,
+                padding: "6px 16px", borderRadius: 6,
+                textDecoration: "none", whiteSpace: "nowrap",
+              }}
+            >
+              Open →
+            </a>
+          </div>
+        ) : !item.imageUrl ? (
+          <div style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px dashed rgba(255,255,255,0.1)",
+            borderRadius: 10, padding: 40,
+            textAlign: "center", marginBottom: 16,
+            color: "rgba(255,255,255,0.2)", fontSize: 13,
+          }}>
+            [ Artwork coming soon ]
+          </div>
+        ) : null}
 
         <h3 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700, color: "#fff" }}>
           {item.title}
@@ -237,7 +239,6 @@ export default function KemjeeLabsPage() {
     return () => window.removeEventListener("mousemove", move);
   }, []);
 
-  // Close menu on outside click
   useEffect(() => {
     const handler = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
@@ -295,8 +296,6 @@ export default function KemjeeLabsPage() {
         background: "rgba(5,10,5,0.85)",
         backdropFilter: "blur(16px)",
       }}>
-
-        {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
             <polygon points="14,2 26,8 26,20 14,26 2,20 2,8" stroke="#00C853" strokeWidth="1.5" fill="none" />
@@ -308,11 +307,7 @@ export default function KemjeeLabsPage() {
           </span>
         </div>
 
-        {/* Desktop nav links */}
-        <div style={{
-          display: "flex", alignItems: "center", gap: 28,
-          "@media (max-width: 640px)": { display: "none" },
-        }} className="desktop-nav">
+        <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: 28 }}>
           {NAV_LINKS.map(link => (
             <a
               key={link.label}
@@ -340,7 +335,6 @@ export default function KemjeeLabsPage() {
           </div>
         </div>
 
-        {/* Hamburger */}
         <div ref={menuRef} style={{ position: "relative" }}>
           <button
             onClick={() => setMenuOpen(o => !o)}
@@ -376,7 +370,6 @@ export default function KemjeeLabsPage() {
             }} />
           </button>
 
-          {/* Dropdown menu */}
           {menuOpen && (
             <div style={{
               position: "absolute", top: "calc(100% + 8px)", right: 0,
@@ -439,8 +432,6 @@ export default function KemjeeLabsPage() {
         alignItems: "center", justifyContent: "center",
         padding: "80px 24px 60px", textAlign: "center",
       }}>
-
-        {/* status pill */}
         <div style={{
           display: "inline-flex", alignItems: "center", gap: 8,
           background: "rgba(0,200,83,0.08)", border: "1px solid rgba(0,200,83,0.2)",
@@ -457,7 +448,6 @@ export default function KemjeeLabsPage() {
           Something is being built
         </div>
 
-        {/* headline */}
         <h1 style={{
           fontSize: "clamp(36px, 7vw, 80px)", fontWeight: 800,
           lineHeight: 1.05, letterSpacing: "-0.03em",
@@ -473,7 +463,6 @@ export default function KemjeeLabsPage() {
           </span>
         </h1>
 
-        {/* typewriter */}
         <div style={{
           fontSize: "clamp(14px, 2vw, 18px)", color: "rgba(255,255,255,0.45)",
           marginBottom: 32, height: 28, letterSpacing: "0.02em",
@@ -482,7 +471,6 @@ export default function KemjeeLabsPage() {
           <span style={{ color: "#00C853", animation: "blink 1s infinite" }}>|</span>
         </div>
 
-        {/* service tags */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center", maxWidth: 600 }}>
           {["Full-Stack Web Apps", "Web3 & DeFi", "Campaign Platforms", "Tech Solutions", "Product Strategy", "UX Design"].map(tag => (
             <span key={tag} style={{
@@ -511,7 +499,6 @@ export default function KemjeeLabsPage() {
           maxWidth: 1280, margin: "0 auto", width: "100%",
         }}
       >
-        {/* Section label */}
         <div style={{
           display: "flex", alignItems: "center", gap: 12, marginBottom: 40,
           justifyContent: "center",
@@ -526,6 +513,7 @@ export default function KemjeeLabsPage() {
           <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
         </div>
 
+        {/* ── FIX: both columns are now inside this grid ── */}
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
@@ -533,7 +521,6 @@ export default function KemjeeLabsPage() {
           alignItems: "start",
         }}>
 
-         
           {/* ── LEFT: ART GALLERY ── */}
           <div id="artgallery">
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
@@ -557,7 +544,7 @@ export default function KemjeeLabsPage() {
               </span>
             </div>
             <p style={{ margin: "0 0 24px", fontSize: 13, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
-              Our lead Dev is an art connoisseur. Cick any piece to view.
+              Our lead Dev is an art connoisseur. Click any piece to view.
             </p>
 
             <div style={{
@@ -568,13 +555,11 @@ export default function KemjeeLabsPage() {
               {ART_GALLERY.map(item => (
                 <ArtCard key={item.id} item={item} onClick={() => setSelectedArt(item)} />
               ))}
-              {/* Add art instructions card */}
               <AddArtCard />
             </div>
           </div>
-        </div>
 
-         {/* ── RIGHT: CODESPACES ── */}
+          {/* ── RIGHT: CODESPACES ── */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
               <div style={{
@@ -607,6 +592,7 @@ export default function KemjeeLabsPage() {
             </div>
           </div>
 
+        </div>{/* ── end grid ── */}
       </section>
 
       {/* ── FOOTER ── */}
@@ -640,10 +626,8 @@ export default function KemjeeLabsPage() {
         </div>
       </footer>
 
-      {/* ── ART MODAL ── */}
       {selectedArt && <ArtModal item={selectedArt} onClose={() => setSelectedArt(null)} />}
 
-      {/* ── KEYFRAMES ── */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -687,7 +671,6 @@ function CodespaceCard({ proj }) {
         overflow: "hidden",
       }}
     >
-      {/* confidential blur overlay */}
       {proj.confidential && (
         <div style={{
           position: "absolute", inset: 0, zIndex: 5,
@@ -706,15 +689,25 @@ function CodespaceCard({ proj }) {
       )}
 
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+        {/* ── FIX: render image or fallback text icon ── */}
         <div style={{
           width: 36, height: 36, borderRadius: 8, flexShrink: 0,
           background: "rgba(0,200,83,0.08)",
           border: "1px solid rgba(0,200,83,0.15)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 16, color: "#00C853",
+          overflow: "hidden",
         }}>
-          {proj.icon}
+          {isImageSrc(proj.icon) ? (
+            <img
+              src={proj.icon}
+              alt={proj.title}
+              style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: 7 }}
+            />
+          ) : (
+            <span style={{ fontSize: 16, color: "#00C853" }}>{proj.icon}</span>
+          )}
         </div>
+
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{proj.title}</span>
@@ -818,8 +811,6 @@ function AddArtCard() {
       }}
     >
       <span style={{ fontSize: 20, color: hovered ? "rgba(0,200,83,0.5)" : "rgba(255,255,255,0.1)" }}>+</span>
-      <span style={{ fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.15)", textAlign: "center" }}>
-      </span>
     </div>
   );
 }
