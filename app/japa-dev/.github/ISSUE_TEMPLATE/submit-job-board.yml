@@ -1,0 +1,81 @@
+name: "Submit a Job Board"
+description: "Know a job board that should be listed in JapaDev? Submit it here."
+title: "[JOB BOARD] "
+labels: ["community", "job-board"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Submit a Job Board
+        Thanks for contributing to JapaDev! Fill in the details below and we'll review and add it to the community boards section.
+
+  - type: input
+    id: name
+    attributes:
+      label: Job Board Name
+      placeholder: "e.g. Crypto Jobs List"
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: URL
+      placeholder: "https://..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Web3 / Crypto
+        - Remote Dev
+        - African + International
+        - Freelance / Contract
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: remote
+    attributes:
+      label: Remote-friendly?
+      options:
+        - "Yes — fully remote roles"
+        - "Partial — some remote roles"
+        - "No — on-site only"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: nigerian_friendly
+    attributes:
+      label: Nigerian / African applicants accepted?
+      options:
+        - "Yes — confirmed"
+        - "Likely — but not confirmed"
+        - "Unknown"
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why should we add this?
+      placeholder: "What makes this board useful for Nigerian tech workers specifically?"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Checklist
+      options:
+        - label: I have personally used or verified this job board
+          required: true
+        - label: The URL is correct and the site is active
+          required: true
+        - label: This is not a sponsored submission
+          required: true
