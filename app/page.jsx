@@ -95,7 +95,7 @@ const ART_GALLERY = [
     id: "art-placeholder-1",
     title: "Waifus Contest",
     twitterUrl:"https://x.com/i/status/1890824234592571657",
-    imageUrl: "/public/Waifus.jpg",
+    imageUrl: "/Waifus.jpg",
     placeholder: true,
   },
   {
