@@ -8,11 +8,11 @@ export const JOB_BOARDS: JobCategory[] = [
       { name: "Crypto Jobs List", url: "https://cryptojobslist.com/web3", tag: "HOT" },
       { name: "Web3.career", url: "https://web3.career/remote-jobs", tag: "HOT" },
       { name: "Cryptocurrency Jobs", url: "https://cryptocurrencyjobs.co/engineering/" },
-      { name: "Proof of Work", url: "https://pow.so", tag: "HOT" },
-      { name: "UseWeb3 Jobs", url: "https://www.useweb3.xyz/jobs" },
+      
+      { name: "UseWeb3 Jobs", url: "https://www.useweb3.xyz/grants" },
       { name: "Superteam Earn", url: "https://earn.superteam.fun", tag: "BOUNTIES" },
-      { name: "Gitcoin Jobs", url: "https://gitcoin.co/jobs", tag: "BOUNTIES" },
-      { name: "Bankless Jobs", url: "https://bankless.cc/jobs" },
+      { name: "Gitcoin grants", url: "https://grants.gitcoin.co/jo", tag: "BOUNTIES" },
+      { name: "Bankless Jobs", url: "https://bankless.com/jobs" },
     ],
   },
   {
@@ -33,17 +33,17 @@ export const JOB_BOARDS: JobCategory[] = [
     category: "African + International",
     emoji: "🌱",
     sites: [
-      { name: "Andela Talent", url: "https://andela.com/talent/", tag: "HOT" },
+      { name: "Andela Talent", url: "https://andela.com/", tag: "HOT" },
       { name: "Talent500", url: "https://talent500.co" },
       { name: "Jobberman Tech", url: "https://www.jobberman.com/it-software" },
-      { name: "AltSchool Jobs", url: "https://altschoolafrica.com" },
+     
     ],
   },
 ];
 
 export const OUTREACH_SCRIPT = `Hi [Name],
 
-I'm Ben, a Web3/frontend developer based in Nigeria. I built BaseMatch (basematch.app) — a Web3 dating protocol on Base L2 using Next.js, RainbowKit, Wagmi, OnchainKit, and Coinbase Paymaster, with a Farcaster Mini App integration. I also deployed a government document automation system currently in active institutional use at the Edo State House of Assembly.
+I'm (Your Name), a Web3/frontend developer based in Nigeria. I built BaseMatch (basematch.app) — a Web3 dating protocol on Base L2 using Next.js, RainbowKit, Wagmi, OnchainKit, and Coinbase Paymaster, with a Farcaster Mini App integration. I also deployed a government document automation system currently in active institutional use at the Edo State House of Assembly.
 
 I'm actively looking for remote opportunities — junior to mid-level frontend or Web3 roles. I ship real things, I work independently, and I'm deeply embedded in the Base ecosystem.
 
