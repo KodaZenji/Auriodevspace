@@ -512,11 +512,18 @@ export default function HollyCTDashboard() {
           </div>
         )}
 
-        <div className="text-center text-gray-400 text-sm">
+             <div className="text-center text-gray-400 text-sm">
           Showing {start + 1}-{Math.min(start + itemsPerPage, filtered.length)} of{" "}
           {filtered.length}
         </div>
+
+        {/* MAINTENANCE NOTICE */}
+        <div className="mt-6 text-center text-sm text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 rounded-xl py-3 px-4">
+          ⚠️ This website is currently under maintenance. Some features may not work correctly.
+        </div>
+
       </div>
+    </div>
     </div>
   );
 }
