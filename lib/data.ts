@@ -21,7 +21,7 @@ export const JOB_BOARDS: JobCategory[] = [
     sites: [
       { name: "Wellfound", url: "https://wellfound.com/jobs?remote=true&role=engineer", tag: "HOT" },
       { name: "Remote OK", url: "https://remoteok.com/remote-dev-jobs", tag: "HOT" },
-      { name: "We Work Remotely", url: "https://weworkremotely.com/remote-jobs/search?term=nextjs" },
+      { name: "We Work Remotely", url: "https://weworkremotely.com/remote-jobs/search?term=react" },
       { name: "Himalayas", url: "https://himalayas.app/jobs/remote" },
       { name: "Otta", url: "https://otta.com" },
       { name: "Contra", url: "https://contra.com/jobs" },
@@ -43,19 +43,19 @@ export const JOB_BOARDS: JobCategory[] = [
 
 export const OUTREACH_SCRIPT = `Hi [Name],
 
-I'm (your name here), a Web3/frontend (or any skill you have) developer based in Nigeria. I built ( what you have shipped in the last few months or something noteable e.g i built BaseMatch (basematch.app) — a Web3 dating protocol on Base L2 using Next.js, RainbowKit, Wagmi, OnchainKit, and Coinbase Paymaster, with a Farcaster Mini App integration. I also deployed a government document automation system currently in active institutional use at a State House of Assembly.)
+I'm Ben, a Web3/frontend developer based in Nigeria. I built BaseMatch (basematch.app) — a Web3 dating protocol on Base L2 using Next.js, RainbowKit, Wagmi, OnchainKit, and Coinbase Paymaster, with a Farcaster Mini App integration. I also deployed a government document automation system currently in active institutional use at the Edo State House of Assembly.
 
-I'm actively looking for remote opportunities, mid-level to senior-level frontend (or fullstack, whatever you are good in) or Web3 roles. I ship real things, I work independently, and I'm deeply embedded in the (Base ecosystem- replace with your most active ecosystem contribution).
+I'm actively looking for remote opportunities — junior to mid-level frontend or Web3 roles. I ship real things, I work independently, and I'm deeply embedded in the Base ecosystem.
 
 Would you be open to a quick chat, or know someone who might be hiring?
 
-GitHub: "Your github link here"
-Portfolio: "Your portfolio link here"
+GitHub: github.com/KodaZenji
+Portfolio: auriodevspace.vercel.app
 
 Thanks,
-(Your name here)`;
+Ben`;
 
-export const ROBERT_SUN_SCRIPT = `Hey (Their fist name here), hope you're doing well. I've been building more in the (your active ecosystem here eg. Base) ecosystem since our session and I'm actively looking for remote opportunities — frontend or Web3 roles. I know you're well connected there. Would you be open to pointing me toward anyone who might be hiring or worth talking to? Even one intro would mean a lot. Thanks.`;
+export const ROBERT_SUN_SCRIPT = `Hey Robert, hope you're doing well. I've been building more in the Base ecosystem since our session and I'm actively looking for remote opportunities — frontend or Web3 roles. I know you're well connected there. Would you be open to pointing me toward anyone who might be hiring or worth talking to? Even one intro would mean a lot. Thanks.`;
 
 export const STATUSES = ["All", "Saved", "Applied", "Interviewing", "Offer", "Rejected"] as const;
 
