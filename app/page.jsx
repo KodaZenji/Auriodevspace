@@ -180,15 +180,19 @@ function ArtModal({ item, onClose }) {
             borderRadius: 10, padding: "12px 16px", marginBottom: 16,
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 16 }}>𝕏</span>
-              <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
-                See this art on X
-              </span>
-              <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 10 }}>
-                Click anywhere to close pop-up
-              </span>
-            </div>
+           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+  <span style={{ fontSize: 16 }}>𝕏</span>
+
+  <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
+    <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
+      See this art on X
+    </span>
+
+    <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 10 }}>
+      Click anywhere to close pop-up
+    </span>
+  </div>
+</div>
             <a
               href={item.twitterUrl}
               target="_blank"
