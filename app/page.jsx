@@ -65,7 +65,7 @@ const CODESPACES = [
     title: "BaseMatch",
     desc: "Web3 dating protocol on Base L2 — onchain connections, real relationships",
     tags: ["Solidity", "Base L2", "RainbowKit"],
-    icon: "https://ipfs.filebase.io/ipfs/QmQ1A5FsxFhHUHkxQpH8uDvBrLQTDFPjT5XCDwhCFPW5ZZ.png",
+    icon: "https://ipfs.filebase.io/ipfs/QmQ1A5FsxFhHUHkxQpH8uDvBrLQTDFPjT5XCDwhCFPW5ZZ",
     href: "https://basematch.app",
     status: "live",
     confidential: false,
