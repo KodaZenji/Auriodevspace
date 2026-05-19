@@ -259,6 +259,7 @@ export default function RankNexus() {
 <div className="mt-4 text-center text-sm text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 rounded-lg py-3 px-4">
   ⚠️ This website is currently under maintenance. Some features may not work correctly.
 </div>
+          </div>
 
       <style jsx>{`
         @keyframes fade-in {
