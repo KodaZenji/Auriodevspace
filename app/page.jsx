@@ -163,49 +163,52 @@ function ArtModal({ item, onClose }) {
           }}
         >✕</button>
 
-        {item.imageUrl ? (
-          <img
-            src={item.imageUrl}
-            alt={item.title}
-            style={{ width: "100%", borderRadius: 10, marginBottom: 16 }}
-          />
-        ) : item.twitterUrl ? (
-          <div style={{
-            background: "rgba(0,200,83,0.05)",
-            border: "1px solid rgba(0,200,83,0.15)",
-            borderRadius: 10, padding: "20px 24px", marginBottom: 16,
-            textAlign: "center",
-          }}>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>𝕏</div>
-            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, marginBottom: 12 }}>
-              View this artwork on X / Twitter
-            </p>
-            <a
-              href={item.twitterUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-block",
-                background: "#00C853", color: "#050A05",
-                fontWeight: 700, fontSize: 13,
-                padding: "8px 20px", borderRadius: 6,
-                textDecoration: "none",
-              }}
-            >
-              Open on X →
-            </a>
-          </div>
-        ) : (
-          <div style={{
-            background: "rgba(255,255,255,0.02)",
-            border: "1px dashed rgba(255,255,255,0.1)",
-            borderRadius: 10, padding: 40,
-            textAlign: "center", marginBottom: 16,
-            color: "rgba(255,255,255,0.2)", fontSize: 13,
-          }}>
-            [ Artwork coming soon ]
-          </div>
-        )}
+{item.imageUrl && (
+  <img
+    src={item.imageUrl}
+    alt={item.title}
+    style={{ width: "100%", borderRadius: 10, marginBottom: item.twitterUrl ? 10 : 16 }}
+  />
+)}
+
+{item.twitterUrl ? (
+  <div style={{
+    background: "rgba(0,200,83,0.05)",
+    border: "1px solid rgba(0,200,83,0.15)",
+    borderRadius: 10, padding: "12px 16px", marginBottom: 16,
+    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+  }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <span style={{ fontSize: 16 }}>𝕏</span>
+      <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
+        See this art on X
+      </span>
+    </div>
+    <a
+      href={item.twitterUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        background: "#00C853", color: "#050A05",
+        fontWeight: 700, fontSize: 12,
+        padding: "6px 16px", borderRadius: 6,
+        textDecoration: "none", whiteSpace: "nowrap",
+      }}
+    >
+      Open →
+    </a>
+  </div>
+) : !item.imageUrl ? (
+  <div style={{
+    background: "rgba(255,255,255,0.02)",
+    border: "1px dashed rgba(255,255,255,0.1)",
+    borderRadius: 10, padding: 40,
+    textAlign: "center", marginBottom: 16,
+    color: "rgba(255,255,255,0.2)", fontSize: 13,
+  }}>
+    [ Artwork coming soon ]
+  </div>
+) : null}
 
         <h3 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700, color: "#fff" }}>
           {item.title}
