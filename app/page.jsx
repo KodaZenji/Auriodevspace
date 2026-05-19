@@ -100,16 +100,16 @@ const ART_GALLERY = [
   },
   {
     id: "art-placeholder-2",
-    title: "Upload manually",
-    twitterUrl: null,
-    imageUrl: null,
+    title: "Bosu Contest",
+    twitterUrl: "https://x.com/i/status/1885665674627789302",
+    imageUrl: "/Bosu Contest.jpg",
     placeholder: true,
   },
   {
     id: "art-placeholder-3",
-    title: "Coming soon",
-    twitterUrl: null,
-    imageUrl: null,
+    title: "Mi Familia",
+    twitterUrl: "https://x.com/i/status/1882577887330770953",
+    imageUrl: "/primos.jpg",
     placeholder: true,
   },
 ];
