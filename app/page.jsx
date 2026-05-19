@@ -35,13 +35,38 @@ const ROLES = [
   "Product Design & Strategy",
 ];
 
+// Art gallery items — Twitter links or manual uploads
+// To add art: { id, title, twitterUrl } OR { id, title, imageUrl }
+const ART_GALLERY = [
+  {
+    id: "art-placeholder-1",
+    title: "Waifus Contest",
+    twitterUrl:"https://x.com/i/status/1890824234592571657",
+    imageUrl: "/Waifus.jpg",
+    placeholder: true,
+  },
+  {
+    id: "art-placeholder-2",
+    title: "Bosu Contest",
+    twitterUrl: "https://x.com/i/status/1885665674627789302",
+    imageUrl: "/Bosu Contest.jpg",
+    placeholder: true,
+  },
+  {
+    id: "art-placeholder-3",
+    title: "Mi Familia",
+    twitterUrl: "https://x.com/i/status/1882577887330770953",
+    imageUrl: "/primos.jpg",
+    placeholder: true,
+  },
+];
 const CODESPACES = [
   {
     id: "basematch",
     title: "BaseMatch",
     desc: "Web3 dating protocol on Base L2 — onchain connections, real relationships",
     tags: ["Solidity", "Base L2", "RainbowKit"],
-    icon: "◈",
+    icon: "https://ipfs.filebase.io/ipfs/QmQ1A5FsxFhHUHkxQpH8uDvBrLQTDFPjT5XCDwhCFPW5ZZ.png",
     href: "https://basematch.app",
     status: "live",
     confidential: false,
@@ -51,7 +76,7 @@ const CODESPACES = [
     title: "Rank Nexus",
     desc: "Cross-platform leaderboards hub for Web3 distribution",
     tags: ["Next.js", "Web3", "Leaderboards"],
-    icon: "⬡",
+    icon: "/nexus.png",
     href: "/rank-nexus",
     status: "live",
     confidential: false,
@@ -61,7 +86,7 @@ const CODESPACES = [
     title: "Kaito Inner CT",
     desc: "Smart accounts Curated— HollyWeb3's Inner CT splash dashboard",
     tags: ["Kaito", "CT KOLs"],
-    icon: "◎",
+    icon: "/kaito-Logo.png",
     href: "/kaito-inner-ct",
     status: "live",
     confidential: false,
@@ -88,31 +113,6 @@ const CODESPACES = [
   },
 ];
 
-// Art gallery items — Twitter links or manual uploads
-// To add art: { id, title, twitterUrl } OR { id, title, imageUrl }
-const ART_GALLERY = [
-  {
-    id: "art-placeholder-1",
-    title: "Waifus Contest",
-    twitterUrl:"https://x.com/i/status/1890824234592571657",
-    imageUrl: "/Waifus.jpg",
-    placeholder: true,
-  },
-  {
-    id: "art-placeholder-2",
-    title: "Bosu Contest",
-    twitterUrl: "https://x.com/i/status/1885665674627789302",
-    imageUrl: "/Bosu Contest.jpg",
-    placeholder: true,
-  },
-  {
-    id: "art-placeholder-3",
-    title: "Mi Familia",
-    twitterUrl: "https://x.com/i/status/1882577887330770953",
-    imageUrl: "/primos.jpg",
-    placeholder: true,
-  },
-];
 
 // ─── NAV LINKS ─────────────────────────────────────────────────────────────
 const NAV_LINKS = [
@@ -521,7 +521,7 @@ export default function KemjeeLabsPage() {
             fontSize: 11, letterSpacing: "0.25em", textTransform: "uppercase",
             color: "rgba(255,255,255,0.2)", whiteSpace: "nowrap",
           }}>
-            Explore the work
+            Explore our work
           </span>
           <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
         </div>
@@ -533,7 +533,48 @@ export default function KemjeeLabsPage() {
           alignItems: "start",
         }}>
 
-          {/* ── LEFT: CODESPACES ── */}
+         
+          {/* ── LEFT: ART GALLERY ── */}
+          <div id="artgallery">
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+              <div style={{
+                width: 28, height: 28,
+                background: "rgba(0,200,83,0.1)",
+                border: "1px solid rgba(0,200,83,0.25)",
+                borderRadius: 6,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 14, color: "#00C853",
+              }}>✦</div>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: "0.04em" }}>
+                Art Gallery
+              </h2>
+              <span style={{
+                marginLeft: "auto", fontSize: 10, letterSpacing: "0.15em",
+                color: "rgba(0,200,83,0.6)", textTransform: "uppercase",
+                border: "1px solid rgba(0,200,83,0.2)", borderRadius: 4, padding: "2px 7px",
+              }}>
+                Handrawn
+              </span>
+            </div>
+            <p style={{ margin: "0 0 24px", fontSize: 13, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
+              Our lead Dev is an art connoisseur. Cick any piece to view.
+            </p>
+
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+              gap: 12,
+            }}>
+              {ART_GALLERY.map(item => (
+                <ArtCard key={item.id} item={item} onClick={() => setSelectedArt(item)} />
+              ))}
+              {/* Add art instructions card */}
+              <AddArtCard />
+            </div>
+          </div>
+        </div>
+
+         {/* ── RIGHT: CODESPACES ── */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
               <div style={{
@@ -566,45 +607,6 @@ export default function KemjeeLabsPage() {
             </div>
           </div>
 
-          {/* ── RIGHT: ART GALLERY ── */}
-          <div id="artgallery">
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-              <div style={{
-                width: 28, height: 28,
-                background: "rgba(0,200,83,0.1)",
-                border: "1px solid rgba(0,200,83,0.25)",
-                borderRadius: 6,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 14, color: "#00C853",
-              }}>✦</div>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: "0.04em" }}>
-                Art Gallery
-              </h2>
-              <span style={{
-                marginLeft: "auto", fontSize: 10, letterSpacing: "0.15em",
-                color: "rgba(0,200,83,0.6)", textTransform: "uppercase",
-                border: "1px solid rgba(0,200,83,0.2)", borderRadius: 4, padding: "2px 7px",
-              }}>
-                Handrawn
-              </span>
-            </div>
-            <p style={{ margin: "0 0 24px", fontSize: 13, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
-              Our lead Dev is also an art connoisseur. Cick any piece to view.
-            </p>
-
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-              gap: 12,
-            }}>
-              {ART_GALLERY.map(item => (
-                <ArtCard key={item.id} item={item} onClick={() => setSelectedArt(item)} />
-              ))}
-              {/* Add art instructions card */}
-              <AddArtCard />
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* ── FOOTER ── */}
