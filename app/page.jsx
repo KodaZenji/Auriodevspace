@@ -64,6 +64,13 @@ const ART_GALLERY = [
     imageUrl: "/Canna.jpg",
     placeholder: true,
   },
+  {
+    id: "art-placeholder-5",
+    title: "The Chef Beak",
+    twitterUrl: "https://x.com/i/status/2057071911398429063",
+    imageUrl: "/Chef.jpg",
+    placeholder: true,
+  },
 ];
 
 const CODESPACES = [
