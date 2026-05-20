@@ -11,7 +11,7 @@ export const JOB_BOARDS: JobCategory[] = [
       
       { name: "UseWeb3 Jobs", url: "https://www.useweb3.xyz/grants" },
       { name: "Superteam Earn", url: "https://earn.superteam.fun", tag: "BOUNTIES" },
-      { name: "Gitcoin grants", url: "https://grants.gitcoin.co/jo", tag: "BOUNTIES" },
+      { name: "Gitcoin grants", url: "https://gitcoin.co/program", tag: "BOUNTIES" },
       { name: "Bankless Jobs", url: "https://bankless.com/jobs" },
     ],
   },
