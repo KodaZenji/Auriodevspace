@@ -586,7 +586,7 @@ export default function KemjeeLabsPage() {
               ))}
               <AddArtCard />
             </div>
-            {/* ── WORTH SHARING ── */}
+                    {/* ── WORTH SHARING ── */}
 
             <div
               onClick={() => window.open(WORTH_SHARING.href, "_blank")}
@@ -643,7 +643,7 @@ export default function KemjeeLabsPage() {
               {/* Book Cover — using 3D mockup image */}
               <div style={{ flexShrink: 0, lineHeight: 0 }}>
                 <img
-                  src="/never_where.jpg"
+                  src="/never-where.jpg"
                   alt={WORTH_SHARING.title}
                   style={{
                     width: 95,
@@ -717,6 +717,8 @@ export default function KemjeeLabsPage() {
               </div>
 
             </div>
+
+          </div>
 
           {/* ── RIGHT: CODESPACES ── */}
           <div>
