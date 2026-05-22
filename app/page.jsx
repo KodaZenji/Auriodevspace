@@ -137,7 +137,7 @@ const WORTH_SHARING = {
   title: "Never Where They Left Me",
   type: "Story / Ebook",
   desc: "A reminder to grow beyond pain, heartbreak, and abandonment.",
-  cover: "/never_where_they_left_me.jpg",
+  cover: "/never_where.jpg",
   href: "https://selar.com/7o1z69xy16", 
 };
 
@@ -640,51 +640,21 @@ export default function KemjeeLabsPage() {
                 }}
               />
 
-              {/* cover */}
-
-              <div
-                style={{
-                  perspective:"1000px",
-                  flexShrink:0,
-                }}
-              >
+              {/* Book Cover — using 3D mockup image */}
+              <div style={{ flexShrink: 0, lineHeight: 0 }}>
                 <img
-                  src={WORTH_SHARING.cover}
+                  src="/never_where.jpg"
                   alt={WORTH_SHARING.title}
                   style={{
-                    width:85,
-                    height:125,
-                    objectFit:"cover",
-                    borderRadius:8,
-
-                    transform:"rotateY(-18deg) rotateX(2deg)",
-                    transformStyle:"preserve-3d",
-
-                    boxShadow:`
-                    12px 12px 25px rgba(0,0,0,.45),
-                    25px 0px 0px rgba(255,255,255,.03)
-                    `,
-
-                    transition:"transform .35s ease",
-                  }}
-                  onMouseEnter={(e)=>{
-                    e.currentTarget.style.transform =
-                    "rotateY(-8deg) scale(1.05)";
-                  }}
-                  onMouseLeave={(e)=>{
-                    e.currentTarget.style.transform =
-                    "rotateY(-18deg) rotateX(2deg)";
-                  }}
-                  onTouchStart={(e)=>{
-                    e.currentTarget.style.transform =
-                    "rotateY(-8deg) scale(1.05)";
-                  }}
-                  onTouchEnd={(e)=>{
-                    e.currentTarget.style.transform =
-                    "rotateY(-18deg) rotateX(2deg)";
+                    width: 95,
+                    height: "auto",
+                    borderRadius: "3px 5px 5px 3px",
+                    boxShadow: "4px 8px 20px rgba(0,0,0,0.45)",
+                    display: "block",
                   }}
                 />
               </div>
+
               {/* content */}
 
               <div style={{flex:1}}>
@@ -747,7 +717,6 @@ export default function KemjeeLabsPage() {
               </div>
 
             </div>
-          </div>
 
           {/* ── RIGHT: CODESPACES ── */}
           <div>
