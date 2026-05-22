@@ -137,10 +137,9 @@ const WORTH_SHARING = {
   title: "Never Where They Left Me",
   type: "Story / Ebook",
   desc: "A reminder to grow beyond pain, heartbreak, and abandonment.",
-  cover: "/never-book.png",
+  cover: "/never_where_they_left_me.jpg",
   href: "https://selar.com/7o1z69xy16", 
 };
-];
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────
 function isImageSrc(icon) {
@@ -589,147 +588,165 @@ export default function KemjeeLabsPage() {
             </div>
             {/* ── WORTH SHARING ── */}
 
-<div
-  onClick={() => window.open(WORTH_SHARING.href, "_blank")}
-  style={{
-    marginTop: 24,
-    background: "rgba(255,255,255,0.02)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: 14,
-    padding: 18,
-    display: "flex",
-    gap: 16,
-    alignItems: "center",
-    cursor: "pointer",
-    transition: "all .25s ease",
-    overflow: "hidden",
-    position: "relative",
-  }}
+            <div
+              onClick={() => window.open(WORTH_SHARING.href, "_blank")}
+              style={{
+                marginTop: 24,
+                background: "rgba(255,255,255,0.02)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                borderRadius: 14,
+                padding: 18,
+                display: "flex",
+                gap: 16,
+                alignItems: "center",
+                cursor: "pointer",
+                transition: "all .25s ease",
+                overflow: "hidden",
+                position: "relative",
+              }}
 
-  onMouseEnter={(e)=>{
-    e.currentTarget.style.border="1px solid rgba(0,200,83,.3)";
-    e.currentTarget.style.background="rgba(0,200,83,.05)";
-  }}
+              onMouseEnter={(e)=>{
+                e.currentTarget.style.border="1px solid rgba(0,200,83,.3)";
+                e.currentTarget.style.background="rgba(0,200,83,.05)";
+              }}
 
-  onMouseLeave={(e)=>{
-    e.currentTarget.style.border="1px solid rgba(255,255,255,.06)";
-    e.currentTarget.style.background="rgba(255,255,255,.02)";
-  }}
->
+              onMouseLeave={(e)=>{
+                e.currentTarget.style.border="1px solid rgba(255,255,255,.06)";
+                e.currentTarget.style.background="rgba(255,255,255,.02)";
+              }}
 
-{/* green glow */}
+              onTouchStart={(e)=>{
+                e.currentTarget.style.border="1px solid rgba(0,200,83,.3)";
+                e.currentTarget.style.background="rgba(0,200,83,.05)";
+              }}
 
-<div
-style={{
-position:"absolute",
-right:-60,
-top:-60,
-width:150,
-height:150,
-borderRadius:"50%",
-background:"radial-gradient(circle, rgba(0,200,83,.15), transparent)"
-}}
-/>
+              onTouchEnd={(e)=>{
+                e.currentTarget.style.border="1px solid rgba(255,255,255,.06)";
+                e.currentTarget.style.background="rgba(255,255,255,.02)";
+              }}
+            >
 
-{/* cover */}
+              {/* green glow */}
 
-<div
-style={{
-perspective:"1000px",
-flexShrink:0,
-}}
->
-<img
-src={WORTH_SHARING.cover}
-alt={WORTH_SHARING.title}
-style={{
-width:85,
-height:125,
-objectFit:"cover",
-borderRadius:8,
+              <div
+                style={{
+                  position:"absolute",
+                  right:-60,
+                  top:-60,
+                  width:150,
+                  height:150,
+                  borderRadius:"50%",
+                  background:"radial-gradient(circle, rgba(0,200,83,.15), transparent)"
+                }}
+              />
 
-transform:"rotateY(-18deg) rotateX(2deg)",
-transformStyle:"preserve-3d",
+              {/* cover */}
 
-boxShadow:`
-12px 12px 25px rgba(0,0,0,.45),
-25px 0px 0px rgba(255,255,255,.03)
-`,
+              <div
+                style={{
+                  perspective:"1000px",
+                  flexShrink:0,
+                }}
+              >
+                <img
+                  src={WORTH_SHARING.cover}
+                  alt={WORTH_SHARING.title}
+                  style={{
+                    width:85,
+                    height:125,
+                    objectFit:"cover",
+                    borderRadius:8,
 
-transition:"transform .35s ease",
-}}
-onMouseEnter={(e)=>{
-e.currentTarget.style.transform =
-"rotateY(-8deg) scale(1.05)";
-}}
-onMouseLeave={(e)=>{
-e.currentTarget.style.transform =
-"rotateY(-18deg) rotateX(2deg)";
-}}
-/>
-</div>
-{/* content */}
+                    transform:"rotateY(-18deg) rotateX(2deg)",
+                    transformStyle:"preserve-3d",
 
-<div style={{flex:1}}>
+                    boxShadow:`
+                    12px 12px 25px rgba(0,0,0,.45),
+                    25px 0px 0px rgba(255,255,255,.03)
+                    `,
 
-<div
-style={{
-fontSize:10,
-letterSpacing:"0.18em",
-textTransform:"uppercase",
-color:"#00C853",
-marginBottom:8,
-}}
->
-✦ WORTH SHARING
-</div>
+                    transition:"transform .35s ease",
+                  }}
+                  onMouseEnter={(e)=>{
+                    e.currentTarget.style.transform =
+                    "rotateY(-8deg) scale(1.05)";
+                  }}
+                  onMouseLeave={(e)=>{
+                    e.currentTarget.style.transform =
+                    "rotateY(-18deg) rotateX(2deg)";
+                  }}
+                  onTouchStart={(e)=>{
+                    e.currentTarget.style.transform =
+                    "rotateY(-8deg) scale(1.05)";
+                  }}
+                  onTouchEnd={(e)=>{
+                    e.currentTarget.style.transform =
+                    "rotateY(-18deg) rotateX(2deg)";
+                  }}
+                />
+              </div>
+              {/* content */}
 
-<h3
-style={{
-margin:"0 0 6px",
-fontSize:18,
-fontWeight:700,
-color:"#fff"
-}}
->
-{WORTH_SHARING.title}
-</h3>
+              <div style={{flex:1}}>
 
-<div
-style={{
-fontSize:11,
-color:"rgba(0,200,83,.7)",
-marginBottom:10
-}}
->
-{WORTH_SHARING.type}
-</div>
+                <div
+                  style={{
+                    fontSize:10,
+                    letterSpacing:"0.18em",
+                    textTransform:"uppercase",
+                    color:"#00C853",
+                    marginBottom:8,
+                  }}
+                >
+                  ✦ WORTH SHARING
+                </div>
 
-<p
-style={{
-margin:0,
-fontSize:13,
-lineHeight:1.6,
-color:"rgba(255,255,255,.45)"
-}}
->
-{WORTH_SHARING.desc}
-</p>
+                <h3
+                  style={{
+                    margin:"0 0 6px",
+                    fontSize:18,
+                    fontWeight:700,
+                    color:"#fff"
+                  }}
+                >
+                  {WORTH_SHARING.title}
+                </h3>
 
-</div>
+                <div
+                  style={{
+                    fontSize:11,
+                    color:"rgba(0,200,83,.7)",
+                    marginBottom:10
+                  }}
+                >
+                  {WORTH_SHARING.type}
+                </div>
 
-<div
-style={{
-color:"#00C853",
-fontWeight:700,
-fontSize:13,
-whiteSpace:"nowrap",
-}}
->
-Open Story →
-</div>
+                <p
+                  style={{
+                    margin:0,
+                    fontSize:13,
+                    lineHeight:1.6,
+                    color:"rgba(255,255,255,.45)"
+                  }}
+                >
+                  {WORTH_SHARING.desc}
+                </p>
 
-</div>
+              </div>
+
+              <div
+                style={{
+                  color:"#00C853",
+                  fontWeight:700,
+                  fontSize:13,
+                  whiteSpace:"nowrap",
+                }}
+              >
+                Open Story →
+              </div>
+
+            </div>
           </div>
 
           {/* ── RIGHT: CODESPACES ── */}
