@@ -643,7 +643,7 @@ export default function KemjeeLabsPage() {
               {/* Book Cover — using 3D mockup image */}
               <div style={{ flexShrink: 0, lineHeight: 0 }}>
                 <img
-                  src="/never-where.jpg"
+                  src="/never_where.jpg"
                   alt={WORTH_SHARING.title}
                   style={{
                     width: 95,
