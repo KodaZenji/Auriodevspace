@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { Plus, LayoutGrid, Briefcase, MessageSquare, Users, FileText } from "lucide-react";
+import { Plus, LayoutGrid, Briefcase, MessageSquare, Users, Rocket, Map } from "lucide-react";
 import Link from "next/link";
 import { Application, Status } from "@/types";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -51,34 +51,74 @@ export default function Home() {
     <div className="min-h-screen bg-[#080808] text-zinc-200" style={{ fontFamily: "'DM Mono', monospace" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@700;800&display=swap');`}</style>
 
-      <header className="border-b border-zinc-900 px-6 py-4 flex items-center justify-between sticky top-0 bg-[#080808]/95 backdrop-blur z-40">
+      {/* Header */}
+      <header className="border-b border-zinc-900 px-4 py-4 flex items-center justify-between sticky top-0 bg-[#080808]/95 backdrop-blur z-40">
         <div>
           <h1 className="text-sm font-bold text-zinc-100 tracking-widest uppercase" style={{ fontFamily: "Syne, sans-serif" }}>
             JapaDev
           </h1>
-          <p className="text-zinc-600 text-xs mt-0.5">Job tracker for Nigerian devs going global · 2026</p>
+          <p className="text-zinc-600 text-xs mt-0.5 hidden sm:block">Job tracker for Nigerian devs going global · 2026</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Link
+            href="/japa-dev/founders"
+            className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-orange-400 border border-zinc-800 hover:border-orange-800 px-3 py-2 rounded-lg transition-colors"
+          >
+            <Rocket size={12} />
+            <span className="hidden sm:inline">For Founders</span>
+            <span className="sm:hidden">Founders</span>
+          </Link>
           <Link
             href="/japa-dev/visa"
             className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-green-400 border border-zinc-800 hover:border-green-800 px-3 py-2 rounded-lg transition-colors"
           >
-            <FileText size={12} />
-            UK Visa Guide
+            <Map size={12} />
+            <span className="hidden sm:inline">UK Visa Guide</span>
+            <span className="sm:hidden">Visa</span>
           </Link>
           <button
             onClick={() => setShowAdd(true)}
-            className="flex items-center gap-2 bg-green-500 hover:bg-green-400 text-black text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 bg-green-500 hover:bg-green-400 text-black text-xs font-bold px-3 py-2 rounded-lg transition-colors"
           >
             <Plus size={14} />
-            Log Application
+            <span className="hidden sm:inline">Log Application</span>
+            <span className="sm:hidden">Log</span>
           </button>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-6">
+      <main className="max-w-5xl mx-auto px-4 py-6">
         <StatsBar applications={applications} />
 
+        {/* Quick links — always visible, mobile-first */}
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <Link
+            href="/japa-dev/founders"
+            className="flex items-center gap-3 bg-zinc-900 border border-orange-900/60 hover:border-orange-700 rounded-xl p-4 transition-colors group"
+          >
+            <div className="w-8 h-8 bg-orange-950 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Rocket size={15} className="text-orange-400" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-zinc-200 group-hover:text-orange-300 transition-colors">For Founders</p>
+              <p className="text-[10px] text-zinc-600 mt-0.5">Grants · Accelerators · Bounties</p>
+            </div>
+          </Link>
+          <Link
+            href="/japa-dev/visa"
+            className="flex items-center gap-3 bg-zinc-900 border border-green-900/60 hover:border-green-700 rounded-xl p-4 transition-colors group"
+          >
+            <div className="w-8 h-8 bg-green-950 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Map size={15} className="text-green-400" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-zinc-200 group-hover:text-green-300 transition-colors">UK Visa Guide</p>
+              <p className="text-[10px] text-zinc-600 mt-0.5">Every route · Honest assessment</p>
+            </div>
+          </Link>
+        </div>
+
+        {/* Daily targets */}
         <div className="bg-zinc-900 border border-green-900 rounded-xl p-4 mb-6 flex items-start gap-3">
           <span className="text-green-400 mt-0.5 flex-shrink-0 text-base">✓</span>
           <div>
@@ -91,14 +131,15 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex gap-1 mb-6 bg-zinc-900 p-1 rounded-lg border border-zinc-800 w-fit overflow-x-auto">
+        {/* Tabs — scrollable on mobile */}
+        <div className="flex gap-1 mb-6 bg-zinc-900 p-1 rounded-lg border border-zinc-800 overflow-x-auto w-full">
           {tabs.map(tab => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-xs font-mono transition-all whitespace-nowrap ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-xs font-mono transition-all whitespace-nowrap flex-shrink-0 ${
                   activeTab === tab.id
                     ? "bg-zinc-800 text-zinc-100 border border-zinc-700"
                     : "text-zinc-500 hover:text-zinc-300"
