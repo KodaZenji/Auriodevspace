@@ -35,4 +35,4 @@ export const COMMUNITY_BOARDS: CommunityBoard[] = [
 ];
 
 export const GITHUB_ISSUE_URL =
-  "https://github.com/KodaZenji/japadev/issues/new?template=submit-job-board.yml";
+  "https://github.com/KodaZenji/Auriodevspace/issues/new?template=submit-job-board.yml";
