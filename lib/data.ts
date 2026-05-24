@@ -43,9 +43,9 @@ export const JOB_BOARDS: JobCategory[] = [
 
 export const OUTREACH_SCRIPT = `Hi [Name],
 
-I'm (Your Name), a Web3/frontend developer based in Nigeria. I built BaseMatch (basematch.app) — a Web3 dating protocol on Base L2 using Next.js, RainbowKit, Wagmi, OnchainKit, and Coinbase Paymaster, with a Farcaster Mini App integration. I also deployed a government document automation system currently in active institutional use at the Edo State House of Assembly.
+I'm (Your Name), a Web3/frontend developer based in West Africa. I built BaseMatch (basematch.app) — a Web3 dating protocol on Base L2 using Next.js, RainbowKit, Wagmi, OnchainKit, and Coinbase Paymaster, with a Farcaster Mini App integration. I also deployed a government document automation system currently in active institutional use at the Edo State House of Assembly, Nigeria. (Replace these with your projects and pitch)
 
-I'm actively looking for remote opportunities — junior to mid-level frontend or Web3 roles. I ship real things, I work independently, and I'm deeply embedded in the Base ecosystem.
+I'm actively looking for remote opportunities at mid-level to senior dev frontend or Web3 roles. I ship real things, I work independently, and I'm deeply embedded in the Base ecosystem.
 
 Would you be open to a quick chat, or know someone who might be hiring?
 
@@ -53,9 +53,9 @@ GitHub: github.com/KodaZenji
 Portfolio: auriodevspace.vercel.app
 
 Thanks,
-Ben`;
+( Your Name )`;
 
-export const ROBERT_SUN_SCRIPT = `Hey Robert, hope you're doing well. I've been building more in the Base ecosystem since our session and I'm actively looking for remote opportunities — frontend or Web3 roles. I know you're well connected there. Would you be open to pointing me toward anyone who might be hiring or worth talking to? Even one intro would mean a lot. Thanks.`;
+export const ROBERT_SUN_SCRIPT = `Hey (their name), hope you're doing well. I've been building more in the Base ecosystem since our session and I'm actively looking for remote opportunities — frontend or Web3 roles. I know you're well connected there. Would you be open to pointing me toward anyone who might be hiring or worth talking to? Even one intro would mean a lot. Thanks.`;
 
 export const STATUSES = ["All", "Saved", "Applied", "Interviewing", "Offer", "Rejected"] as const;
 
