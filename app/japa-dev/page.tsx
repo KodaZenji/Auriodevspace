@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { Plus, LayoutGrid, Briefcase, MessageSquare, Users, FileText, Rocket, Map } from "lucide-react";
+import { Plus, LayoutGrid, Briefcase, MessageSquare, Users, Rocket, Map } from "lucide-react";
 import Link from "next/link";
 import { Application, Status } from "@/types";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -60,22 +60,20 @@ export default function Home() {
           <p className="text-zinc-600 text-xs mt-0.5 hidden sm:block">Job tracker for Nigerian devs going global · 2026</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Always visible on all screen sizes */}
-          <Link
-            href="/founders"
-            className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-orange-400 border border-zinc-800 hover:border-orange-800 px-3 py-2 rounded-lg transition-colors"
-          >
+          <Link href="/japa-dev/founders" className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-orange-400 border border-zinc-800 hover:border-orange-800 px-3 py-2 rounded-lg transition-colors">
             <Rocket size={12} />
             <span className="hidden sm:inline">For Founders</span>
             <span className="sm:hidden">Founders</span>
           </Link>
-          <Link
-            href="/visa"
-            className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-green-400 border border-zinc-800 hover:border-green-800 px-3 py-2 rounded-lg transition-colors"
-          >
+          <Link href="/japa-dev/visa" className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-green-400 border border-zinc-800 hover:border-green-800 px-3 py-2 rounded-lg transition-colors">
             <Map size={12} />
-            <span className="hidden sm:inline">UK Visa Guide</span>
+            <span className="hidden sm:inline">UK Visa</span>
             <span className="sm:hidden">Visa</span>
+          </Link>
+          <Link href="/japa-dev/canada" className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-red-400 border border-zinc-800 hover:border-red-800 px-3 py-2 rounded-lg transition-colors">
+            <span>🍁</span>
+            <span className="hidden sm:inline">Canada</span>
+            <span className="sm:hidden">CA</span>
           </Link>
           <button
             onClick={() => setShowAdd(true)}
@@ -91,10 +89,10 @@ export default function Home() {
       <main className="max-w-5xl mx-auto px-4 py-6">
         <StatsBar applications={applications} />
 
-        {/* Quick links row — always visible, mobile-first */}
+        {/* Quick links — 1 col mobile, 3 col desktop */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
           <Link
-            href="/founders"
+            href="/japa-dev/founders"
             className="flex items-center gap-3 bg-zinc-900 border border-orange-900/60 hover:border-orange-700 rounded-xl p-4 transition-colors group"
           >
             <div className="w-8 h-8 bg-orange-950 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -106,15 +104,27 @@ export default function Home() {
             </div>
           </Link>
           <Link
-            href="/visa"
+            href="/japa-dev/visa"
             className="flex items-center gap-3 bg-zinc-900 border border-green-900/60 hover:border-green-700 rounded-xl p-4 transition-colors group"
           >
             <div className="w-8 h-8 bg-green-950 rounded-lg flex items-center justify-center flex-shrink-0">
               <Map size={15} className="text-green-400" />
             </div>
             <div>
-              <p className="text-xs font-bold text-zinc-200 group-hover:text-green-300 transition-colors">UK Visa Guide</p>
-              <p className="text-[10px] text-zinc-600 mt-0.5">Every route · Honest assessment</p>
+              <p className="text-xs font-bold text-zinc-200 group-hover:text-green-300 transition-colors">🇬🇧 UK Visa Guide</p>
+              <p className="text-[10px] text-zinc-600 mt-0.5">Every route · ND &amp; BSc</p>
+            </div>
+          </Link>
+          <Link
+            href="/japa-dev/canada"
+            className="flex items-center gap-3 bg-zinc-900 border border-red-900/60 hover:border-red-700 rounded-xl p-4 transition-colors group"
+          >
+            <div className="w-8 h-8 bg-red-950 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-sm">🍁</span>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-zinc-200 group-hover:text-red-300 transition-colors">Canada Visa Guide</p>
+              <p className="text-[10px] text-zinc-600 mt-0.5">More achievable with ND</p>
             </div>
           </Link>
         </div>
@@ -132,7 +142,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Tabs — scrollable on mobile */}
+        {/* Tabs */}
         <div className="flex gap-1 mb-6 bg-zinc-900 p-1 rounded-lg border border-zinc-800 overflow-x-auto w-full">
           {tabs.map(tab => {
             const Icon = tab.icon;
