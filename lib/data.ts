@@ -50,7 +50,7 @@ I'm actively looking for remote opportunities at mid-level to senior dev fronten
 Would you be open to a quick chat, or know someone who might be hiring?
 
 GitHub: github.com/KodaZenji
-Portfolio: auriodevspace.vercel.app
+Portfolio: kemjeelabs.xyz
 
 Thanks,
 ( Your Name )`;
