@@ -91,7 +91,7 @@ export default function CanadaPage() {
                 {[
                   ["ND friendliness", "Hard — £41,700 salary floor", "Better — points-based, PNP options"],
                   ["BSc advantage", "Opens more sponsored roles", "Adds 30–50 CRS points directly"],
-                  ["Joyce's options", "Dependent only", "Open work permit, works freely"],
+                  ["Dependant's options", "Dependent only", "Open work permit, works freely"],
                   ["PR timeline", "5 years minimum", "2–3 years via PNP possible"],
                   ["Cost of living", "Very high (London)", "High but lower than London"],
                   ["Nigerian community", "Large", "Very large — Toronto especially"],
