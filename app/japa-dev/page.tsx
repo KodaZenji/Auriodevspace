@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { Plus, LayoutGrid, Briefcase, MessageSquare, Users, Rocket, Map } from "lucide-react";
+import { Plus, LayoutGrid, Briefcase, MessageSquare, Users, FileText, Rocket, Map } from "lucide-react";
 import Link from "next/link";
 import { Application, Status } from "@/types";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -60,8 +60,9 @@ export default function Home() {
           <p className="text-zinc-600 text-xs mt-0.5 hidden sm:block">Job tracker for Nigerian devs going global · 2026</p>
         </div>
         <div className="flex items-center gap-2">
+          {/* Always visible on all screen sizes */}
           <Link
-            href="/japa-dev/founders"
+            href="/founders"
             className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-orange-400 border border-zinc-800 hover:border-orange-800 px-3 py-2 rounded-lg transition-colors"
           >
             <Rocket size={12} />
@@ -69,7 +70,7 @@ export default function Home() {
             <span className="sm:hidden">Founders</span>
           </Link>
           <Link
-            href="/japa-dev/visa"
+            href="/visa"
             className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-green-400 border border-zinc-800 hover:border-green-800 px-3 py-2 rounded-lg transition-colors"
           >
             <Map size={12} />
@@ -90,10 +91,10 @@ export default function Home() {
       <main className="max-w-5xl mx-auto px-4 py-6">
         <StatsBar applications={applications} />
 
-        {/* Quick links — always visible, mobile-first */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
+        {/* Quick links row — always visible, mobile-first */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
           <Link
-            href="/japa-dev/founders"
+            href="/founders"
             className="flex items-center gap-3 bg-zinc-900 border border-orange-900/60 hover:border-orange-700 rounded-xl p-4 transition-colors group"
           >
             <div className="w-8 h-8 bg-orange-950 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -105,7 +106,7 @@ export default function Home() {
             </div>
           </Link>
           <Link
-            href="/japa-dev/visa"
+            href="/visa"
             className="flex items-center gap-3 bg-zinc-900 border border-green-900/60 hover:border-green-700 rounded-xl p-4 transition-colors group"
           >
             <div className="w-8 h-8 bg-green-950 rounded-lg flex items-center justify-center flex-shrink-0">
