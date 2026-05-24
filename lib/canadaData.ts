@@ -180,7 +180,7 @@ export const CANADA_ROUTES: CanadaRoute[] = [
       "Not a PR route on its own — just a 2-year work permit",
       "Age cap: must be 35 or under",
       "Competitive pool — not guaranteed",
-      "Joyce cannot automatically come as a dependent on IEC",
+      "Spouse cannot automatically come as a dependent on IEC",
     ],
     realisticForND: true,
     realisticForBSc: true,
