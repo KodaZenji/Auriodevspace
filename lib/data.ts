@@ -44,11 +44,11 @@ export const JOB_BOARDS: JobCategory[] = [
   emoji: "🏆",
   sites: [
     { name: "HackList", url: "https://hacklist.io", tag: "HOT" },
-    { name: "ETHGlobal", url: "https://ethglobal.com/events/hackathons", tag: "HOT" },
+  
     { name: "Devpost", url: "https://devpost.com/hackathons", tag: "HOT" },
     { name: "DoraHacks", url: "https://dorahacks.io/hackathon", tag: "WEB3" },
     { name: "Superteam Earn", url: "https://earn.superteam.fun", tag: "WEB3" },
-    { name: "Encode Club", url: "https://www.encodeclub.com/hackathons", tag: "WEB3" },
+    { name: "Encode Club", url: "https://www.encodeclub.com/programmes/", tag: "WEB3" },
   ],
 },
 ];
