@@ -9,19 +9,26 @@ export default function LoginPage() {
   const [sent, setSent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
+  setSent(false);
+  setMsg('');
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/pairing`,
-      },
-    });
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: `${window.location.origin}/pairing`,
+    },
+  });
 
-    if (!error) setSent(true);
-    setLoading(false);
+  if (error) {
+    setMsg(error.message); // ← NOW you see what went wrong
+  } else {
+    setSent(true);
   }
+  setLoading(false);
+}
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
