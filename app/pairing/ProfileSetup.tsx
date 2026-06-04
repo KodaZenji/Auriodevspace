@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase';
+import { createClient } from '@/lib/supabaseClient';
 import { getProfiles, getPairRequests, getPairs, getPairingWindow } from './actions';
 import PairingClient from './PairingClient';
 
