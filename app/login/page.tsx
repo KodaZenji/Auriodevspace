@@ -21,14 +21,22 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/pairing` },
+        options: {
+          data: { full_name: email.split('@')[0] },
+        },
       });
-      if (error) setMsg(error.message);
-      else setMsg('Account created! You can now log in.');
+      if (error) {
+        setMsg(error.message);
+      } else {
+        router.push('/pairing');
+      }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setMsg(error.message);
-      else router.push('/pairing');
+      if (error) {
+        setMsg(error.message);
+      } else {
+        router.push('/pairing');
+      }
     }
 
     setLoading(false);
@@ -37,9 +45,12 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-lg p-8 border border-zinc-200 dark:border-zinc-800">
-        <h1 className="text-2xl font-bold text-center mb-6 text-zinc-900 dark:text-white">
+        <h1 className="text-2xl font-bold text-center mb-2 text-zinc-900 dark:text-white">
           {isSignUp ? 'Create Account' : 'Class Pairing'}
         </h1>
+        <p className="text-sm text-center text-zinc-500 mb-6">
+          {isSignUp ? 'Join your class' : 'Log in to pair up'}
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -53,7 +64,7 @@ export default function LoginPage() {
 
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Password (min 6 chars)"
             required
             minLength={6}
             value={password}
