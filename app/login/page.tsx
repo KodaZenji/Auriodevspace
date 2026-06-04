@@ -7,28 +7,28 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [msg, setMsg] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
-  e.preventDefault();
-  setLoading(true);
-  setSent(false);
-  setMsg('');
+    e.preventDefault();
+    setLoading(true);
+    setSent(false);
+    setMsg('');
 
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: `${window.location.origin}/pairing`,
-    },
-  });
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/pairing`,
+      },
+    });
 
-  if (error) {
-    setMsg(error.message); // ← NOW you see what went wrong
-  } else {
-    setSent(true);
+    if (error) {
+      setMsg(error.message);
+    } else {
+      setSent(true);
+    }
+    setLoading(false);
   }
-  setLoading(false);
-}
-
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
@@ -59,6 +59,11 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
             />
+
+            {msg && (
+              <p className="text-sm text-red-500">{msg}</p>
+            )}
+
             <button
               type="submit"
               disabled={loading}
