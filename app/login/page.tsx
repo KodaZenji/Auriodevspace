@@ -5,32 +5,32 @@ import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [msg, setMsg]           = useState('');
   const router = useRouter();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit() {
     setLoading(true);
     setMsg('');
 
     if (isSignUp) {
-      const { data: authData, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: email.split('@')[0] } },
-      });
+      const { data, error } = await supabase.auth.signUp({ email, password });
+
       if (error) {
         setMsg(error.message);
-      } else if (authData.user) {
-        // ✅ Create the profiles row immediately so ProfileSetup can update it
-        await supabase.from('profiles').upsert(
-          { id: authData.user.id, email },
-          { onConflict: 'id' }
-        );
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        // ✅ Create profile row immediately — no email confirmation needed
+        await supabase
+          .from('profiles')
+          .upsert({ id: data.user.id, email }, { onConflict: 'id' });
+
         router.push('/pairing');
       }
     } else {
@@ -56,7 +56,6 @@ export default function LoginPage() {
           <input
             type="email"
             placeholder="your@email.com"
-            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
@@ -64,16 +63,17 @@ export default function LoginPage() {
           <input
             type="password"
             placeholder="Password (min 6 chars)"
-            required
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
           />
+
           {msg && <p className="text-sm text-red-500">{msg}</p>}
+
           <button
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={loading || !email || !password}
             className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition disabled:opacity-50"
           >
             {loading ? 'Loading...' : isSignUp ? 'Create Account' : 'Log In'}
