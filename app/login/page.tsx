@@ -18,25 +18,25 @@ export default function LoginPage() {
     setMsg('');
 
     if (isSignUp) {
-      const { error } = await supabase.auth.signUp({
+      const { data: authData, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: { full_name: email.split('@')[0] },
-        },
+        options: { data: { full_name: email.split('@')[0] } },
       });
       if (error) {
         setMsg(error.message);
-      } else {
+      } else if (authData.user) {
+        // ✅ Create the profiles row immediately so ProfileSetup can update it
+        await supabase.from('profiles').upsert(
+          { id: authData.user.id, email },
+          { onConflict: 'id' }
+        );
         router.push('/pairing');
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        setMsg(error.message);
-      } else {
-        router.push('/pairing');
-      }
+      if (error) setMsg(error.message);
+      else router.push('/pairing');
     }
 
     setLoading(false);
@@ -52,7 +52,7 @@ export default function LoginPage() {
           {isSignUp ? 'Join your class' : 'Log in to pair up'}
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <input
             type="email"
             placeholder="your@email.com"
@@ -61,7 +61,6 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
           />
-
           <input
             type="password"
             placeholder="Password (min 6 chars)"
@@ -71,17 +70,15 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
           />
-
           {msg && <p className="text-sm text-red-500">{msg}</p>}
-
           <button
-            type="submit"
+            onClick={handleSubmit}
             disabled={loading}
             className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition disabled:opacity-50"
           >
             {loading ? 'Loading...' : isSignUp ? 'Create Account' : 'Log In'}
           </button>
-        </form>
+        </div>
 
         <p className="text-center text-sm mt-4 text-zinc-500">
           {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
