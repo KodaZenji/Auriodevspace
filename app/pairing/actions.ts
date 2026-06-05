@@ -1,7 +1,6 @@
 'use server';
 
 import { createClient } from '@/lib/supabase';
-
 import { revalidatePath } from 'next/cache';
 
 export async function getProfiles() {
@@ -15,6 +14,12 @@ export async function getProfiles() {
     .neq('id', user.id)
     .order('full_name');
 
+  return data || [];
+}
+
+export async function getAllProfiles() {
+  const supabase = await createClient();
+  const { data } = await supabase.from('profiles').select('*').order('full_name');
   return data || [];
 }
 
@@ -44,6 +49,12 @@ export async function getPairs() {
   return data || [];
 }
 
+export async function getAllPairs() {
+  const supabase = await createClient();
+  const { data } = await supabase.from('pairs').select('*');
+  return data || [];
+}
+
 export async function getPairingWindow() {
   const supabase = await createClient();
   const { data } = await supabase
@@ -61,7 +72,7 @@ export async function sendPairRequest(receiverId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Not authenticated' };
 
-  // Check if window is open
+  // Check window
   const { data: window } = await supabase
     .from('pairing_window')
     .select('*')
@@ -100,13 +111,11 @@ export async function sendPairRequest(receiverId: string) {
     .single();
 
   if (reverse) {
-    // Create pair
     await supabase.from('pairs').insert({
       user_a: user.id,
       user_b: receiverId,
     });
 
-    // Update both requests to matched
     await supabase
       .from('pair_requests')
       .update({ status: 'matched' })
@@ -128,25 +137,20 @@ export async function finalizePairs() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Not authenticated' };
 
-  // Get all profiles
   const { data: profiles } = await supabase.from('profiles').select('id');
   if (!profiles) return { error: 'No profiles found' };
 
-  // Get all paired users
   const { data: pairs } = await supabase.from('pairs').select('user_a, user_b');
   const pairedIds = new Set<string>();
   pairs?.forEach(p => { pairedIds.add(p.user_a); pairedIds.add(p.user_b); });
 
-  // Filter unpaired
   const unpaired = profiles.filter(p => !pairedIds.has(p.id));
 
-  // Shuffle
   for (let i = unpaired.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [unpaired[i], unpaired[j]] = [unpaired[j], unpaired[i]];
   }
 
-  // Pair sequentially
   const newPairs = [];
   for (let i = 0; i < unpaired.length - 1; i += 2) {
     newPairs.push({
@@ -159,12 +163,12 @@ export async function finalizePairs() {
     await supabase.from('pairs').insert(newPairs);
   }
 
-  // Close window
   await supabase
     .from('pairing_window')
     .update({ is_active: false })
     .eq('is_active', true);
 
   revalidatePath('/pairing');
+  revalidatePath('/pairing/admin');
   return { success: true, paired: newPairs.length * 2 };
 }
