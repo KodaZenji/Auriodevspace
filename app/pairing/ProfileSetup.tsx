@@ -4,7 +4,12 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
-export default function ProfileSetup({ userId }: { userId: string }) {
+interface Props {
+  userId: string;
+  userEmail: string; // ✅ needed for upsert fallback
+}
+
+export default function ProfileSetup({ userId, userEmail }: Props) {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -12,7 +17,13 @@ export default function ProfileSetup({ userId }: { userId: string }) {
   async function save() {
     if (!name.trim()) return;
     setLoading(true);
-    await supabase.from('profiles').update({ full_name: name.trim() }).eq('id', userId);
+    // ✅ upsert instead of update — handles case where profile row doesn't exist yet
+    await supabase
+      .from('profiles')
+      .upsert(
+        { id: userId, email: userEmail, full_name: name.trim() },
+        { onConflict: 'id' }
+      );
     setLoading(false);
     router.refresh();
   }
