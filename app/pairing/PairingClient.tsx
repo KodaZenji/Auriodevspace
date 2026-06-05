@@ -3,32 +3,32 @@
 import { useState } from 'react';
 import { sendPairRequest } from './actions';
 import { Profile, PairRequest, Pair } from '@/types/pairing';
-import { Heart, Users, Clock, CheckCircle, Loader2 } from 'lucide-react'; // removed unused XCircle
+import { Heart, Users, Clock, CheckCircle, Loader2 } from 'lucide-react';
 import ProfileSetup from './ProfileSetup';
 
 interface Props {
   currentUserId: string;
-  userEmail: string;       // ✅ added
+  userEmail: string;
   profiles: Profile[];
   requests: PairRequest[];
   pairs: Pair[];
   windowOpen: boolean;
   endDate?: string;
-  needsSetup: boolean;     // ✅ added
+  needsSetup: boolean;
 }
 
 export default function PairingClient({
   currentUserId,
-  userEmail,               // ✅ added
+  userEmail,
   profiles,
   requests,
   pairs,
   windowOpen,
   endDate,
-  needsSetup,              // ✅ added
+  needsSetup,
 }: Props) {
   const [pending, setPending] = useState<string | null>(null);
-  const [msg, setMsg] = useState('');
+  const [msg, setMsg]         = useState('');
 
   const myPair = pairs.find(
     (p) => p.user_a === currentUserId || p.user_b === currentUserId
@@ -36,8 +36,7 @@ export default function PairingClient({
 
   const myPartner = myPair
     ? profiles.find(
-        (p) =>
-          p.id === (myPair.user_a === currentUserId ? myPair.user_b : myPair.user_a)
+        (p) => p.id === (myPair.user_a === currentUserId ? myPair.user_b : myPair.user_a)
       )
     : null;
 
@@ -63,11 +62,9 @@ export default function PairingClient({
 
   return (
     <>
-      {/* ✅ Show profile setup modal if name hasn't been set */}
       {needsSetup && <ProfileSetup userId={currentUserId} userEmail={userEmail} />}
 
       <div className="min-h-screen p-6 max-w-3xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
             <Users className="w-8 h-8 text-blue-500" />
@@ -94,12 +91,9 @@ export default function PairingClient({
             </div>
           )}
 
-          {msg && (
-            <p className="mt-2 text-sm text-blue-600 dark:text-blue-400">{msg}</p>
-          )}
+          {msg && <p className="mt-2 text-sm text-blue-600 dark:text-blue-400">{msg}</p>}
         </div>
 
-        {/* Classmates List */}
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-3">
             Classmates
@@ -110,9 +104,9 @@ export default function PairingClient({
           )}
 
           {profiles.map((profile) => {
-            const isSent = sentTo.has(profile.id);
-            const incoming = receivedFrom.get(profile.id);
-            const isPaired = myPair !== null;
+            const isSent    = sentTo.has(profile.id);
+            const incoming  = receivedFrom.get(profile.id);
+            const isPaired  = !!myPair; // ✅ fixed: undefined → false
 
             return (
               <div
@@ -136,13 +130,11 @@ export default function PairingClient({
                     <span className="text-xs text-zinc-400">Paired</span>
                   ) : incoming ? (
                     <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" />
-                      They chose you!
+                      <CheckCircle className="w-3 h-3" /> They chose you!
                     </span>
                   ) : isSent ? (
                     <span className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      Requested
+                      <Clock className="w-3 h-3" /> Requested
                     </span>
                   ) : windowOpen ? (
                     <button
@@ -150,11 +142,9 @@ export default function PairingClient({
                       disabled={pending === profile.id}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition disabled:opacity-50"
                     >
-                      {pending === profile.id ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Heart className="w-3.5 h-3.5" />
-                      )}
+                      {pending === profile.id
+                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        : <Heart className="w-3.5 h-3.5" />}
                       Pair
                     </button>
                   ) : (
