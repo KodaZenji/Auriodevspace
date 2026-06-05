@@ -9,7 +9,6 @@ export default async function PairingPage() {
 
   if (!user) redirect('/login');
 
-  // Check if user has set their name
   const { data: myProfile } = await supabase
     .from('profiles')
     .select('full_name')
@@ -30,7 +29,7 @@ export default async function PairingPage() {
   return (
     <PairingClient
       currentUserId={user.id}
-      userEmail={user.email ?? ''}
+      userEmail={user.email ?? ''}   // ✅
       profiles={profiles}
       requests={requests}
       pairs={pairs}
