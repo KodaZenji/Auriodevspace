@@ -30,6 +30,7 @@ export default async function PairingPage() {
   return (
     <PairingClient
       currentUserId={user.id}
+      userEmail={user.email ?? ''}
       profiles={profiles}
       requests={requests}
       pairs={pairs}
