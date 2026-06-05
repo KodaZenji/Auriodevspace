@@ -3,32 +3,32 @@
 import { useState } from 'react';
 import { sendPairRequest } from './actions';
 import { Profile, PairRequest, Pair } from '@/types/pairing';
-import { Heart, Users, Clock, CheckCircle, Loader2 } from 'lucide-react';
+import { Heart, Users, Clock, CheckCircle, Loader2 } from 'lucide-react'; // removed unused XCircle
 import ProfileSetup from './ProfileSetup';
 
 interface Props {
   currentUserId: string;
+  userEmail: string;       // ✅ added
   profiles: Profile[];
   requests: PairRequest[];
   pairs: Pair[];
   windowOpen: boolean;
   endDate?: string;
-  needsSetup: boolean;
+  needsSetup: boolean;     // ✅ added
 }
 
 export default function PairingClient({
   currentUserId,
+  userEmail,               // ✅ added
   profiles,
   requests,
   pairs,
   windowOpen,
   endDate,
-  needsSetup,
+  needsSetup,              // ✅ added
 }: Props) {
   const [pending, setPending] = useState<string | null>(null);
   const [msg, setMsg] = useState('');
-
-  // ... rest of your existing PairingClient code stays exactly the same ...
 
   const myPair = pairs.find(
     (p) => p.user_a === currentUserId || p.user_b === currentUserId
@@ -63,10 +63,11 @@ export default function PairingClient({
 
   return (
     <>
-      {needsSetup && <ProfileSetup userId={currentUserId} />}
+      {/* ✅ Show profile setup modal if name hasn't been set */}
+      {needsSetup && <ProfileSetup userId={currentUserId} userEmail={userEmail} />}
 
       <div className="min-h-screen p-6 max-w-3xl mx-auto">
-        {/* ... everything below stays exactly the same ... */}
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
             <Users className="w-8 h-8 text-blue-500" />
@@ -98,6 +99,7 @@ export default function PairingClient({
           )}
         </div>
 
+        {/* Classmates List */}
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-3">
             Classmates
