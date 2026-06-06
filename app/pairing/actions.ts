@@ -12,7 +12,7 @@ export async function getProfiles() {
 
   const { data } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, full_name')
     .neq('id', user.id)
     .not('full_name', 'is', null)   // Only show students who have claimed their name
     .order('full_name');
