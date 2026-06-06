@@ -8,19 +8,21 @@ import { Shield, Users, Calendar, Clock, AlertTriangle, Loader2 } from 'lucide-r
 interface Props {
   profiles: Profile[];
   pairs: Pair[];
-  window: PairingWindow | null;
+  pairingWindow: PairingWindow | null;  // FIXED: was "window", which shadowed globalThis.window
   currentUserId: string;
 }
 
-export default function AdminClient({ profiles, pairs, window, currentUserId }: Props) {
+export default function AdminClient({ profiles, pairs, pairingWindow, currentUserId }: Props) {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<string>('');
+  const [result,  setResult]  = useState('');
 
   const pairedIds = new Set<string>();
-  pairs.forEach((p) => { pairedIds.add(p.user_a); pairedIds.add(p.user_b); });
+  pairs.forEach(p => { pairedIds.add(p.user_a); pairedIds.add(p.user_b); });
 
-  const unpaired = profiles.filter((p) => !pairedIds.has(p.id) && p.id !== currentUserId);
-  const isWindowOpen = window ? new Date() < new Date(window.end_date) : false;
+  const unpaired      = profiles.filter(p => !pairedIds.has(p.id) && p.id !== currentUserId);
+  const isWindowOpen  = pairingWindow
+    ? new Date() < new Date(pairingWindow.end_date)
+    : false;
 
   async function handleFinalize() {
     if (!confirm('This will close the window and auto-pair remaining students. Continue?')) return;
@@ -28,7 +30,7 @@ export default function AdminClient({ profiles, pairs, window, currentUserId }: 
     const res = await finalizePairs();
     setResult(res.error || `Finalized! ${res.paired} students auto-paired.`);
     setLoading(false);
-    if (!res.error) window.location.reload();
+    if (!res.error) globalThis.location.reload(); // FIXED: was window.location (the prop)
   }
 
   return (
@@ -65,13 +67,13 @@ export default function AdminClient({ profiles, pairs, window, currentUserId }: 
         <h2 className="font-semibold text-zinc-900 dark:text-white mb-3 flex items-center gap-2">
           <Calendar className="w-4 h-4" /> Pairing Window
         </h2>
-        {window ? (
+        {pairingWindow ? (
           <div className="space-y-2 text-sm">
             <p className="text-zinc-600 dark:text-zinc-400">
-              Start: <strong>{new Date(window.start_date).toLocaleString()}</strong>
+              Start: <strong>{new Date(pairingWindow.start_date).toLocaleString()}</strong>
             </p>
             <p className="text-zinc-600 dark:text-zinc-400">
-              End: <strong>{new Date(window.end_date).toLocaleString()}</strong>
+              End: <strong>{new Date(pairingWindow.end_date).toLocaleString()}</strong>
             </p>
             <p className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
@@ -83,7 +85,13 @@ export default function AdminClient({ profiles, pairs, window, currentUserId }: 
             </p>
           </div>
         ) : (
-          <p className="text-zinc-500">No pairing window set. Create one in Supabase.</p>
+          <p className="text-zinc-500 text-sm">
+            No pairing window set. Run this in Supabase SQL Editor:
+            <code className="block mt-2 text-xs bg-zinc-100 dark:bg-zinc-800 p-2 rounded-lg">
+              INSERT INTO pairing_window (start_date, end_date)
+              VALUES (now(), now() + interval &apos;7 days&apos;);
+            </code>
+          </p>
         )}
       </div>
 
@@ -93,15 +101,16 @@ export default function AdminClient({ profiles, pairs, window, currentUserId }: 
           <AlertTriangle className="w-4 h-4" /> Finalize Pairing
         </h2>
         <p className="text-sm text-amber-800 dark:text-amber-400 mb-4">
-          This will close the pairing window and automatically assign remaining unpaired students.
+          This will close the window and auto-assign remaining unpaired students randomly.
         </p>
         <button
           onClick={handleFinalize}
           disabled={loading}
-          className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50 flex items-center gap-2"
+          className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm
+                     font-medium transition disabled:opacity-50 flex items-center gap-2"
         >
           {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-          {loading ? 'Finalizing...' : 'Finalize & Auto-Pair'}
+          {loading ? 'Finalizing…' : 'Finalize & Auto-Pair'}
         </button>
         {result && <p className="mt-3 text-sm text-zinc-700 dark:text-zinc-300">{result}</p>}
       </div>
@@ -113,22 +122,25 @@ export default function AdminClient({ profiles, pairs, window, currentUserId }: 
           <p className="text-zinc-500 text-sm">No pairs yet.</p>
         ) : (
           <div className="space-y-2">
-            {pairs.map((pair) => {
-              const a = profiles.find((p) => p.id === pair.user_a);
-              const b = profiles.find((p) => p.id === pair.user_b);
+            {pairs.map(pair => {
+              const a = profiles.find(p => p.id === pair.user_a);
+              const b = profiles.find(p => p.id === pair.user_b);
               return (
                 <div
                   key={pair.id}
-                  className="flex items-center gap-3 p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg"
+                  className="flex items-center gap-3 p-3 bg-white dark:bg-zinc-900
+                             border border-zinc-200 dark:border-zinc-800 rounded-lg"
                 >
-                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-xs font-bold">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30
+                                  flex items-center justify-center text-blue-600 dark:text-blue-400 text-xs font-bold">
                     {(a?.full_name || a?.email || '?').charAt(0).toUpperCase()}
                   </div>
                   <span className="text-sm text-zinc-700 dark:text-zinc-300">
                     {a?.full_name || a?.email}
                   </span>
                   <span className="text-zinc-400">↔</span>
-                  <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 text-xs font-bold">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30
+                                  flex items-center justify-center text-purple-600 dark:text-purple-400 text-xs font-bold">
                     {(b?.full_name || b?.email || '?').charAt(0).toUpperCase()}
                   </div>
                   <span className="text-sm text-zinc-700 dark:text-zinc-300">
