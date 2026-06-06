@@ -1,57 +1,95 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { claimRosterEntry } from './actions';
 import { useRouter } from 'next/navigation';
+import { UserCheck, Loader2 } from 'lucide-react';
 
-interface Props {
-  userId: string;
-  userEmail: string;
+interface RosterOption {
+  id: string;
+  full_name: string;
 }
 
-export default function ProfileSetup({ userId, userEmail }: Props) {
-  const [name, setName]       = useState('');
-  const [loading, setLoading] = useState(false);
+export default function ProfileSetup({
+  userId,
+  rosterEntries,
+}: {
+  userId: string;
+  rosterEntries: RosterOption[];
+}) {
+  const [selected, setSelected] = useState('');
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState('');
   const router = useRouter();
 
-  async function save() {
-    if (!name.trim()) return;
+  async function handleClaim() {
+    if (!selected) return;
     setLoading(true);
+    setError('');
 
-    // ✅ upsert — works whether the row exists or not
-    const { error } = await supabase
-      .from('profiles')
-      .upsert(
-        { id: userId, email: userEmail, full_name: name.trim() },
-        { onConflict: 'id' }
-      );
+    const res = await claimRosterEntry(selected);
 
-    setLoading(false);
+    if ('error' in res && res.error) {
+      setError(res.error);
+      setLoading(false);
+      return;
+    }
 
-    if (!error) router.refresh();
+    // Refresh the server component so needsSetup becomes false
+    router.refresh();
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-xl max-w-sm w-full border border-zinc-200 dark:border-zinc-800">
-        <h2 className="text-xl font-bold mb-2 text-zinc-900 dark:text-white">Welcome!</h2>
-        <p className="text-sm text-zinc-500 mb-4">
-          Enter your full name so classmates know who you are.
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+      <div className="bg-white dark:bg-zinc-900 p-7 rounded-2xl shadow-2xl max-w-sm w-full border border-zinc-200 dark:border-zinc-800">
+        <div className="flex items-center gap-2 mb-1">
+          <UserCheck className="w-5 h-5 text-blue-500" />
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Claim your name</h2>
+        </div>
+        <p className="text-sm text-zinc-500 mb-5">
+          Select your name from the class list to confirm your identity.
+          Each name can only be claimed once — choose carefully.
         </p>
-        <input
-          type="text"
-          placeholder="Your full name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          onClick={save}
-          disabled={loading || !name.trim()}
-          className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition disabled:opacity-50"
+
+        <select
+          value={selected}
+          onChange={e => setSelected(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700
+                     bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white mb-1
+                     focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
         >
-          {loading ? 'Saving...' : 'Continue to Pairing'}
+          <option value="">— Select your name —</option>
+          {rosterEntries.map(entry => (
+            <option key={entry.id} value={entry.id}>
+              {entry.full_name}
+            </option>
+          ))}
+        </select>
+
+        {rosterEntries.length === 0 && (
+          <p className="text-xs text-amber-600 dark:text-amber-400 mb-3">
+            All names have been claimed. Contact your instructor.
+          </p>
+        )}
+
+        {error && (
+          <p className="text-sm text-red-500 mb-4 mt-2">{error}</p>
+        )}
+
+        <button
+          onClick={handleClaim}
+          disabled={loading || !selected}
+          className="w-full mt-3 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white
+                     font-medium transition disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          {loading
+            ? <><Loader2 className="w-4 h-4 animate-spin" /> Claiming…</>
+            : 'Confirm Identity'}
         </button>
+
+        <p className="text-xs text-zinc-400 mt-3 text-center">
+          Your name cannot be changed after this step.
+        </p>
       </div>
     </div>
   );
