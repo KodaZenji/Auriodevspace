@@ -4,7 +4,7 @@ import { getAllProfiles, getAllPairs, getPairingWindow } from '../actions';
 import AdminClient from './AdminClient';
 
 // Add admin emails here — anyone not on this list is sent to /pairing
-const ADMIN_EMAILS = ['peterjosy1@gmail.com'];
+const ADMIN_EMAILS = ['futurevibez598@gmail.com'];
 
 export default async function AdminPage() {
   const supabase = await createClient();
