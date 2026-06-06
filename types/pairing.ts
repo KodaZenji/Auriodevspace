@@ -25,3 +25,11 @@ export interface PairingWindow {
   end_date: string;
   is_active: boolean;
 }
+
+// Added for the roster-claim flow
+export interface RosterEntry {
+  id: string;
+  full_name: string;
+  claimed_by: string | null;
+  claimed_at: string | null;
+}
