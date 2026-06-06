@@ -11,15 +11,29 @@ export default function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    // Supabase puts the token in the URL hash — this picks it up
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setReady(true);
-      }
-    });
-  }, []);
+useEffect(() => {
+  const init = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
+    if (session) {
+      setReady(true);
+    }
+  };
+
+  init();
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      setReady(true);
+    }
+  });
+
+  return () => subscription.unsubscribe();
+}, []);
   async function handleReset() {
     if (password.length < 6) { setMsg('Password must be at least 6 characters'); return; }
     setLoading(true);
