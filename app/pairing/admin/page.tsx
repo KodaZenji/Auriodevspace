@@ -1,25 +1,21 @@
-// app/pairing/admin/page.tsx
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { getProfiles, getPairs, getPairingWindow, finalizePairs } from '../actions';
+import { getAllProfiles, getAllPairs, getPairingWindow } from '../actions';
 import AdminClient from './AdminClient';
 
-// Add your admin emails here
+// Add admin emails here — anyone not on this list is sent to /pairing
 const ADMIN_EMAILS = ['peterjosy1@gmail.com'];
 
 export default async function AdminPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  
-  // Not logged in → go to pairing login
+
   if (!user) redirect('/login');
-  
-  // Not admin → go to regular pairing page
   if (!ADMIN_EMAILS.includes(user.email ?? '')) redirect('/pairing');
 
-  const [profiles, pairs, window] = await Promise.all([
-    getProfiles(),
-    getPairs(),
+  const [profiles, pairs, pairingWindow] = await Promise.all([
+    getAllProfiles(),   // admin sees everyone, including themselves
+    getAllPairs(),      // admin sees all pairs
     getPairingWindow(),
   ]);
 
@@ -27,7 +23,7 @@ export default async function AdminPage() {
     <AdminClient
       profiles={profiles}
       pairs={pairs}
-      window={window}
+      pairingWindow={pairingWindow}   // FIXED: renamed from "window" to "pairingWindow"
       currentUserId={user.id}
     />
   );
