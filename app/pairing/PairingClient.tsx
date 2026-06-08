@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { sendPairRequest, acceptPairRequest, rejectPairRequest } from './actions';
 import { Profile, PairRequest, Pair } from '@/types/pairing';
 import { Heart, Users, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import ProfileSetup from './ProfileSetup';
 
@@ -35,35 +34,26 @@ export default function PairingClient({
   needsSetup,
   rosterEntries,
 }: Props) {
-  const router  = useRouter();
+  const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
   const [msg,     setMsg]     = useState('');
 
   // ── Realtime subscription ────────────────────────────────────────
-  // Listens for any change on pair_requests or pairs and refreshes
-  // the server component so all clients see updates without a manual reload.
-  // Requires both tables to have Replication enabled in Supabase dashboard.
   useEffect(() => {
     const channel = supabase
       .channel('pairing-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'pair_requests' },
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pair_requests' },
         () => router.refresh()
       )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'pairs' },
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pairs' },
         () => router.refresh()
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [router]);
 
-  // ── Relationship helpers ─────────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────────────
 
   const myPair = pairs.find(
     p => p.user_a === currentUserId || p.user_b === currentUserId
@@ -74,28 +64,24 @@ export default function PairingClient({
       )
     : null;
 
-  // ── Action handlers ──────────────────────────────────────────────
+  // ── Handlers ─────────────────────────────────────────────────────
 
   async function handleRequest(receiverId: string) {
-    setPending(receiverId);
-    setMsg('');
+    setPending(receiverId); setMsg('');
     const res = await sendPairRequest(receiverId);
     if (res.error) setMsg(res.error);
     setPending(null);
-    // No manual reload needed — Realtime will trigger router.refresh()
   }
 
   async function handleAccept(requestId: string) {
-    setPending(requestId);
-    setMsg('');
+    setPending(requestId); setMsg('');
     const res = await acceptPairRequest(requestId);
     if (res.error) setMsg(res.error);
     setPending(null);
   }
 
   async function handleReject(requestId: string) {
-    setPending(requestId);
-    setMsg('');
+    setPending(requestId); setMsg('');
     const res = await rejectPairRequest(requestId);
     if (res.error) setMsg(res.error);
     setPending(null);
@@ -124,7 +110,7 @@ export default function PairingClient({
               <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
               <span className="text-green-800 dark:text-green-300">
                 You are paired with{' '}
-                <strong>{myPartner?.full_name || myPartner?.email || 'your partner'}</strong>
+                <strong>{myPartner?.full_name || 'your partner'}</strong>
               </span>
             </div>
           ) : (
@@ -171,18 +157,15 @@ export default function PairingClient({
                 className="flex items-center justify-between p-4 bg-white dark:bg-zinc-900
                            border border-zinc-200 dark:border-zinc-800 rounded-xl"
               >
-                {/* Avatar + name */}
+                {/* Avatar + name only — no email */}
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500
                                   flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                    {(profile.full_name || profile.email || '?').charAt(0).toUpperCase()}
+                    {(profile.full_name || '?').charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <p className="font-medium text-zinc-900 dark:text-white text-sm">
-                      {profile.full_name || profile.email}
-                    </p>
-                    <p className="text-xs text-zinc-400">{profile.email}</p>
-                  </div>
+                  <p className="font-medium text-zinc-900 dark:text-white text-sm">
+                    {profile.full_name}
+                  </p>
                 </div>
 
                 {/* Action / status */}
@@ -196,7 +179,6 @@ export default function PairingClient({
                     null
 
                   ) : inRequest ? (
-                    // RECEIVER — Accept / Reject buttons
                     <>
                       <button
                         onClick={() => handleAccept(inRequest.id)}
@@ -222,7 +204,6 @@ export default function PairingClient({
                     </>
 
                   ) : outRequest ? (
-                    // SENDER — show request status
                     outRequest.status === 'requested' ? (
                       <span className="flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
                         <Clock className="w-3.5 h-3.5" /> Pending
