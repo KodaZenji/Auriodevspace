@@ -71,6 +71,13 @@ const ART_GALLERY = [
     imageUrl: "/Chef.jpg",
     placeholder: true,
   },
+  {
+    id: "art-placeholder-6",
+    title: "Go Velin or Go Home",
+    twitterUrl: "https://x.com/i/status/2063788421466771825",
+    imageUrl: "/go_velin.jpg",
+    placeholder: true,
+  },
 ];
 
 const CODESPACES = [
