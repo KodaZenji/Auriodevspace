@@ -586,7 +586,7 @@ export default function KemjeeLabsPage() {
               ))}
               <AddArtCard />
             </div>
-             
+          </div>
 
           {/* ── RIGHT: CODESPACES ── */}
           <div>
