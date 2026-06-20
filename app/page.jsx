@@ -75,7 +75,7 @@ const ART_GALLERY = [
     id: "art-placeholder-6",
     title: "Go Velin or Go Home",
     twitterUrl: "https://x.com/i/status/2063788421466771825",
-    imageUrl: "/go_velin.jpg",
+    imageUrl: "/go_velin.png",
     placeholder: true,
   },
 ];
