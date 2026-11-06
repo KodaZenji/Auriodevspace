@@ -1,29 +1,30 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"], weight: ["400", "600", "700", "800"], display: "swap" });
 
 // ─── HOOKS ────────────────────────────────────────────────────────────────
 function useTypewriter(words, speed = 80, pause = 2000) {
-  const [display, setDisplay] = useState("");
-  const [wIdx, setWIdx] = useState(0);
-  const [cIdx, setCIdx] = useState(0);
-  const [deleting, setDeleting] = useState(false);
+  const [{ w, text, deleting }, setState] = useState({ w: 0, text: words[0], deleting: false });
   useEffect(() => {
-    const word = words[wIdx];
-    const timeout = setTimeout(() => {
-      if (!deleting) {
-        setDisplay(word.slice(0, cIdx + 1));
-        if (cIdx + 1 === word.length) setTimeout(() => setDeleting(true), pause);
-        else setCIdx(c => c + 1);
-      } else {
-        setDisplay(word.slice(0, cIdx - 1));
-        if (cIdx - 1 === 0) { setDeleting(false); setWIdx(i => (i + 1) % words.length); setCIdx(0); }
-        else setCIdx(c => c - 1);
-      }
-    }, deleting ? speed / 2 : speed);
-    return () => clearTimeout(timeout);
-  }, [cIdx, deleting, wIdx, words, speed, pause]);
-  return display;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const full = words[w];
+    const atEnd = !deleting && text === full;
+    const delay = atEnd ? pause : deleting ? speed / 2 : speed;
+    const id = setTimeout(() => {
+      if (atEnd) setState({ w, text, deleting: true });
+      else if (deleting) {
+        if (text.length <= 1) setState({ w: (w + 1) % words.length, text: "", deleting: false });
+        else setState({ w, text: text.slice(0, -1), deleting: true });
+      } else setState({ w, text: full.slice(0, text.length + 1), deleting: false });
+    }, delay);
+    return () => clearTimeout(id);
+  }, [w, text, deleting, words, speed, pause]);
+  return text;
 }
 
 // ─── DATA ─────────────────────────────────────────────────────────────────
@@ -59,7 +60,7 @@ const ART_GALLERY = [
   },
   {
     id: "art-placeholder-4",
-    title: "I 'Canna' Like it ",
+    title: "I 'Canna' Like it",
     twitterUrl: "https://x.com/i/status/1873861411526631570",
     imageUrl: "/Canna.jpg",
     placeholder: true,
@@ -85,9 +86,9 @@ const CODESPACES = [
   {
     id: "NotInked",
     title: "NøtInked",
-    desc: "Check Before you get Inked— Powered by Inkonchain ",
+    desc: "Check before you get Inked — Powered by Inkonchain",
     tags: ["Safety", "Ink ecosystem"],
-    icon: "/notinked.png ",
+    icon: "/notinked.png",
     href: "https://notinked.xyz",
     status: "live",
     confidential: false,
@@ -162,11 +163,19 @@ function ArtModal({ item, onClose }) {
   useEffect(() => {
     const esc = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden"; // lock background scroll
+    return () => {
+      window.removeEventListener("keydown", esc);
+      document.body.style.overflow = prevOverflow;
+    };
   }, [onClose]);
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={item.title}
       onClick={onClose}
       style={{
         position: "fixed", inset: 0, zIndex: 9999,
@@ -183,10 +192,14 @@ function ArtModal({ item, onClose }) {
           borderRadius: 16,
           padding: 32,
           maxWidth: 560, width: "100%",
+          maxHeight: "90dvh", overflowY: "auto",
           position: "relative",
         }}
       >
         <button
+          type="button"
+          aria-label="Close"
+          autoFocus
           onClick={onClose}
           style={{
             position: "absolute", top: 14, right: 14,
@@ -199,10 +212,13 @@ function ArtModal({ item, onClose }) {
         >✕</button>
 
         {item.imageUrl && (
-          <img
+          <Image
             src={item.imageUrl}
             alt={item.title}
-            style={{ width: "100%", borderRadius: 10, marginBottom: item.twitterUrl ? 10 : 16 }}
+            width={1200}
+            height={1200}
+            sizes="(max-width: 600px) 90vw, 520px"
+            style={{ width: "100%", height: "auto", maxHeight: "60dvh", objectFit: "contain", borderRadius: 10, marginBottom: item.twitterUrl ? 10 : 16 }}
           />
         )}
 
@@ -222,7 +238,7 @@ function ArtModal({ item, onClose }) {
     </span>
 
     <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 10 }}>
-      Click anywhere to close pop-up
+      Press Esc or click outside to close
     </span>
   </div>
 </div>
@@ -268,15 +284,25 @@ function ArtModal({ item, onClose }) {
 // ─── MAIN PAGE ─────────────────────────────────────────────────────────────
 export default function KemjeeLabsPage() {
   const role = useTypewriter(ROLES);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const glowRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedArt, setSelectedArt] = useState(null);
   const menuRef = useRef(null);
+  const closeArt = useCallback(() => setSelectedArt(null), []);
 
+  // Glow follows the cursor via a direct transform: no React state, no re-renders
   useEffect(() => {
-    const move = (e) => setPos({ x: e.clientX, y: e.clientY });
-    window.addEventListener("mousemove", move);
-    return () => window.removeEventListener("mousemove", move);
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)");
+    if (!mq.matches) return;
+    let raf = 0;
+    const move = (e) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        if (glowRef.current) glowRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+      });
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    return () => { window.removeEventListener("pointermove", move); cancelAnimationFrame(raf); };
   }, []);
 
   useEffect(() => {
@@ -289,10 +315,10 @@ export default function KemjeeLabsPage() {
 
   return (
     <div style={{
-      minHeight: "100vh",
+      minHeight: "100dvh",
       background: "#050A05",
       color: "#fff",
-      fontFamily: "'Inter', 'Segoe UI', sans-serif",
+      fontFamily: `${inter.style.fontFamily}, 'Segoe UI', sans-serif`,
       position: "relative",
       display: "flex",
       flexDirection: "column",
@@ -300,11 +326,12 @@ export default function KemjeeLabsPage() {
 
       {/* ── animated mesh background ── */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <div style={{
-          position: "absolute", width: 600, height: 600, borderRadius: "50%",
+        <div ref={glowRef} style={{
+          position: "absolute", top: 0, left: 0, width: 600, height: 600,
+          margin: "-300px 0 0 -300px", borderRadius: "50%",
           background: "radial-gradient(circle, rgba(0,180,80,0.12) 0%, transparent 70%)",
-          top: `calc(${pos.y}px - 300px)`, left: `calc(${pos.x}px - 300px)`,
-          transition: "top 0.8s ease, left 0.8s ease",
+          transform: "translate3d(50vw, 30vh, 0)",
+          transition: "transform 0.8s ease", willChange: "transform",
         }} />
         <div style={{
           position: "absolute", top: "10%", right: "5%",
@@ -375,7 +402,7 @@ export default function KemjeeLabsPage() {
           </div>
         </div>
 
-        <div ref={menuRef} style={{ position: "relative" }}>
+        <div ref={menuRef} className="mobile-menu" style={{ position: "relative" }}>
           <button
             onClick={() => setMenuOpen(o => !o)}
             aria-label="Toggle menu"
@@ -556,7 +583,7 @@ export default function KemjeeLabsPage() {
         {/* ── FIX: both columns are now inside this grid ── */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
           gap: 32,
           alignItems: "start",
         }}>
@@ -580,7 +607,7 @@ export default function KemjeeLabsPage() {
                 color: "rgba(0,200,83,0.6)", textTransform: "uppercase",
                 border: "1px solid rgba(0,200,83,0.2)", borderRadius: 4, padding: "2px 7px",
               }}>
-                Handrawn
+                Hand-drawn
               </span>
             </div>
             <p style={{ margin: "0 0 24px", fontSize: 13, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
@@ -589,13 +616,13 @@ export default function KemjeeLabsPage() {
 
             <div style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
               gap: 12,
             }}>
               {ART_GALLERY.map(item => (
                 <ArtCard key={item.id} item={item} onClick={() => setSelectedArt(item)} />
               ))}
-              <AddArtCard />
+              {process.env.NODE_ENV === "development" && <AddArtCard />}
             </div>
           </div>
 
@@ -651,7 +678,7 @@ export default function KemjeeLabsPage() {
           {[
             { label: "X", href: "https://x.com/0x_Aurio" },
             { label: "GitHub", href: "https://github.com/KodaZenji" },
-            { label: "LinkedIn", href: "#" },
+            // { label: "LinkedIn", href: "https://linkedin.com/in/your-handle" },
           ].map(({ label, href }) => (
             <a key={label} href={href} target="_blank" rel="noopener noreferrer" style={{
               fontSize: 12, color: "rgba(255,255,255,0.3)",
@@ -666,17 +693,19 @@ export default function KemjeeLabsPage() {
         </div>
       </footer>
 
-      {selectedArt && <ArtModal item={selectedArt} onClose={() => setSelectedArt(null)} />}
+      {selectedArt && <ArtModal item={selectedArt} onClose={closeArt} />}
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         @keyframes menuIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
         * { box-sizing: border-box; }
         input::placeholder { color: rgba(255,255,255,0.25); }
         .desktop-nav { display: flex; }
-        @media (max-width: 640px) { .desktop-nav { display: none !important; } }
+        .mobile-menu { display: none; }
+        @media (max-width: 768px) { .desktop-nav { display: none !important; } .mobile-menu { display: block; } }
+        :focus-visible { outline: 2px solid #00C853; outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
       `}</style>
     </div>
   );
@@ -686,18 +715,21 @@ export default function KemjeeLabsPage() {
 function CodespaceCard({ proj }) {
   const [hovered, setHovered] = useState(false);
 
-  const handleClick = () => {
-    if (proj.confidential || !proj.href) return;
-    window.open(proj.href, "_blank", "noopener noreferrer");
-  };
+  const locked = proj.confidential || !proj.href;
+  const external = !locked && proj.href.startsWith("http");
+  const Card = locked ? "div" : external ? "a" : Link;
+  const linkProps = locked ? {} : external
+    ? { href: proj.href, target: "_blank", rel: "noopener noreferrer" }
+    : { href: proj.href };
 
   return (
-    <div
-      onClick={handleClick}
+    <Card
+      {...linkProps}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
         position: "relative",
+        display: "block", color: "inherit", textDecoration: "none",
         background: hovered && !proj.confidential
           ? "rgba(0,200,83,0.05)"
           : "rgba(255,255,255,0.02)",
@@ -738,9 +770,12 @@ function CodespaceCard({ proj }) {
           overflow: "hidden",
         }}>
           {isImageSrc(proj.icon) ? (
-            <img
+            <Image
               src={proj.icon}
-              alt={proj.title}
+              alt=""
+              width={36}
+              height={36}
+              unoptimized={proj.icon.startsWith("http")}
               style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: 7 }}
             />
           ) : (
@@ -781,7 +816,7 @@ function CodespaceCard({ proj }) {
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -790,11 +825,14 @@ function ArtCard({ item, onClick }) {
   const [hovered, setHovered] = useState(false);
 
   return (
-    <div
+    <button
+      type="button"
+      aria-label={`View ${item.title}`}
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
+        width: "100%", font: "inherit", color: "inherit",
         aspectRatio: "1 / 1",
         background: hovered ? "rgba(0,200,83,0.06)" : "rgba(255,255,255,0.02)",
         border: hovered ? "1px solid rgba(0,200,83,0.3)" : "1px dashed rgba(255,255,255,0.08)",
@@ -806,10 +844,12 @@ function ArtCard({ item, onClick }) {
       }}
     >
       {item.imageUrl ? (
-        <img
+        <Image
           src={item.imageUrl}
-          alt={item.title}
-          style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0, borderRadius: 10 }}
+          alt=""
+          fill
+          sizes="(max-width: 640px) 45vw, 160px"
+          style={{ objectFit: "cover", borderRadius: 10 }}
         />
       ) : (
         <>
@@ -820,15 +860,15 @@ function ArtCard({ item, onClick }) {
         </>
       )}
       {hovered && (
-        <div style={{
+        <span style={{
           position: "absolute", inset: 0, borderRadius: 10,
           background: "rgba(0,200,83,0.1)",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           <span style={{ fontSize: 18 }}>👁</span>
-        </div>
+        </span>
       )}
-    </div>
+    </button>
   );
 }
 
