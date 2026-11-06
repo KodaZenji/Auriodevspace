@@ -81,6 +81,17 @@ const ART_GALLERY = [
 ];
 
 const CODESPACES = [
+
+  {
+    id: "NotInked",
+    title: "NøtInked Wallet and Contract Safety",
+    desc: "Check Before you get Inked- Powered by Inkonchain ",
+    tags: ["Safety", "Ink ecosystem"],
+    icon: "/notinked.png ",
+    href: "https://notinked.xyz",
+    status: "live",
+    confidential: false,
+  },
   {
     id: "basematch",
     title: "BaseMatch",
